@@ -1,0 +1,10 @@
+LitFlux
+
+LitFlux's original code and documentation are licensed under the Apache
+License, Version 2.0. The full license is included in LICENSE.
+
+The offline viewer is generated from this skill's own assets: drawing.js,
+semantic-viewer.html, semantic-audit.js and localizer.js. It bundles no
+third-party layout engine.
+
+Target-project source remains subject to its original license.

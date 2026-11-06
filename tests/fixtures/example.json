@@ -1,0 +1,665 @@
+{
+  "schemaVersion": "0.3",
+  "project": {
+    "name": "声明式示例：查询用户",
+    "scope": "构建、初始化、一个 HTTP 业务入口和请求格式错误；只演示模型，不描述当前仓库。",
+    "sourceKind": "declaration",
+    "coverage": [
+      {
+        "entry": "构建",
+        "kind": "build",
+        "status": "covered",
+        "operations": [
+          "op.build"
+        ],
+        "reason": null
+      },
+      {
+        "entry": "初始化",
+        "kind": "startup",
+        "status": "covered",
+        "operations": [
+          "op.initialize"
+        ],
+        "reason": null
+      },
+      {
+        "entry": "HTTP 请求",
+        "kind": "business",
+        "status": "covered",
+        "operations": [
+          "op.handle"
+        ],
+        "reason": null
+      },
+      {
+        "entry": "请求格式错误",
+        "kind": "error",
+        "status": "covered",
+        "operations": [
+          "op.parse"
+        ],
+        "reason": null
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "id": "ev.example",
+      "kind": "declaration",
+      "ref": null,
+      "note": "本文件声明了用于校验模型格式的示例流程，所有类型和操作都是示例定义。"
+    }
+  ],
+  "entities": [
+    {
+      "id": "ent.source",
+      "name": "源码",
+      "kind": "composite",
+      "scope": "project",
+      "type": "SourceTree",
+      "evidence": [
+        "ev.example"
+      ]
+    },
+    {
+      "id": "ent.artifact",
+      "name": "构建产物",
+      "kind": "value",
+      "scope": "project",
+      "type": "BuildArtifact",
+      "evidence": [
+        "ev.example"
+      ]
+    },
+    {
+      "id": "ent.ready",
+      "name": "服务就绪",
+      "kind": "value",
+      "scope": "application",
+      "type": "Ready",
+      "evidence": [
+        "ev.example"
+      ]
+    },
+    {
+      "id": "ent.request",
+      "name": "HTTP 请求",
+      "kind": "value",
+      "scope": "op.handle",
+      "type": "HttpRequest",
+      "evidence": [
+        "ev.example"
+      ]
+    },
+    {
+      "id": "ent.params",
+      "name": "用户查询参数",
+      "kind": "value",
+      "scope": "op.handle",
+      "type": "UserQuery",
+      "evidence": [
+        "ev.example"
+      ]
+    },
+    {
+      "id": "ent.sql",
+      "name": "SQL 与绑定参数",
+      "kind": "composite",
+      "scope": "op.lookup",
+      "type": "PreparedQuery",
+      "evidence": [
+        "ev.example"
+      ]
+    },
+    {
+      "id": "ent.row",
+      "name": "用户记录",
+      "kind": "value",
+      "scope": "op.handle",
+      "type": "UserRecord",
+      "evidence": [
+        "ev.example"
+      ]
+    },
+    {
+      "id": "ent.response",
+      "name": "HTTP 响应",
+      "kind": "value",
+      "scope": "op.handle",
+      "type": "HttpResponse",
+      "evidence": [
+        "ev.example"
+      ]
+    },
+    {
+      "id": "ent.error",
+      "name": "请求格式错误",
+      "kind": "value",
+      "scope": "op.handle",
+      "type": "RequestError",
+      "evidence": [
+        "ev.example"
+      ]
+    }
+  ],
+  "phases": [
+    {
+      "id": "phase.build",
+      "label": "0 构建",
+      "requires": [],
+      "completion": {
+        "condition": "构建成功",
+        "entities": [
+          "ent.artifact"
+        ]
+      },
+      "evidence": [
+        "ev.example"
+      ]
+    },
+    {
+      "id": "phase.startup",
+      "label": "1 初始化",
+      "requires": [
+        "phase.build"
+      ],
+      "completion": {
+        "condition": "数据库连接可用且服务就绪",
+        "entities": [
+          "ent.db",
+          "ent.ready"
+        ]
+      },
+      "evidence": [
+        "ev.example"
+      ]
+    },
+    {
+      "id": "phase.runtime",
+      "label": "2 业务",
+      "requires": [
+        "phase.startup"
+      ],
+      "completion": null,
+      "evidence": [
+        "ev.example"
+      ]
+    }
+  ],
+  "operations": [
+    {
+      "id": "op.build",
+      "name": "build",
+      "definition": "example.build",
+      "signature": "build(source: SourceTree): BuildArtifact",
+      "phase": "phase.build",
+      "trigger": "all",
+      "inputs": [
+        {
+          "port": "source",
+          "entity": "ent.source",
+          "role": "argument",
+          "required": true
+        }
+      ],
+      "outcomes": [
+        {
+          "id": "success",
+          "condition": "构建成功",
+          "outputs": [
+            {
+              "port": "artifact",
+              "entity": "ent.artifact",
+              "role": "return"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        "写入构建产物"
+      ],
+      "evidence": [
+        "ev.example"
+      ],
+      "expansion": null
+    },
+    {
+      "id": "op.initialize",
+      "name": "initialize",
+      "definition": "example.initialize",
+      "signature": "initialize(artifact: BuildArtifact): ApplicationContext",
+      "phase": "phase.startup",
+      "trigger": "all",
+      "inputs": [
+        {
+          "port": "artifact",
+          "entity": "ent.artifact",
+          "role": "argument",
+          "required": true
+        }
+      ],
+      "outcomes": [
+        {
+          "id": "success",
+          "condition": "初始化成功",
+          "outputs": [
+            {
+              "port": "db",
+              "entity": "ent.db",
+              "role": "reference",
+              "label": "数据库连接"
+            },
+            {
+              "port": "ready",
+              "entity": "ent.ready",
+              "role": "return"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        "建立数据库连接"
+      ],
+      "evidence": [
+        "ev.example"
+      ],
+      "expansion": null,
+      "note": "声明的 ApplicationContext 暴露数据库连接与就绪事件。"
+    },
+    {
+      "id": "op.handle",
+      "name": "handleRequest",
+      "definition": "example.handleRequest",
+      "signature": "handleRequest(request: HttpRequest): Result<HttpResponse, RequestError>",
+      "phase": "phase.runtime",
+      "trigger": "all",
+      "inputs": [
+        {
+          "port": "request",
+          "entity": "ent.request",
+          "role": "argument",
+          "required": true
+        },
+        {
+          "port": "db",
+          "entity": "ent.db",
+          "role": "capture",
+          "required": true
+        },
+        {
+          "port": "ready",
+          "entity": "ent.ready",
+          "role": "capture",
+          "required": true
+        }
+      ],
+      "outcomes": [
+        {
+          "id": "success",
+          "condition": "请求格式有效",
+          "outputs": [
+            {
+              "port": "response",
+              "entity": "ent.response",
+              "role": "return"
+            }
+          ]
+        },
+        {
+          "id": "error",
+          "condition": "请求格式无效",
+          "outputs": [
+            {
+              "port": "error",
+              "entity": "ent.error",
+              "role": "return"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        "读取数据库"
+      ],
+      "evidence": [
+        "ev.example"
+      ],
+      "expansion": {
+        "operations": [
+          {
+            "id": "op.parse",
+            "name": "parseRequest",
+            "definition": "example.parseRequest",
+            "signature": "parseRequest(request: HttpRequest): Result<UserQuery, RequestError>",
+            "phase": "phase.runtime",
+            "trigger": "all",
+            "inputs": [
+              {
+                "port": "request",
+                "entity": "ent.request",
+                "role": "argument",
+                "required": true
+              },
+              {
+                "port": "ready",
+                "entity": "ent.ready",
+                "role": "capture",
+                "required": true
+              }
+            ],
+            "outcomes": [
+              {
+                "id": "success",
+                "condition": "请求格式有效",
+                "outputs": [
+                  {
+                    "port": "params",
+                    "entity": "ent.params",
+                    "role": "return"
+                  }
+                ]
+              },
+              {
+                "id": "error",
+                "condition": "请求格式无效",
+                "outputs": [
+                  {
+                    "port": "error",
+                    "entity": "ent.error",
+                    "role": "return"
+                  }
+                ]
+              }
+            ],
+            "effects": [],
+            "evidence": [
+              "ev.example"
+            ],
+            "expansion": null,
+            "note": "就绪事件是流程的控制条件，实际声明签名只有 request 参数。"
+          },
+          {
+            "id": "op.lookup",
+            "name": "lookupUser",
+            "definition": "example.lookupUser",
+            "signature": "lookupUser(params: UserQuery): UserRecord",
+            "phase": "phase.runtime",
+            "trigger": "all",
+            "inputs": [
+              {
+                "port": "params",
+                "entity": "ent.params",
+                "role": "argument",
+                "required": true
+              },
+              {
+                "port": "db",
+                "entity": "ent.db",
+                "role": "capture",
+                "required": true
+              }
+            ],
+            "outcomes": [
+              {
+                "id": "success",
+                "condition": null,
+                "outputs": [
+                  {
+                    "port": "row",
+                    "entity": "ent.row",
+                    "role": "return"
+                  }
+                ]
+              }
+            ],
+            "effects": [
+              "读取数据库"
+            ],
+            "evidence": [
+              "ev.example"
+            ],
+            "expansion": {
+              "operations": [
+                {
+                  "id": "op.prepare",
+                  "name": "prepareQuery",
+                  "definition": "example.prepareQuery",
+                  "signature": "prepareQuery(params: UserQuery): PreparedQuery",
+                  "phase": "phase.runtime",
+                  "trigger": "all",
+                  "inputs": [
+                    {
+                      "port": "params",
+                      "entity": "ent.params",
+                      "role": "argument",
+                      "required": true
+                    }
+                  ],
+                  "outcomes": [
+                    {
+                      "id": "success",
+                      "condition": null,
+                      "outputs": [
+                        {
+                          "port": "sql",
+                          "entity": "ent.sql",
+                          "role": "return"
+                        }
+                      ]
+                    }
+                  ],
+                  "effects": [],
+                  "evidence": [
+                    "ev.example"
+                  ],
+                  "expansion": null
+                },
+                {
+                  "id": "op.execute",
+                  "name": "executeQuery",
+                  "definition": "example.executeQuery",
+                  "signature": "executeQuery(sql: PreparedQuery): UserRecord",
+                  "phase": "phase.runtime",
+                  "trigger": "all",
+                  "inputs": [
+                    {
+                      "port": "sql",
+                      "entity": "ent.sql",
+                      "role": "argument",
+                      "required": true
+                    },
+                    {
+                      "port": "db",
+                      "entity": "ent.db",
+                      "role": "capture",
+                      "required": true
+                    }
+                  ],
+                  "outcomes": [
+                    {
+                      "id": "success",
+                      "condition": null,
+                      "outputs": [
+                        {
+                          "port": "row",
+                          "entity": "ent.row",
+                          "role": "return"
+                        }
+                      ]
+                    }
+                  ],
+                  "effects": [
+                    "读取数据库"
+                  ],
+                  "evidence": [
+                    "ev.example"
+                  ],
+                  "expansion": {
+                    "operations": [
+                      {
+                        "id": "op.driver",
+                        "name": "driverQuery",
+                        "definition": "example.driver.query",
+                        "signature": "query(sql: PreparedQuery, connection: DatabaseConnection): UserRecord",
+                        "phase": "phase.runtime",
+                        "trigger": "all",
+                        "inputs": [
+                          {
+                            "port": "sql",
+                            "entity": "ent.sql",
+                            "role": "argument",
+                            "required": true
+                          },
+                          {
+                            "port": "db",
+                            "entity": "ent.db",
+                            "role": "argument",
+                            "required": true
+                          }
+                        ],
+                        "outcomes": [
+                          {
+                            "id": "success",
+                            "condition": null,
+                            "outputs": [
+                              {
+                                "port": "row",
+                                "entity": "ent.row",
+                                "role": "return"
+                              }
+                            ]
+                          }
+                        ],
+                        "effects": [
+                          "读取数据库"
+                        ],
+                        "evidence": [
+                          "ev.example"
+                        ],
+                        "expansion": null,
+                        "note": "示例没有数据库驱动源码，因此只保留声明契约。"
+                      }
+                    ],
+                    "bindings": [
+                      {
+                        "outer": "in/sql",
+                        "operation": "op.driver",
+                        "inner": "in/sql"
+                      },
+                      {
+                        "outer": "in/db",
+                        "operation": "op.driver",
+                        "inner": "in/db"
+                      },
+                      {
+                        "outer": "out/success/row",
+                        "operation": "op.driver",
+                        "inner": "out/success/row"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "bindings": [
+                {
+                  "outer": "in/params",
+                  "operation": "op.prepare",
+                  "inner": "in/params"
+                },
+                {
+                  "outer": "in/db",
+                  "operation": "op.execute",
+                  "inner": "in/db"
+                },
+                {
+                  "outer": "out/success/row",
+                  "operation": "op.execute",
+                  "inner": "out/success/row"
+                }
+              ]
+            }
+          },
+          {
+            "id": "op.format",
+            "name": "formatResponse",
+            "definition": "example.formatResponse",
+            "signature": "formatResponse(row: UserRecord): HttpResponse",
+            "phase": "phase.runtime",
+            "trigger": "all",
+            "inputs": [
+              {
+                "port": "row",
+                "entity": "ent.row",
+                "role": "argument",
+                "required": true
+              }
+            ],
+            "outcomes": [
+              {
+                "id": "success",
+                "condition": null,
+                "outputs": [
+                  {
+                    "port": "response",
+                    "entity": "ent.response",
+                    "role": "return"
+                  }
+                ]
+              }
+            ],
+            "effects": [],
+            "evidence": [
+              "ev.example"
+            ],
+            "expansion": null
+          }
+        ],
+        "bindings": [
+          {
+            "outer": "in/request",
+            "operation": "op.parse",
+            "inner": "in/request"
+          },
+          {
+            "outer": "in/db",
+            "operation": "op.lookup",
+            "inner": "in/db"
+          },
+          {
+            "outer": "in/ready",
+            "operation": "op.parse",
+            "inner": "in/ready"
+          },
+          {
+            "outer": "out/success/response",
+            "operation": "op.format",
+            "inner": "out/success/response"
+          },
+          {
+            "outer": "out/error/error",
+            "operation": "op.parse",
+            "inner": "out/error/error"
+          }
+        ]
+      }
+    }
+  ],
+  "unknowns": [
+    "数据库驱动内部不可见。",
+    "示例仅描述请求格式错误，数据库故障与查询无结果的处理未定义。"
+  ],
+  "components": [],
+  "events": [],
+  "resources": [
+    {
+      "id": "ent.db",
+      "name": "数据库连接",
+      "kind": "database",
+      "scope": "application",
+      "type": "DatabaseConnection",
+      "evidence": [
+        "ev.example"
+      ]
+    }
+  ]
+}

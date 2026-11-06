@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>蓝图 · LitFlux</title>
+<style>
+:root{
+  --bg:#07131c; --panel:#0a1c27; --ink:#cfe4ec; --dim:#7e9aa6; --faint:#547383;
+  --line:#153544; --line2:#215064; --cyan:#63cbd8; --amber:#e2a961; --red:#d87963;
+  --mono:"Cascadia Code","JetBrains Mono","SFMono-Regular",Consolas,"Microsoft YaHei UI",monospace;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font:12px/1.55 var(--mono);-webkit-font-smoothing:antialiased;overflow:hidden}
+body::before{content:"";position:fixed;inset:0;background-image:linear-gradient(rgba(91,166,189,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(91,166,189,.055) 1px,transparent 1px);background-size:24px 24px;pointer-events:none}
+button,select{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+button:focus-visible,select:focus-visible,[tabindex]:focus-visible{outline:1px solid var(--cyan);outline-offset:2px}
+::selection{background:rgba(99,203,216,.25)}
+.frame{position:fixed;inset:14px;border:1px solid var(--line2);display:grid;grid-template-columns:206px minmax(0,1fr) 300px;grid-template-rows:60px minmax(0,1fr) 92px;grid-template-areas:"head head head" "index sheet notes" "block block block";background:rgba(5,17,25,.6);overflow:hidden}
+.frame::before,.frame::after,.frame-corner{content:"";position:absolute;width:14px;height:14px;border:1px solid var(--cyan);opacity:.5;pointer-events:none}
+.frame::before{left:-1px;top:-1px;border-right:0;border-bottom:0}
+.frame::after{right:-1px;bottom:-1px;border-left:0;border-top:0}
+.frame-corner{left:-1px;bottom:-1px;border-right:0;border-top:0}
+.head{grid-area:head;display:flex;align-items:center;gap:26px;padding:0 20px;border-bottom:1px solid var(--line2)}
+.brand{font-size:13px;letter-spacing:.26em;color:var(--ink)}
+.brand b{color:var(--cyan);font-weight:400}
+.head .doc{font-size:9.5px;letter-spacing:.14em;color:var(--faint);text-transform:uppercase}
+.tabs{display:flex;gap:2px;margin-left:auto}
+.tabs button{font-size:10.5px;letter-spacing:.08em;color:var(--dim);padding:8px 12px;border:1px solid transparent;line-height:1}
+.tabs button[aria-current="true"]{color:var(--cyan);border-color:var(--line2);background:rgba(99,203,216,.05)}
+.tabs button em{font-style:normal;color:var(--faint);margin-right:6px}
+.status{display:flex;align-items:center;gap:8px;font-size:9.5px;letter-spacing:.12em;color:var(--faint)}
+.status i{width:5px;height:5px;background:var(--cyan);border-radius:50%;box-shadow:0 0 8px var(--cyan)}
+.index{grid-area:index;border-right:1px solid var(--line2);display:flex;flex-direction:column;overflow:hidden}
+.sect{padding:12px 14px 9px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;font-size:9px;letter-spacing:.16em;color:var(--faint);text-transform:uppercase}
+.sheet-list{list-style:none;margin:0;padding:0;overflow:auto;flex:1}
+.sheet-list button{display:flex;gap:9px;width:100%;text-align:left;padding:6px 12px;line-height:1.4;color:var(--dim);border-left:2px solid transparent}
+.sheet-list button:hover{color:var(--ink);background:rgba(99,203,216,.04)}
+.sheet-list li[data-current="true"] button{color:var(--cyan);border-left-color:var(--cyan);background:rgba(99,203,216,.07)}
+.sheet-list .code{color:var(--faint);min-width:34px;font-size:9.5px;letter-spacing:.04em}
+.sheet-list li[data-current="true"] .code{color:var(--cyan)}
+.sheet-list .src{margin-left:auto;font-size:8px;color:var(--faint);letter-spacing:.1em}
+.caps{padding:10px 12px 14px;border-top:1px solid var(--line2)}
+.cap-row{display:flex;gap:7px;padding:4px 0;font-size:9.5px;color:var(--dim);align-items:baseline}
+.cap-row .n{color:var(--faint);font-size:8px}
+.cap-row .s{font-size:8px}
+.cap-row.covered .s{color:var(--cyan)}
+.cap-row.pending .s{color:var(--amber)}
+.cap-row.unavailable .s{color:var(--red)}
+.cap-row.not-implemented .s{color:var(--faint)}
+.mini-legend{padding:10px 12px 14px;border-top:1px solid var(--line);font-size:8.5px;letter-spacing:.08em;color:var(--faint);line-height:1.8}
+.sheet{grid-area:sheet;position:relative;display:flex;flex-direction:column;min-width:0;border-right:1px solid var(--line2);background:rgba(6,20,29,.35)}
+.sheet-head{height:30px;flex:none;display:flex;align-items:center;gap:16px;padding:0 14px;border-bottom:1px solid var(--line);font-size:9px;letter-spacing:.14em;color:var(--faint);text-transform:uppercase}
+.sheet-head b{color:var(--dim);font-weight:400}
+.canvas{position:relative;flex:1;min-height:0;padding:18px 16px;overflow:hidden}
+.canvas::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 40% 45%,rgba(25,74,92,.18),transparent 65%);pointer-events:none}
+#graph{position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;cursor:crosshair}
+#graph svg{width:100%;height:100%}
+.ruler{position:absolute;left:16px;right:16px;top:6px;height:6px;background:repeating-linear-gradient(90deg,var(--line2) 0 1px,transparent 1px 24px);opacity:.6;pointer-events:none}
+.sheet-foot{flex:none;height:34px;display:flex;align-items:center;gap:16px;padding:0 14px;border-top:1px solid var(--line);font-size:9.5px;color:var(--faint);letter-spacing:.06em}
+.sheet-foot .coord{margin-left:auto;color:var(--dim);font-size:9px;letter-spacing:.08em}
+.sheet-foot select{background:transparent;border:1px solid var(--line2);color:var(--ink);font-size:10px;padding:3px 6px;max-width:230px}
+.sheet-foot label{display:flex;align-items:center;gap:7px;color:var(--faint);letter-spacing:.1em;text-transform:uppercase;font-size:9px}
+.notes{grid-area:notes;display:flex;flex-direction:column;min-width:0;overflow:hidden;background:rgba(7,21,30,.55)}
+.notes-head{height:30px;flex:none;display:flex;align-items:center;gap:8px;padding:0 14px;border-bottom:1px solid var(--line);font-size:9px;letter-spacing:.16em;color:var(--faint);text-transform:uppercase}
+.notes-head span{color:var(--dim);letter-spacing:.06em;text-transform:none;margin-left:auto;font-size:9px}
+.annotation{padding:14px;border-bottom:1px solid var(--line2);min-height:188px}
+.annotation .code{font-size:9px;letter-spacing:.12em;color:var(--cyan)}
+.annotation h2{font-size:15px;line-height:1.5;font-weight:400;color:var(--ink);margin:6px 0 8px;letter-spacing:.01em}
+.annotation p{font-size:10.5px;line-height:1.9;color:var(--dim);margin:0 0 12px}
+.meta{display:grid;grid-template-columns:1fr 1fr;gap:5px 10px;font-size:9px;color:var(--faint);margin-bottom:12px}
+.meta b{display:block;color:var(--dim);font-weight:400;font-size:10px}
+.act{display:flex;gap:8px;flex-wrap:wrap}
+.act button{border:1px solid var(--line2);padding:5px 9px;font-size:9.5px;letter-spacing:.1em;color:var(--cyan);text-transform:uppercase}
+.act button:hover{background:rgba(99,203,216,.08)}
+.act button[hidden]{display:none}
+.walk{flex:1;overflow:auto;padding:10px 0 0}
+.walk ol{list-style:none;margin:0;padding:0}
+.walk li{display:flex;gap:8px;padding:5px 14px;font-size:10px;color:var(--faint);border-left:2px solid transparent;line-height:1.4}
+.walk li .i{min-width:22px;font-size:9px;color:var(--faint)}
+.walk li.done{color:var(--dim)}
+.walk li.done .i{color:var(--cyan)}
+.walk li.now{color:var(--cyan);border-left-color:var(--cyan);background:rgba(99,203,216,.06)}
+.walk li.now .i{color:var(--cyan)}
+.walk li.sel:not(.now){color:var(--amber);border-left-color:var(--amber)}
+.readctl{flex:none;display:flex;gap:8px;padding:12px 14px;border-top:1px solid var(--line2)}
+.readctl button{flex:1;border:1px solid var(--line2);padding:6px;font-size:9.5px;letter-spacing:.12em;color:var(--dim);text-transform:uppercase}
+.readctl button:hover:not(:disabled){color:var(--cyan);border-color:var(--cyan)}
+.readctl button:disabled{opacity:.35;cursor:default}
+.block{grid-area:block;display:grid;grid-template-columns:1.5fr 2.4fr .7fr .8fr .8fr;border-top:1px solid var(--line2)}
+.cell{padding:10px 14px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:5px;min-width:0}
+.cell:last-child{border-right:0}
+.cell .k{font-size:8px;letter-spacing:.18em;color:var(--faint);text-transform:uppercase}
+.cell .v{font-size:10px;color:var(--dim);line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cell .v.big{font-size:12px;color:var(--ink);letter-spacing:.02em}
+.drawer{position:fixed;right:0;top:0;bottom:0;width:min(640px,94vw);background:#06141e;border-left:1px solid var(--line2);z-index:9;display:flex;flex-direction:column;box-shadow:-30px 0 80px rgba(0,0,0,.45)}
+.drawer[hidden],.scrim[hidden]{display:none}
+.scrim{position:fixed;inset:0;background:rgba(2,9,14,.55);z-index:8}
+.drawer-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line2);font-size:9px;letter-spacing:.16em;color:var(--faint);text-transform:uppercase}
+.drawer-head h2{font-size:12px;letter-spacing:.06em;color:var(--ink);font-weight:400;margin:0;text-transform:none}
+.drawer-head button{border:1px solid var(--line2);padding:4px 8px;font-size:9px;color:var(--dim);letter-spacing:.1em}
+.drawer-body{overflow:auto;padding:16px 18px 40px}
+.src{margin-bottom:22px}
+.src h3{font-size:9px;color:var(--faint);font-weight:400;letter-spacing:.08em;margin:0 0 7px}
+.src pre{margin:0;padding:12px 14px;border:1px solid var(--line);background:#081822;overflow:auto;font:11px/1.8 var(--mono);color:#a9c6d2}
+.src .ln{display:inline-block;width:28px;color:#3f6373;user-select:none}
+.leader{stroke:var(--amber);stroke-width:1;stroke-dasharray:3 3;fill:none;opacity:.8}
+.leader-dot{fill:var(--amber)}
+.callout rect{fill:#0a1c27;stroke:var(--amber);stroke-width:1}
+.callout text{fill:var(--amber);font:9px var(--mono);letter-spacing:.04em}
+@media (max-width:1180px){
+  .frame{grid-template-columns:176px minmax(0,1fr) 250px}
+  .annotation p{font-size:10px}
+}
+@media (max-width:900px){
+  body{overflow:auto}
+  .frame{position:relative;inset:0;margin:10px;height:auto;grid-template-columns:1fr;grid-template-rows:auto auto auto auto;grid-template-areas:"head" "index" "sheet" "notes" "block"}
+  .index{max-height:210px;border-right:0;border-bottom:1px solid var(--line2)}
+  .sheet{min-height:420px;border-right:0;border-bottom:1px solid var(--line2)}
+  .notes{max-height:330px}
+  .block{grid-template-columns:1fr 1fr;height:auto}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/* graph */
+.lf-graph{overflow:visible}
+.lf-graph .edge{fill:none;stroke:#2f6274;stroke-width:1}
+.lf-graph .edge.role-control{stroke:var(--amber);stroke-dasharray:4 4;opacity:.85}
+.lf-graph .edge.role-failure{stroke:var(--red);stroke-dasharray:2 3}
+.lf-graph .edge.role-provider-edge{stroke:#8b7fa6;stroke-dasharray:1 3}
+.lf-graph .edge.role-resource-edge{stroke:#b3935f;stroke-dasharray:5 3}
+.lf-graph .edge.role-data.is-primary{stroke:#3f7f92;stroke-width:1.2}
+.lf-graph .edge.role-data:not(.is-primary){stroke-dasharray:3 4;stroke:#356878}
+.lf-graph .edge.is-dim{opacity:.4}
+.lf-graph .edge-label text{font:10.5px var(--mono);fill:#98bcc8;letter-spacing:.03em}
+.lf-graph .edge-label-bg{fill:#08131c;opacity:.96}
+.lf-graph .edge-label.is-dim{opacity:.45}
+.lf-graph .marker-fill{fill:#3f7f92}
+.lf-graph .marker-data{fill:#3f7f92}
+.lf-graph .marker-control{fill:var(--amber)}
+.lf-graph .marker-failure{fill:var(--red)}
+.lf-graph .marker-provider-edge{fill:#8b7fa6}
+.lf-graph .marker-resource-edge{fill:#b3935f}
+.lf-graph .node{cursor:pointer}
+.lf-graph .node .shape{fill:rgba(7,25,35,.92);stroke:#2c6174;stroke-width:1}
+.lf-graph .node.role-data .shape{fill:transparent;stroke:#3b6c7d;stroke-dasharray:3 3}
+.lf-graph .node.role-decision .shape{fill:rgba(226,169,97,.06);stroke:#b98c4f}
+.lf-graph .node.role-resource .shape{fill:rgba(179,147,95,.06);stroke:#9b7d4c;stroke-dasharray:6 3}
+.lf-graph .node.role-provider .shape{fill:rgba(139,127,166,.06);stroke:#7f7399;stroke-dasharray:1 3}
+.lf-graph .node.role-boundary .shape{stroke:#8a5f52;stroke-dasharray:4 3}
+.lf-graph .node .cyl{stroke:#9b7d4c}
+.lf-graph .node .n-rule{display:none}
+.lf-graph .n-corners{fill:none;stroke:#3f7f92;stroke-width:1;opacity:.85}
+.lf-graph .n-title{fill:#cfe4ec;font-family:var(--mono)}
+.lf-graph .role-data .n-title{fill:#8fb4c1;font-style:normal}
+.lf-graph .role-resource .n-title{fill:#d3bd93}
+.lf-graph .role-provider .n-title{fill:#b9aed1}
+.lf-graph .n-tag{fill:#4d7b8b;font:8px var(--mono);letter-spacing:.1em}
+.lf-graph .source-dot{fill:var(--cyan);opacity:.55}
+.lf-graph .node.is-dim{opacity:.46}
+.lf-graph .node.is-selected .shape{stroke:var(--amber);stroke-width:1.6}
+.lf-graph .node.is-current .shape{stroke:var(--cyan);stroke-width:1.8;filter:drop-shadow(0 0 7px rgba(99,203,216,.35))}
+.lf-graph .node.is-current .n-title{fill:#dff8fc}
+.lf-graph .node.is-done .shape{stroke:#4e8b78}
+.lf-graph .node:hover .shape{stroke:var(--cyan)}
+</style>
+</head>
+<body>
+<div class="frame">
+  <span class="frame-corner"></span>
+  <header class="head">
+    <div class="brand"><b>LITFLUX</b> / ATLAS</div>
+    <div class="doc">SHEET LF-046 · REV 2026-11</div>
+    <nav class="tabs" id="tabs" aria-label="工作流"></nav>
+    <div class="status"><i></i>DEMO DATA</div>
+  </header>
+
+  <aside class="index">
+    <div class="sect"><span>Sheets / 图目</span><span id="treecount"></span></div>
+    <ol class="sheet-list" id="tree"></ol>
+    <div class="caps" id="caps"></div>
+    <div class="mini-legend">P 业务 · D 判断 · DTA 数据 · RES 资源 · SVC 组件</div>
+  </aside>
+
+  <section class="sheet">
+    <div class="sheet-head"><span>DRAWING</span><b id="sheet-code">A · 检索主流程</b><span id="sheet-trail"></span></div>
+    <div class="ruler"></div>
+    <div class="canvas" id="canvas"><div id="graph"></div></div>
+    <div class="sheet-foot">
+      <label>分支 <select id="branch"></select></label>
+      <span id="foot-progress">STEP 00 / 00</span>
+      <span id="foot-status">未开始</span>
+      <span class="coord" id="coord">X —— · Y ——</span>
+    </div>
+  </section>
+
+  <aside class="notes">
+    <div class="notes-head">Annotation <span id="note-code">—</span></div>
+    <div class="annotation" id="annotation"></div>
+    <div class="notes-head">Walk <span id="walkcount"></span></div>
+    <div class="walk"><ol id="walk"></ol></div>
+    <div class="readctl">
+      <button id="read">Begin walk</button>
+      <button id="next" disabled>Next ▸</button>
+    </div>
+  </aside>
+
+  <footer class="block">
+    <div class="cell"><span class="k">Project / 项目</span><span class="v big">LUMEN 馆藏检索与推荐</span></div>
+    <div class="cell"><span class="k">Scope / 范围</span><span class="v" id="scope"></span></div>
+    <div class="cell"><span class="k">Scale / 比例</span><span class="v">1 : 1</span></div>
+    <div class="cell"><span class="k">Sheet / 图号</span><span class="v" id="sheetno">LF-046-A</span></div>
+    <div class="cell"><span class="k">Drawn / 绘制</span><span class="v">UI LAB · DEMO</span></div>
+  </footer>
+</div>
+
+<div class="scrim" id="scrim" hidden></div>
+<aside class="drawer" id="drawer" hidden role="dialog" aria-modal="true" aria-labelledby="src-title">
+  <div class="drawer-head"><h2 id="src-title">源码</h2><button id="close-src">CLOSE</button></div>
+  <div class="drawer-body" id="src-body"></div>
+</aside>
+
+<script src="assets/demo.js"></script>
+<script src="assets/engine.js"></script>
+<script>
+(function(){
+  var state={wf:'search',key:'workflow:search',selected:null,choices:{},cursor:0,reading:false};
+  var $=function(s){return document.querySelector(s)};
+  function view(){return LFD.view(state.key)}
+  function flow(){return view().flow}
+  function dia(){return LFD.diagram(flow())}
+  function plan(){return LFD.plan(flow(),dia(),state.choices)}
+  function pad2(n){return String(n).padStart(2,'0')}
+
+  function codeMap(){
+    var map={};
+    (function walk(key,code){
+      map[key]=code;
+      var kids=LFD.children(key),v=LFD.view(key);
+      if(!v.flow)return;
+      kids.forEach(function(k,i){walk(k,code+'.'+(i+1))});
+    })('workflow:'+state.wf,LFD.workflowOf('workflow:'+state.wf).code);
+    return map;
+  }
+
+  function go(key){
+    var t=LFD.view(key);
+    if(!t)return;
+    if(!t.flow){state.key=t.parent;state.selected=t.owner.id;state.cursor=0;state.reading=false;render();openSource(t.owner.sources,t.owner.title);return}
+    state.key=key;state.selected=null;state.cursor=0;state.reading=false;render();
+  }
+  function goWf(id){state={wf:id,key:'workflow:'+id,selected:null,choices:{},cursor:0,reading:false};render()}
+
+  function render(){
+    renderTabs();renderIndex();renderSheet();renderNotes();renderBlock();
+  }
+
+  function renderTabs(){
+    $('#tabs').innerHTML=LFD.workflows.map(function(w){
+      return '<button data-w="'+w.id+'" aria-current="'+(w.id===state.wf)+'"><em>'+w.code+'</em>'+LFD.esc(w.title)+'</button>';
+    }).join('');
+    $('#tabs').querySelectorAll('button').forEach(function(b){b.onclick=function(){goWf(b.dataset.w)}});
+  }
+
+  function renderIndex(){
+    var codes=codeMap(),items=[];
+    (function walk(key,code){
+      var v=LFD.view(key);
+      items.push({key:key,code:code,v:v});
+      if(!v.flow)return;
+      LFD.children(key).forEach(function(k,i){walk(k,code+'.'+(i+1))});
+    })('workflow:'+state.wf,LFD.workflowOf('workflow:'+state.wf).code);
+    $('#treecount').textContent=items.length;
+    $('#tree').innerHTML=items.map(function(it){
+      return '<li data-current="'+(it.key===state.key)+'"><button data-k="'+it.key+'"><span class="code">'+it.code+'</span><span>'+LFD.esc(it.v.title)+'</span>'+(it.v.flow?'':'<span class="src">SRC</span>')+'</button></li>';
+    }).join('');
+    $('#tree').querySelectorAll('button').forEach(function(b){b.onclick=function(){go(b.dataset.k)}});
+    var glyph={covered:'●',pending:'◐',unavailable:'○','not-implemented':'·'};
+    $('#caps').innerHTML=LFD.capabilities.map(function(c,i){
+      return '<div class="cap-row '+c.status+'" title="'+LFD.esc(c.reason||c.title)+'"><span class="n">'+pad2(i+1)+'</span><span class="s">'+(glyph[c.status]||'·')+'</span><span>'+LFD.esc(c.title)+'</span></div>';
+    }).join('');
+  }
+
+  function renderSheet(){
+    var p=plan(),d=dia(),lay=LFD.layout(d,{gapX:82,pad:26,gapY:26});
+    $('#sheet-code').textContent=(codeMap()[state.key]||'')+' · '+flow().title;
+    var chain=LFD.crumbs(state.key);
+    $('#sheet-trail').textContent=chain.map(function(c){return c.title}).join(' / ');
+    $('#sheetno').textContent='LF-046-'+(codeMap()[state.key]||'A').replace(/\./g,'-');
+    LFD.render($('#graph'),{dia:d,lay:lay,plan:p,selected:state.selected,cursor:state.cursor,radius:0,corner:false,corners:true,edgeLabels:'control',roleTag:true,tagLabels:{process:'P',decision:'D',boundary:'B',data:'DTA',resource:'RES',provider:'SVC'}});
+    $('#graph').querySelectorAll('.node').forEach(function(g){
+      g.addEventListener('click',function(){state.selected=g.dataset.id;renderSheet();renderNotes()});
+      g.addEventListener('dblclick',function(){var k=state.key+'/'+g.dataset.id;if(LFD.view(k)&&LFD.view(k).flow)go(k)});
+      g.addEventListener('keydown',function(e){if(e.key==='Enter'){state.selected=g.dataset.id;renderSheet();renderNotes()}});
+    });
+    // 引线：选中节点旁的编号标记，与右侧注释面板对应
+    var sel=state.selected?lay.byId.get(state.selected):null;
+    if(sel){
+      var svg=$('#graph svg');
+      var code=codeMap()[state.key+'/'+sel.id]||'A';
+      var bx=Math.min(lay.width-36,sel.x+sel.w/2+20);
+      var by=Math.max(16,sel.y-sel.h/2-16);
+      var line=document.createElementNS('http://www.w3.org/2000/svg','path');
+      line.setAttribute('class','leader');
+      line.setAttribute('d','M '+(sel.x+sel.w/2-14)+' '+(sel.y-sel.h/2)+' L '+(bx-18)+' '+(by+6));
+      svg.appendChild(line);
+      var g=document.createElementNS('http://www.w3.org/2000/svg','g');
+      g.setAttribute('class','callout');
+      var rect=document.createElementNS('http://www.w3.org/2000/svg','rect');
+      rect.setAttribute('x',bx-19);rect.setAttribute('y',by-9);rect.setAttribute('width','38');rect.setAttribute('height','17');rect.setAttribute('rx','2');
+      var text=document.createElementNS('http://www.w3.org/2000/svg','text');
+      text.setAttribute('x',bx);text.setAttribute('y',by+3);text.setAttribute('text-anchor','middle');
+      text.textContent=code;
+      g.appendChild(rect);g.appendChild(text);svg.appendChild(g);
+    }
+    var total=p.order.length;
+    $('#foot-progress').textContent='STEP '+pad2(state.cursor)+' / '+pad2(total);
+    $('#foot-status').textContent=!state.reading?'未开始':state.cursor>=total?'本层读完 · 非执行':(p.reasons[state.cursor-1]||'资源已就位');
+    var decisions=flow().nodes.filter(function(n){return n.choices&&n.choices.length});
+    var sel2=$('#branch');
+    sel2.innerHTML=decisions.map(function(n){
+      return n.choices.map(function(c){return '<option value="'+n.id+'|'+c.id+'" '+((p.choices[n.id]||n.choices[0].id)===c.id?'selected':'')+'>'+LFD.esc(n.title)+' → '+LFD.esc(c.label)+'</option>'}).join('');
+    }).join('')||'<option>本层无分支</option>';
+    sel2.disabled=!decisions.length;
+    sel2.onchange=function(){
+      var parts=sel2.value.split('|');
+      state.choices[parts[0]]=parts[1];state.reading=false;state.cursor=0;render();
+    };
+    $('#walk').innerHTML=p.order.map(function(id,i){
+      var n=d.byId.get(id),cls=i<state.cursor?'done':i===state.cursor&&state.reading?'now':'';
+      if(id===state.selected)cls+=' sel';
+      return '<li class="'+cls+'"><span class="i">'+pad2(i+1)+'</span><span>'+LFD.esc(n.title)+'</span></li>';
+    }).join('')||'<li><span class="i">—</span><span>没有可读步骤</span></li>';
+    $('#walkcount').textContent=p.order.length+' STEPS';
+    $('#read').textContent=state.reading?'RESTART':'BEGIN WALK';
+    $('#next').disabled=!state.reading||state.cursor>=total;
+    var focusItem=$('#walk').querySelector('li.now')||$('#walk').querySelector('li.sel');
+    if(focusItem)focusItem.scrollIntoView({block:'nearest'});
+  }
+
+  function renderNotes(){
+    var d=dia(),p=plan(),codes=codeMap();
+    var node=state.selected?d.byId.get(state.selected):null;
+    $('#note-code').textContent=node?(state.selected.indexOf('@')===0?'USE':(codeMap()[state.key+'/'+node.id]||'NODE')):'—';
+    if(!node){
+      var stats=LFD.stats(flow());
+      $('#annotation').innerHTML='<div class="code">'+LFD.esc(codes[state.key]||'')+'</div><h2>'+LFD.esc(flow().title)+'</h2><p>选择图中的一个节点查看它的职责、依据与源码。双击业务进入子层；判断节点可在下方切换分支。</p><div class="meta"><span><b>'+stats.business+'</b>业务</span><span><b>'+stats.data+'</b>数据</span><span><b>'+stats.uses+'</b>资源 / 组件</span><span><b>'+stats.relations+'</b>关系</span></div>';
+    }else{
+      var role=LFD.roleLabel[node.role]||node.role;
+      var srcs=(node.sources||[]).map(function(s){return s.split(':')[0]});
+      $('#annotation').innerHTML='<div class="code">'+LFD.esc(codes[state.key]||'')+' / '+role.toUpperCase()+'</div><h2>'+LFD.esc(node.title)+'</h2><p>'+LFD.esc(node.text||'（这条关系没有额外说明）')+'</p><div class="meta"><span><b>'+((node.sources||[]).length)+'</b>源码位置</span><span><b>'+(node.owner||'—')+'</b>归属</span><span style="grid-column:1/-1"><b>'+LFD.esc(srcs.join(' · ')||'—')+'</b>文件</span></div><div class="act"><button id="a-src" '+(srcs.length?'':'hidden')+'>Source</button><button id="a-child" '+(node.detail?'':'hidden')+'>Explore</button></div>';
+      var b1=$('#a-src');if(b1)b1.onclick=function(){openSource(node.sources,node.title)};
+      var b2=$('#a-child');if(b2)b2.onclick=function(){go(state.key+'/'+node.id)};
+    }
+    $('#read').onclick=function(){state.reading=true;state.cursor=0;state.selected=null;render()};
+  }
+  function renderBlock(){
+    $('#scope').textContent=LFD.meta.scope;
+  }
+
+  function openSource(refs,title){
+    if(!refs||!refs.length)return;
+    $('#src-title').textContent=title+' · SOURCE';
+    $('#src-body').innerHTML=LFD.source(refs).map(function(s){
+      return '<section class="src"><h3>'+LFD.esc(s.path)+':'+s.start+'–'+s.end+'</h3><pre>'+s.lines.map(function(l,i){return '<span class="ln">'+(s.start+i)+'</span>'+LFD.esc(l||' ')}).join('\n')+'</pre></section>';
+    }).join('');
+    $('#drawer').hidden=false;$('#scrim').hidden=false;$('#close-src').focus();
+  }
+  $('#close-src').onclick=function(){$('#drawer').hidden=true;$('#scrim').hidden=true};
+  $('#scrim').onclick=function(){$('#drawer').hidden=true;$('#scrim').hidden=true};
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'){$('#drawer').hidden=true;$('#scrim').hidden=true}});
+
+  $('#next').onclick=function(){
+    var p=plan();if(!state.reading||state.cursor>=p.order.length)return;
+    state.selected=p.order[state.cursor];state.cursor+=1;render();
+  };
+  $('#canvas').addEventListener('mousemove',function(e){
+    var r=$('#canvas').getBoundingClientRect();
+    $('#coord').textContent='X '+pad2(Math.round(e.clientX-r.left))+' · Y '+pad2(Math.round(e.clientY-r.top));
+  });
+  document.addEventListener('keydown',function(e){
+    if((e.key==='ArrowRight')&&state.reading&&!$('#next').disabled){$('#next').click()}
+  });
+  render();
+})();
+</script>
+</body>
+</html>

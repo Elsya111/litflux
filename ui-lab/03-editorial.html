@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>篇章 · LitFlux</title>
+<style>
+:root{
+  --cream:#f3ecdd; --cream-2:#faf5ea; --ink:#191612; --muted:#6d6355; --faint:#9b8f7c;
+  --rule:#d7cab3; --rule-soft:#e6dcc9; --brick:#9a3b2e; --olive:#6c7354;
+  --serif:"Songti SC","Noto Serif SC","Source Han Serif SC","Iowan Old Style",Georgia,serif;
+  --sans:"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei UI",system-ui,sans-serif;
+  --mono:"Cascadia Code",Consolas,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--cream);color:var(--ink);font:16px/1.9 var(--serif);-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--brick);outline-offset:3px}
+::selection{background:#e6cdbf}
+.wrap{max-width:1600px;margin:0 auto;padding:0 36px}
+.mast{padding:26px 0 0;border-bottom:1px solid var(--ink)}
+.mast-top{display:flex;align-items:baseline;justify-content:space-between;gap:20px;font:10px/1 var(--sans);letter-spacing:.26em;text-transform:uppercase;color:var(--muted)}
+.mast-top b{font-weight:600;letter-spacing:.2em;color:var(--brick)}
+.mast-title{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;padding:16px 0 20px}
+.mast-title h1{font-size:clamp(54px,7.4vw,104px);line-height:.86;letter-spacing:-.035em;font-weight:600;margin:0}
+.mast-title .sub{max-width:34em;padding-bottom:6px}
+.mast-title .sub p{margin:0;font-size:17px;line-height:1.6;color:var(--muted)}
+.mast-title .sub span{display:block;font:10px/1.4 var(--sans);letter-spacing:.24em;text-transform:uppercase;color:var(--faint);margin-top:10px}
+.tabs{display:flex;gap:34px;padding:12px 0 0}
+.tabs button{font:10.5px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--muted);padding:0 0 13px;border-bottom:2px solid transparent;display:flex;gap:9px;align-items:baseline}
+.tabs button i{font-style:normal;font-size:11px;letter-spacing:.04em;color:var(--faint)}
+.tabs button[aria-current="true"]{color:var(--ink);border-bottom-color:var(--brick)}
+.spread{display:grid;grid-template-columns:minmax(0,1.9fr) minmax(340px,.9fr);gap:48px;align-items:start;padding:30px 0 80px}
+.plate{position:sticky;top:0;height:calc(100vh - 300px);min-height:460px;max-height:820px;display:flex;flex-direction:column;padding:16px 0 20px;border-bottom:1px solid var(--rule)}
+.plate-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;font:10px/1 var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--faint)}
+.plate-head b{font-weight:500;color:var(--ink);letter-spacing:.1em}
+.plate-fig{position:relative;flex:1;min-height:0;margin:14px 0 10px}
+#graph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+#graph svg{width:100%;height:100%}
+.plate-fig::after{display:none}
+.plate-foot{display:flex;align-items:baseline;justify-content:space-between;gap:14px;font:10px/1.5 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--faint);border-top:1px solid var(--rule);padding-top:10px}
+.plate-foot em{font-style:normal;color:var(--muted)}
+.note-card{position:absolute;left:0;right:0;bottom:44px;background:var(--cream-2);border:1px solid var(--rule);padding:18px 20px 16px;display:none;box-shadow:0 10px 30px rgba(60,45,25,.07);z-index:2}
+.note-card.on{display:block}
+.note-card .k{font:9.5px/1 var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--faint);display:flex;justify-content:space-between}
+.note-card h3{font-size:22px;line-height:1.3;font-weight:600;margin:7px 0 6px;letter-spacing:-.01em}
+.note-card p{margin:0 0 10px;font-size:13.5px;line-height:1.8;color:var(--muted)}
+.note-card .do{display:flex;gap:20px;align-items:center}
+.note-card .do button{font:10px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--brick);border-bottom:1px solid currentColor;padding-bottom:3px}
+.note-card .do span{font:10px/1 var(--sans);letter-spacing:.08em;color:var(--faint)}
+.prose{min-width:0;padding-top:6px}
+.crumbs{display:flex;flex-wrap:wrap;align-items:baseline;gap:7px;font:10px/1.6 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin-bottom:22px}
+.crumbs button{color:var(--muted);letter-spacing:.12em;text-transform:uppercase}
+.crumbs button:hover{color:var(--brick)}
+.crumbs .sep{color:#c3b49c}
+.chapter{display:flex;align-items:baseline;gap:16px;border-top:1px solid var(--ink);padding-top:10px;margin-bottom:18px}
+.chapter .no{font:11px/1 var(--sans);letter-spacing:.2em;color:var(--brick)}
+.chapter h2{font-size:30px;line-height:1.25;font-weight:600;letter-spacing:-.02em;margin:0}
+.chapter .tag{margin-left:auto;font:9.5px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--faint)}
+.lede{font-size:18px;line-height:1.9;margin:0 0 24px;color:#2a251f}
+.abs{display:block;font:9.5px/1 var(--sans);letter-spacing:.26em;text-transform:uppercase;color:var(--brick);margin-bottom:10px}
+.abs::before{content:"";display:inline-block;width:22px;height:1px;background:var(--brick);vertical-align:3px;margin-right:9px}
+.byline{display:flex;gap:26px;flex-wrap:wrap;font:10px/1.6 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--faint);border-bottom:1px solid var(--rule);padding-bottom:12px;margin-bottom:24px}
+.byline b{color:var(--muted);font-weight:500}
+.steps{list-style:none;margin:0;padding:0;counter-reset:step}
+.steps li{border-top:1px solid var(--rule-soft);padding:14px 0 12px;display:grid;grid-template-columns:38px 1fr;gap:12px;cursor:pointer;transition:background .15s}
+.steps li:first-child{border-top:0}
+.steps li:hover{background:rgba(154,59,46,.035)}
+.steps li .n{font:11px/1.9 var(--sans);letter-spacing:.06em;color:var(--faint)}
+.steps li h3{font-size:17.5px;line-height:1.45;font-weight:600;margin:0 0 3px;letter-spacing:-.005em}
+.steps li p{margin:0;font-size:13px;line-height:1.75;color:var(--muted)}
+.steps li .role{font:9px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-left:8px;vertical-align:2px}
+.steps li[data-kind="decision"] .role{color:var(--brick)}
+.steps li.current{background:#f8efe2}
+.steps li.current .n{color:var(--brick)}
+.steps li.done .n{color:var(--olive)}
+.steps li.selected h3{color:var(--brick)}
+.pull{border-top:1px solid var(--ink);border-bottom:1px solid var(--ink);margin:30px 0 26px;padding:18px 0;font-size:22px;line-height:1.6;letter-spacing:-.01em}
+.pull span{display:block;font:10px/1.6 var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--faint);margin-top:10px}
+.subs-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;font:10px/1 var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--faint);border-bottom:1px solid var(--rule);padding-bottom:8px;margin-bottom:4px}
+.subs{list-style:none;margin:0 0 30px;padding:0}
+.subs li{border-bottom:1px solid var(--rule-soft)}
+.subs button{display:flex;width:100%;align-items:baseline;gap:12px;text-align:left;padding:9px 0;font-size:14.5px;color:#322c24}
+.subs button:hover{color:var(--brick)}
+.subs .s{margin-left:auto;font:9px/1 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+.caps{border-top:1px solid var(--ink);padding-top:10px}
+.cap{display:grid;grid-template-columns:26px 1fr;gap:10px;padding:7px 0;border-bottom:1px solid var(--rule-soft);font-size:13px;line-height:1.5}
+.cap .n{font:9.5px/1.8 var(--sans);color:var(--faint);letter-spacing:.06em}
+.cap .st{font:9px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--olive);margin-left:8px}
+.cap.pending .st{color:#a67c34}
+.cap.unavailable .st{color:var(--brick)}
+.cap.not-implemented .st{color:var(--faint)}
+.cap .why{display:block;font-size:11.5px;line-height:1.65;color:var(--faint);margin-top:2px}
+.toc{display:flex;gap:16px;align-items:baseline;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:9px 0;margin:0 0 18px}
+.toc-k{font:9px/1.6 var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--faint);white-space:nowrap}
+.toc-list{display:flex;flex-wrap:wrap;gap:5px 15px}
+.toc button{font-size:12px;color:var(--muted);border-bottom:1px dotted var(--rule);padding-bottom:2px;line-height:1.4}
+.toc button:hover{color:var(--brick);border-color:var(--brick)}
+.toc .n{font:9px/1 var(--mono);color:var(--faint);margin-right:5px}
+.toc .s{font:8.5px/1 var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-left:5px}
+.readline{display:flex;align-items:center;gap:18px;padding:13px 0;margin:20px 0 4px;border-top:1px solid var(--ink);border-bottom:1px solid var(--ink);font:10px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase}
+.readline button{color:var(--brick);border-bottom:1px solid currentColor;padding-bottom:3px;letter-spacing:.14em;text-transform:uppercase;font-size:10px}
+.readline button:disabled{color:var(--faint);border-color:transparent;cursor:default}
+.readline .status{color:var(--faint);letter-spacing:.08em;text-transform:none;font-size:11px}
+.readline .branch-sel{margin-left:auto;display:flex;align-items:center;gap:8px;color:var(--faint);font-size:9px;letter-spacing:.12em}
+.readline select{font:11px var(--sans);color:var(--ink);background:var(--cream-2);border:1px solid var(--rule);border-radius:0;padding:5px 8px;max-width:230px;letter-spacing:0;text-transform:none}
+.foot{border-top:1px solid var(--ink);margin-top:60px;padding:18px 0 40px;display:flex;justify-content:space-between;gap:20px;font:9.5px/1.6 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--faint)}
+.reader{position:fixed;inset:0;background:var(--cream);z-index:30;overflow:auto;display:none}
+.reader.on{display:block}
+.reader-inner{max-width:840px;margin:0 auto;padding:54px 40px 80px}
+.reader-head{display:flex;align-items:baseline;justify-content:space-between;border-bottom:1px solid var(--ink);padding-bottom:12px;font:10px/1 var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--faint)}
+.reader-head h2{font-size:34px;line-height:1.25;font-weight:600;margin:26px 0 8px;letter-spacing:-.02em;color:var(--ink);text-transform:none;letter-spacing:-.02em}
+.reader-head p{font:10px/1.6 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin:0}
+.reader-head button{border-bottom:1px solid var(--rule);padding-bottom:3px;color:var(--muted)}
+.reader .src{margin-top:30px}
+.reader .src h3{font:10.5px/1.6 var(--mono);color:var(--muted);font-weight:400;margin:0 0 8px}
+.reader pre{margin:0;padding:18px 20px;background:var(--cream-2);border:1px solid var(--rule);overflow:auto;font:12.5px/1.9 var(--mono);color:#332d25}
+.reader .ln{display:inline-block;width:32px;color:#b9ab93;user-select:none}
+.reader .cap-note{font-size:12px;color:var(--faint);margin-top:12px}
+@media (max-width:1100px){
+  .wrap{padding:0 28px}
+  .spread{grid-template-columns:minmax(0,1fr) 360px;gap:34px}
+}
+@media (max-width:880px){
+  body{font-size:15px}
+  .spread{grid-template-columns:1fr;gap:30px}
+  .plate{position:relative;height:460px;padding-top:0}
+  .mast-title{flex-direction:column;align-items:flex-start;gap:6px}
+  .mast-title .sub{padding:0}
+  .wrap{padding:0 20px}
+  .plate-fig::after{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}html{scroll-behavior:auto}}
+/* graph */
+.lf-graph{overflow:visible}
+.lf-graph .edge{fill:none;stroke:#b9ab93;stroke-width:1}
+.lf-graph .edge.role-control{stroke:#a3814d;stroke-dasharray:4 4}
+.lf-graph .edge.role-failure{stroke:#a45a45;stroke-dasharray:2 4}
+.lf-graph .edge.role-provider-edge{stroke:#8f7f96;stroke-dasharray:1 4}
+.lf-graph .edge.role-resource-edge{stroke:#a98f5f;stroke-dasharray:5 4}
+.lf-graph .edge.role-data.is-primary{stroke:#8d7f66;stroke-width:1.15}
+.lf-graph .edge.role-data:not(.is-primary){stroke-dasharray:2 5;stroke:#c0b29a}
+.lf-graph .edge.is-dim{opacity:.4}
+.lf-graph .edge-label text{font:italic 11.5px var(--serif);fill:#6f6250;letter-spacing:.01em}
+.lf-graph .edge-label-bg{fill:var(--cream);opacity:.96}
+.lf-graph .edge-label.is-dim{opacity:.48}
+.lf-graph .marker-fill{fill:#b9ab93}
+.lf-graph .marker-data{fill:#8d7f66}
+.lf-graph .marker-control{fill:#a3814d}
+.lf-graph .marker-failure{fill:#a45a45}
+.lf-graph .marker-provider-edge{fill:#8f7f96}
+.lf-graph .marker-resource-edge{fill:#a98f5f}
+.lf-graph .node{cursor:pointer}
+.lf-graph .node .shape{fill:transparent;stroke:transparent;stroke-width:1.2;pointer-events:all}
+.lf-graph .node.role-decision .shape{fill:#f8f0e1;stroke:#b08252;stroke-width:1.1}
+.lf-graph .node.role-resource .shape,.lf-graph .node.role-provider .shape{fill:transparent;stroke:transparent}
+.lf-graph .node.role-boundary .shape{fill:transparent;stroke:#c3a98a;stroke-dasharray:4 4}
+.lf-graph .node .cyl{display:none}
+.lf-graph .node .n-rule{stroke:#cfc2ab;stroke-width:1;opacity:1}
+.lf-graph .node.role-data .n-rule{display:none}
+.lf-graph .n-title{fill:#1c1914;font-family:var(--serif);font-weight:500}
+.lf-graph .role-data .n-title{fill:#756a58;font-style:italic;font-weight:400}
+.lf-graph .role-resource .n-title{fill:#6c583f;font-style:italic}
+.lf-graph .role-provider .n-title{fill:#655572;font-style:italic}
+.lf-graph .role-decision .n-title{fill:#8f3d2f;font-weight:600}
+.lf-graph .n-tag{display:none}
+.lf-graph .source-dot{display:none}
+.lf-graph .node.is-dim{opacity:.46}
+.lf-graph .node.is-selected .n-title,.lf-graph .node.is-current .n-title{fill:var(--brick)}
+.lf-graph .node.is-selected .n-rule,.lf-graph .node.is-current .n-rule{stroke:var(--brick)}
+.lf-graph .node.is-current .shape{stroke:var(--brick)}
+.lf-graph .node.is-done .n-title{fill:#6c7354}
+.lf-graph .node:hover .n-title{fill:var(--brick)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="mast">
+    <div class="mast-top"><span><b>LitFlux</b> / 项目阅读档案</span><span>第 04 期 · 2026 年 11 月</span></div>
+    <div class="mast-title">
+      <h1>Lumen</h1>
+      <div class="sub"><p>馆藏检索与推荐：三条入口、一层层判断，以及它们查阅的源码。</p><span>Project Atlas · Reading Edition</span></div>
+    </div>
+    <nav class="tabs" id="tabs" aria-label="工作流"></nav>
+  </header>
+
+  <main class="spread">
+    <figure class="plate">
+      <div class="plate-head"><span>图 1 —— <b id="plate-title">检索主流程</b></span><span id="plate-sheet">SECTION A</span></div>
+      <div class="plate-fig" id="plate-fig" data-code="01">
+        <div id="graph"></div>
+        <div class="note-card" id="note-card">
+          <div class="k"><span id="note-kind">节点</span><span id="note-src-count"></span></div>
+          <h3 id="note-title"></h3>
+          <p id="note-text"></p>
+          <div class="do"><button id="note-src">查看源码</button><button id="note-child">进入子业务</button><span id="note-meta"></span></div>
+        </div>
+      </div>
+      <figcaption class="plate-foot"><span><em>比例</em> 自适应 · <em>节点</em> <span id="plate-stats">—</span></span><span id="plate-hint">点击节点阅读，双击业务进入下一章</span></figcaption>
+    </figure>
+
+    <article class="prose">
+      <nav class="crumbs" id="crumbs" aria-label="当前位置"></nav>
+      <div class="chapter"><span class="no" id="chap-no">第一章</span><h2 id="chap-title">检索主流程</h2><span class="tag" id="chap-tag">A · SEARCH</span></div>
+      <span class="abs">摘要 / Abstract</span>
+      <p class="lede" id="lede"></p>
+      <div class="byline"><span>范围 <b id="by-scope">三条入口</b></span><span>业务 <b id="by-nodes">—</b></span><span>数据 <b id="by-data">—</b></span><span>关系 <b id="by-rel">—</b></span></div>
+
+      <div class="toc"><span class="toc-k">本篇脉络</span><div class="toc-list" id="toc"></div></div>
+
+      <div class="readline">
+        <button id="read">按段阅读</button>
+        <button id="next" disabled>下一段 →</button>
+        <span class="status" id="read-status">未开始</span>
+        <label class="branch-sel">分支 <select id="branch"></select></label>
+      </div>
+
+      <ol class="steps" id="steps"></ol>
+
+      <blockquote class="pull" id="pull">“先解释清楚一条真实流程，再把它推广到整个项目。”<span>LitFlux · 作者契约</span></blockquote>
+
+      <div class="subs-head"><span>能力覆盖</span><span id="caps-count">COVERAGE</span></div>
+      <div class="caps" id="caps"></div>
+
+      <footer class="foot"><span>LitFlux · 演示数据，非真实仓库</span><span id="foot-date">2026-11 · UI LAB</span></footer>
+    </article>
+  </main>
+</div>
+
+<div class="reader" id="reader" role="dialog" aria-modal="true" aria-labelledby="reader-title">
+  <div class="reader-inner">
+    <div class="reader-head"><span>源码摘录 / SOURCE</span><button id="reader-close">关闭 ×</button></div>
+    <h2 id="reader-title">源码</h2>
+    <p id="reader-sub"></p>
+    <div id="reader-body"></div>
+    <p class="cap-note">位置经过校验；解释是否充分仍需人工对照。本页为设计稿。</p>
+  </div>
+</div>
+
+<script src="assets/demo.js"></script>
+<script src="assets/engine.js"></script>
+<script>
+(function(){
+  var state={wf:'search',key:'workflow:search',selected:null,choices:{},cursor:0,reading:false};
+  var $=function(s){return document.querySelector(s)};
+  function view(){return LFD.view(state.key)}
+  function flow(){return view().flow}
+  function dia(){return LFD.diagram(flow())}
+  function plan(){return LFD.plan(flow(),dia(),state.choices)}
+  function pad2(n){return String(n).padStart(2,'0')}
+  var ordinals=['第一章','第二章','第三章','第四章','第五章','第六章'];
+
+  function go(key){
+    var t=LFD.view(key);
+    if(!t)return;
+    if(!t.flow){state.key=t.parent;state.selected=t.owner.id;state.cursor=0;state.reading=false;render();openReader(t.owner.sources,t.owner.title);return}
+    state.key=key;state.selected=null;state.cursor=0;state.reading=false;render();
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  function goWf(id){state={wf:id,key:'workflow:'+id,selected:null,choices:{},cursor:0,reading:false};render()}
+
+  function render(){
+    renderTabs();renderPlate();renderProse();
+  }
+
+  function renderTabs(){
+    $('#tabs').innerHTML=LFD.workflows.map(function(w,i){
+      return '<button data-w="'+w.id+'" aria-current="'+(w.id===state.wf)+'"><i>'+['Ⅰ','Ⅱ','Ⅲ'][i]+'</i>'+LFD.esc(w.title)+'</button>';
+    }).join('');
+    $('#tabs').querySelectorAll('button').forEach(function(b){b.onclick=function(){goWf(b.dataset.w)}});
+  }
+
+  function renderPlate(){
+    var d=dia(),p=plan(),lay=LFD.layout(d,{gapX:74,pad:24,gapY:26});
+    $('#plate-title').textContent=flow().title;
+    $('#plate-sheet').textContent='SECTION '+LFD.workflowOf(state.key).code;
+    $('#plate-fig').dataset.code=pad2(LFD.crumbs(state.key).length);
+    var stats=LFD.stats(flow());
+    $('#plate-stats').textContent=stats.business+' 业务 · '+stats.data+' 数据 · '+stats.relations+' 关系';
+    $('#plate-hint').textContent=state.reading?('第 '+state.cursor+' / '+p.order.length+' 段'):'点击节点阅读，双击业务进入下一章';
+    LFD.render($('#graph'),{dia:d,lay:lay,plan:p,selected:state.selected,cursor:state.cursor,radius:0,edgeLabels:'control',fontScale:1.25});
+    $('#graph').querySelectorAll('.node').forEach(function(g){
+      g.addEventListener('click',function(){state.selected=g.dataset.id;render()});
+      g.addEventListener('dblclick',function(){var k=state.key+'/'+g.dataset.id;if(LFD.view(k)&&LFD.view(k).flow)go(k)});
+      g.addEventListener('keydown',function(e){if(e.key==='Enter'){state.selected=g.dataset.id;render()}});
+    });
+    var node=state.selected?d.byId.get(state.selected):null;
+    var card=$('#note-card');
+    if(node){
+      card.classList.add('on');
+      $('#note-kind').textContent=(LFD.roleLabel[node.role]||node.role)+(node.owner?' · '+node.owner:'');
+      $('#note-src-count').textContent=(node.sources||[]).length+' SOURCE';
+      $('#note-title').textContent=node.title;
+      $('#note-text').textContent=node.text||'（这条关系没有额外说明）';
+      $('#note-meta').textContent=node.detail?'可展开':(node.sources&&node.sources.length?'可查源码':'');
+      $('#note-src').hidden=!(node.sources&&node.sources.length);
+      $('#note-child').hidden=!node.detail;
+      $('#note-src').onclick=function(){openReader(node.sources,node.title)};
+      $('#note-child').onclick=function(){go(state.key+'/'+node.id)};
+    }else card.classList.remove('on');
+  }
+
+  function renderProse(){
+    var d=dia(),p=plan(),v=view();
+    var chain=LFD.crumbs(state.key);
+    $('#crumbs').innerHTML=chain.map(function(c,i){
+      var last=i===chain.length-1;
+      return (i?'<span class="sep">/</span>':'')+(last?'<span>'+LFD.esc(c.title)+'</span>':'<button data-k="'+c.key+'">'+LFD.esc(c.title)+'</button>');
+    }).join('');
+    $('#crumbs').querySelectorAll('button').forEach(function(b){b.onclick=function(){go(b.dataset.k)}});
+    $('#chap-no').textContent=ordinals[Math.min(chain.length-1,ordinals.length-1)];
+    $('#chap-title').textContent=flow().title;
+    $('#chap-tag').textContent=LFD.workflowOf(state.key).code+' · '+LFD.workflowOf(state.key).title.toUpperCase();
+    $('#lede').textContent=chain.length===1?LFD.meta.summary:'这一章只回答一件事：'+flow().title+' 在真实实现里如何消费输入、做出判断，并把结果交给下一步。';
+    var stats=LFD.stats(flow());
+    $('#by-scope').textContent=chain.length===1?'三条入口':'本层 '+stats.business+' 个业务';
+    $('#by-nodes').textContent=stats.business;
+    $('#by-data').textContent=stats.data;
+    $('#by-rel').textContent=stats.relations;
+
+    var steps=flow().nodes;
+    $('#steps').innerHTML=steps.map(function(n,i){
+      var kind=n.kind||'process';
+      var role=kind==='decision'?'判断':kind==='boundary'?'边界':'';
+      var planOrder=p.order.indexOf(n.id);
+      var cls=[];
+      if(state.reading&&planOrder>=0&&planOrder<state.cursor)cls.push('done');
+      if(state.reading&&planOrder===state.cursor)cls.push('current');
+      if(n.id===state.selected)cls.push('selected');
+      return '<li data-id="'+n.id+'" data-kind="'+kind+'" class="'+cls.join(' ')+'"><span class="n">'+pad2(i+1)+'</span><div><h3>'+LFD.esc(n.title)+(role?'<span class="role">'+role+'</span>':'')+'</h3><p>'+LFD.esc(n.text||'')+'</p></div></li>';
+    }).join('');
+    $('#steps').querySelectorAll('li').forEach(function(li){
+      li.onclick=function(){state.selected=li.dataset.id;render()};
+    });
+
+    $('#read').textContent=state.reading?'重新开始':'按段阅读';
+    $('#next').disabled=!state.reading||state.cursor>=p.order.length;
+    $('#read-status').textContent=!state.reading?'未开始':p.order.length===0?'本层没有可读步骤':state.cursor>=p.order.length?'本层读完 · 这是阅读，不是执行':state.cursor+' / '+p.order.length+' · '+p.reasons[state.cursor-1];
+
+    var decisions=flow().nodes.filter(function(n){return n.choices&&n.choices.length});
+    var branch=$('#branch');
+    branch.innerHTML=decisions.map(function(n){
+      return n.choices.map(function(c){return '<option value="'+n.id+'|'+c.id+'" '+((p.choices[n.id]||n.choices[0].id)===c.id?'selected':'')+'>'+LFD.esc(c.label)+'</option>'}).join('');
+    }).join('')||'<option>本层无分支</option>';
+    branch.disabled=!decisions.length;
+    branch.onchange=function(){
+      var parts=branch.value.split('|');
+      state.choices[parts[0]]=parts[1];state.reading=false;state.cursor=0;state.selected=null;render();
+    };
+
+    var kids=LFD.children(state.key);
+    $('#toc').innerHTML=kids.length?kids.map(function(k,i){
+      var c=LFD.view(k);
+      return '<button data-k="'+k+'"><span class="n">'+pad2(i+1)+'</span>'+LFD.esc(c.title)+'<span class="s">'+(c.flow?'展开':'源码')+'</span></button>';
+    }).join(''):'<span style="font-size:11px;color:var(--faint)">本层没有子业务</span>';
+    $('#toc').querySelectorAll('button').forEach(function(b){b.onclick=function(){go(b.dataset.k)}});
+
+    var glyph={covered:'已覆盖',pending:'待接入',unavailable:'不可用','not-implemented':'未实现'};
+    $('#caps-count').textContent=LFD.capabilities.filter(function(c){return c.status==='covered'}).length+'/'+LFD.capabilities.length;
+    $('#caps').innerHTML=LFD.capabilities.map(function(c,i){
+      return '<div class="cap '+c.status+'"><span class="n">'+pad2(i+1)+'</span><div><span>'+LFD.esc(c.title)+'</span><span class="st">'+(glyph[c.status]||c.status)+'</span>'+(c.reason?'<span class="why">'+LFD.esc(c.reason)+'</span>':'')+'</div></div>';
+    }).join('');
+  }
+
+  function openReader(refs,title){
+    if(!refs||!refs.length)return;
+    $('#reader-title').textContent=title;
+    $('#reader-sub').textContent=refs.length+' 处源码位置';
+    $('#reader-body').innerHTML=LFD.source(refs).map(function(s){
+      return '<section class="src"><h3>'+LFD.esc(s.path)+':'+s.start+'–'+s.end+'</h3><pre>'+s.lines.map(function(l,i){return '<span class="ln">'+(s.start+i)+'</span>'+LFD.esc(l||' ')}).join('\n')+'</pre></section>';
+    }).join('');
+    $('#reader').classList.add('on');
+    document.body.style.overflow='hidden';
+    $('#reader-close').focus();
+  }
+  function closeReader(){$('#reader').classList.remove('on');document.body.style.overflow=''}
+  $('#reader-close').onclick=closeReader;
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')closeReader()});
+
+  $('#read').onclick=function(){state.reading=true;state.cursor=0;state.selected=null;render()};
+  $('#next').onclick=function(){
+    var p=plan();if(!state.reading||state.cursor>=p.order.length)return;
+    state.selected=p.order[state.cursor];state.cursor+=1;render();
+    var el=$('#steps li[data-id="'+state.selected+'"]');
+    if(el)el.scrollIntoView({block:'center',behavior:'smooth'});
+  };
+  render();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,395 @@
+<!doctype html><html lang="zh-CN" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LitFlux</title><style>:root{color-scheme:light;--page:#f5f6f3;--surface:#fffefa;--soft:#eef1ed;--ink:#263b34;--muted:#62746b;--line:#dce3dc;--accent:#32674e;--focus:#e6f0e8;--process:#edf4ea;--data:#edf4f8;--resource:#e8f1e9;--provider:#eeeaf5;--decision:#f3edf7;--control:#896e32;--failure:#a45d65;--loop:#7f6ca1;--resource-line:#558c7a;--provider-line:#6d86a9;--input:#3e719b;--output:#9a6746;--tree-line:#bac9c1;--shadow:0 16px 48px #172b1f18}
+html[data-theme=dark]{color-scheme:dark;--page:#171d23;--surface:#1e282f;--soft:#26333b;--ink:#e2eced;--muted:#adbec4;--line:#3a4a54;--accent:#a7d1bc;--focus:#304d43;--process:#293d3a;--data:#294453;--resource:#2b443a;--provider:#3c354e;--decision:#40384e;--control:#caba87;--failure:#dfa3ac;--loop:#c4ade7;--resource-line:#a6cfb4;--provider-line:#a9c4e6;--input:#a8c8e6;--output:#e0b393;--tree-line:#52666e;--shadow:0 16px 48px #0005}
+*{box-sizing:border-box}body{margin:0;background:var(--page);color:var(--ink);font:14px/1.6 "Segoe UI","PingFang SC","Microsoft YaHei UI",system-ui,sans-serif}button,select{font:inherit;color:inherit}button{cursor:pointer;border:0;background:transparent}button:disabled{opacity:.4;cursor:default}button:focus-visible,select:focus-visible,summary:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:3px}select{border:1px solid var(--line);border-radius:7px;background:var(--surface);padding:7px 10px;max-width:100%}[hidden]{display:none!important}
+.app{height:100dvh;display:flex;flex-direction:column}.app-header{height:64px;flex:none;display:flex;align-items:center;gap:15px;padding:0 24px;background:var(--surface);border-bottom:1px solid var(--line)}.brand{font:600 25px Georgia,serif;letter-spacing:-1px}.badge{font-size:10px;border:1px solid var(--line);border-radius:4px;padding:2px 6px;color:var(--muted)}.project-name{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}.panel-toggle{border:1px solid var(--line);border-radius:7px;font-size:12px;padding:6px 12px;white-space:nowrap}.panel-toggle[aria-expanded=true]{background:var(--focus);color:var(--accent)}.workflow-picker{margin-left:auto;max-width:350px;min-width:130px}.workflow-picker select{font-size:12px;width:100%}.menu{position:relative}.menu>summary{list-style:none;cursor:pointer;font-size:12px;padding:8px}.menu-body{position:absolute;right:0;top:38px;width:230px;z-index:20;background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:10px;padding:15px;display:grid;gap:10px}.menu-body button{text-align:left;font-size:12px}.menu-body p{font-size:11px;color:var(--muted);margin:0;padding-top:9px;border-top:1px solid var(--line)}
+.dual-layout{flex:1;min-height:0;display:grid;grid-template-columns:300px minmax(0,1fr);gap:12px;padding:12px}.dual-layout.sidebar-collapsed{grid-template-columns:minmax(0,1fr)}.business-panel{min-width:0;min-height:0;display:flex;flex-direction:column;border:1px solid var(--line);border-radius:12px;background:var(--surface);overflow:hidden}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:16px;border-bottom:1px solid var(--line);flex:none}.panel-head h2{font-size:13px;margin:0;font-weight:650;letter-spacing:.02em}
+.branch-tools{display:flex;gap:2px}.branch-tools button{font-size:11px;color:var(--muted);padding:5px 7px;border-radius:5px}.branch-tools button:hover{background:var(--soft);color:var(--ink)}
+.business-caption{font-size:11px;color:var(--muted);margin:0;padding:10px 16px 0}
+.business-canvas{flex:1;min-height:0;overflow:auto;padding:12px 10px 18px;scrollbar-width:thin;scrollbar-color:var(--line) transparent}.business-canvas svg{display:block}
+.business-connector{fill:none;stroke:var(--tree-line);stroke-width:1.2}.business-connector.active{stroke:var(--accent);stroke-width:1.7}
+.business-node{cursor:pointer;outline:none}.business-node .business-card{fill:var(--surface);stroke:var(--line);stroke-width:1}.business-node .business-label{fill:var(--ink);font-size:12px;font-weight:500}.business-node .business-count{fill:var(--muted);font-size:10px;font-variant-numeric:tabular-nums}
+.business-node:hover .business-card{fill:var(--soft);stroke:var(--tree-line)}.business-node.current .business-card{fill:var(--focus);stroke:var(--accent);stroke-width:1.5}.business-node.current .business-label{fill:var(--accent);font-weight:650}.business-node.selected .business-card{stroke:var(--accent)}.business-node:focus-visible .business-card{stroke:var(--accent);stroke-width:2.5}
+.business-toggle{cursor:pointer;outline:none}.business-toggle .toggle-hit{fill:var(--surface);stroke:var(--line)}.business-toggle .toggle-chevron{fill:none;stroke:var(--muted);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}.business-toggle:hover .toggle-hit,.business-toggle:focus-visible .toggle-hit{fill:var(--focus);stroke:var(--accent)}
+.project-info{padding:12px 16px;border-top:1px solid var(--line);font-size:11px;color:var(--muted);max-height:40%;overflow:auto}.project-info summary{cursor:pointer}.project-info h2{font-size:15px;margin:12px 0 7px;color:var(--ink)}.project-info p{line-height:1.8}
+.workspace{min-width:0;min-height:0;overflow:hidden;display:flex;flex-direction:column}.crumbs{flex:none;display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:11px;color:var(--muted);padding:0 3px}.crumbs button{color:var(--muted);padding:0}.page-heading{display:flex;align-items:center;justify-content:space-between;gap:22px;margin:7px 3px;flex:none}.page-heading h1{font-size:17px;font-weight:600;line-height:1.5;margin:0}.read-actions{display:flex;gap:10px;align-items:center;flex:none}.primary{background:var(--accent);color:var(--surface);border-radius:7px;padding:8px 14px;font-size:12px;font-weight:600}html[data-theme=dark] .primary{color:#172820}.read-actions>button:not(.primary){font-size:11px;color:var(--muted)}.context-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:0 3px 7px;min-height:20px;flex:none}.read-status{font-size:11px;color:var(--muted);margin:0}.choices-menu>summary{padding:3px 6px}.choices-menu .menu-body{width:460px}.choices{display:grid;gap:12px}.choices label{display:flex;justify-content:space-between;gap:18px;font-size:12px}.choices select{max-width:230px}
+.graph-panel{border:1px solid var(--line);background:var(--surface);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;flex:1;min-height:220px}.graph-top{display:flex;align-items:center;justify-content:space-between;padding:9px 15px;border-bottom:1px solid var(--line);gap:15px;font-size:11px;color:var(--muted);flex:none}.graph-top strong{font-size:13px;color:var(--ink);font-weight:600}.graph-actions{display:flex;gap:14px;align-items:center}.graph-actions button{font-size:11px;color:var(--accent);padding:2px 0}.scene{flex:1;min-height:0;position:relative;overflow:auto;cursor:grab;touch-action:none;scrollbar-width:thin;background:radial-gradient(var(--line) .8px,transparent .8px) 0 0/25px 25px var(--surface)}.scene.grabbing{cursor:grabbing;user-select:none}.scene svg{display:block;transform-origin:0 0;overflow:visible}.graph-note{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:7px 15px;border-top:1px solid var(--line);font-size:10px;color:var(--muted);flex:none}.key::before{content:'';display:inline-block;width:16px;border-top:1.5px solid var(--muted);vertical-align:3px;margin-right:6px}.key.later::before{border-top-style:dashed}.key.control::before{border-color:var(--control)}.drawing-error{padding:25px;color:var(--failure);font:12px/1.7 Consolas,monospace;white-space:pre-wrap}
+.details-panel{flex:none;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:0 20px;padding:9px 4px 0;max-height:34vh;overflow:auto}.details-heading{display:flex;align-items:center;gap:10px;min-width:0}.details-heading>button{font-size:11px;color:var(--accent);padding:4px 0;white-space:nowrap}.details-panel .role{font-size:10px;color:var(--muted)}.details-heading h2{font-size:12px;margin:0;font-weight:500}.details-panel p{font-size:12px;line-height:1.8;color:var(--muted);margin:0;overflow-wrap:anywhere}.details-actions{display:flex;gap:14px;align-items:center}.details-actions button{font-size:11px;color:var(--accent);border-bottom:1px solid var(--line);padding:3px 0;white-space:nowrap}#details-body{grid-column:1/-1;padding:12px 0 2px}.relation-index{margin-top:10px;padding:8px 0;border-top:1px solid var(--line)}.relation-index summary{font-size:11px;cursor:pointer;color:var(--muted)}.relation-index ul{display:grid;grid-template-columns:1fr 1fr;gap:0 20px;list-style:none;padding:10px 0 0;margin:0}.relation-index li{border-bottom:1px solid var(--line)}.relation-index button{text-align:left;width:100%;padding:10px 0;font-size:12px}.relation-index .pair{font-size:10px;color:var(--muted);display:block}.relation-index .meaning{font-size:12px;display:block;margin-top:3px}
+.scrim{position:fixed;inset:0;background:#15241d30;z-index:40}.drawer{position:fixed;right:0;top:0;bottom:0;width:min(650px,96vw);z-index:41;background:var(--surface);border-left:1px solid var(--line);box-shadow:var(--shadow)}.drawer-head{height:76px;display:flex;justify-content:space-between;align-items:center;gap:20px;padding:18px 24px;border-bottom:1px solid var(--line)}.drawer-head h2{font-size:16px;margin:0}.drawer-head button{font-size:12px}.drawer-body{height:calc(100% - 76px);overflow:auto;padding:18px 24px}.source{margin:22px 0}.source h3{font:11px Consolas,monospace;color:var(--muted)}.source pre{font:12px/1.8 Consolas,monospace;background:var(--soft);padding:14px;overflow:auto;border-radius:8px}.source .row{display:block}.source .ln{display:inline-block;width:35px;color:var(--muted);user-select:none}
+@media(prefers-reduced-motion:reduce){.flow-particles{display:none}}
+</style></head><body id="litflux-canvas-app"><div class="app"><header class="app-header"><div class="brand">LitFlux</div><span id="delivery-badge" class="badge">草稿</span><div id="title" class="project-name"></div><button id="toggle-business" class="panel-toggle" aria-expanded="false" aria-controls="business-panel">业务分解图</button><label class="workflow-picker"><select id="workflow-select" aria-label="选择工作流"></select></label><details class="menu" id="display-menu"><summary>显示</summary><div class="menu-body"><button id="theme">切换夜间</button><button id="motion" aria-pressed="true">流动：开</button><button id="zoom-in">放大视野</button><button id="zoom-out">缩小视野</button><p>关系文字完整显示在边旁，点击可查看说明与来源。</p></div></details></header>
+<div class="dual-layout sidebar-collapsed"><aside id="business-panel" class="business-panel" hidden><div class="panel-head"><h2>业务分解图</h2><div class="branch-tools"><button id="collapse-all">收拢</button><button id="expand-all">展开</button></div></div><p class="business-caption">组成与层级 · 点击业务进入</p><div id="business" class="business-canvas" aria-label="业务分解图"></div><details class="project-info"><summary>项目信息</summary><h2 id="project-title"></h2><p id="summary"></p><p id="scope"></p></details></aside>
+<main class="workspace"><nav id="crumbs" class="crumbs" aria-label="当前业务路径"></nav><div class="page-heading"><div><h1 id="flow-title"></h1></div><div class="read-actions"><button id="read-start" class="primary">开始阅读</button><button id="read-next" class="primary" hidden disabled>下一步</button><button id="read-reset" hidden>退出阅读</button></div></div><div class="context-bar"><p id="read-status" class="read-status"></p><details class="menu choices-menu" id="choices-panel"><summary>分支情景</summary><div class="menu-body"><div id="choices" class="choices"></div><p>只选择阅读情景，不执行源码条件。</p></div></details></div>
+<section class="graph-panel"><div class="graph-top"><strong>内部流程图</strong><div class="graph-actions"><span id="relation-count"></span><button id="fit">全图</button><button id="reset-view">原始大小</button></div></div><div id="canvas" class="scene" aria-label="当前业务的完整内部流程图"></div><div class="graph-note"><span class="key">实线：即时承接</span><span class="key later">虚线：保留后用</span><span class="key control">◇ 条件出口</span><span>↺ 循环回指独立表示</span><span>沿箭头阅读，拖拽平移。</span></div></section>
+<section class="details-panel"><div class="details-heading"><button id="toggle-details" aria-expanded="false" aria-controls="details-body">展开说明</button><span id="selected-role" class="role"></span><h2 id="selected-title"></h2></div><div class="details-actions"><button id="expand" hidden>进入内部</button><button id="show-source" hidden>查看源码</button></div><div id="details-body" hidden><p id="selected-text"></p><details class="relation-index" id="relation-index"><summary id="relation-index-title">本层全部关系</summary><ul id="relation-list"></ul></details></div></section></main></div></div><div id="scrim" class="scrim" hidden></div><aside id="drawer" class="drawer" hidden role="dialog" aria-modal="true" aria-labelledby="source-title"><div class="drawer-head"><h2 id="source-title">源码</h2><button id="close-source">关闭</button></div><div id="sources" class="drawer-body"></div></aside>
+<script>__DRAWING__</script>
+<script id="module" type="text/plain">__MODULE__</script>
+<script id="payload" type="application/json">__PAYLOAD__</script>
+<script>
+const payload=JSON.parse(document.querySelector('#payload').textContent);
+const moduleRecord={exports:{}};
+new Function('module','exports',document.querySelector('#module').textContent)(moduleRecord,moduleRecord.exports);
+const model=moduleRecord.exports;
+const $=s=>document.querySelector(s);
+const html=(tag,value)=>{const e=document.createElement(tag);if(value!==undefined)e.textContent=value;return e;};
+const svg=(tag,attrs={})=>LitFluxDrawing.el(tag,attrs);
+
+const businesses=new Map();
+function index(flow,key,title,parent,owner){
+  businesses.set(key,{key,title,flow,parent:parent||null,owner:owner||null});
+  for(const object of flow.objects){
+    if(object.type!=='business')continue;
+    const child=key+'/'+object.id;
+    if(object.detail)index(object.detail,child,object.title,key,object);
+    else businesses.set(child,{key:child,title:object.title,flow:null,parent:key,owner:object});
+  }
+}
+for(const workflow of model.workflows)index(workflow.flow,'workflow:'+workflow.id,workflow.title);
+
+const collapsed=new Set(), viewChoices=new Map(), viewMemory=new Map();
+let current='workflow:'+model.workflows[0].id, selected=null, reading=null, currentDiagram=null;
+let zoom=1, pan={x:0,y:0}, sourceRefs=[], returnFocus=null, motionEnabled=true;
+const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
+const roleNames={business:'业务',data:'数据',resource:'资源',component:'组件',decision:'判断',boundary:'边界',relation:'关系'};
+
+const flow=()=>businesses.get(current).flow;
+function navigate(key){
+  const target=businesses.get(key);
+  if(!target)return;
+  for(let b=target;b.parent;b=businesses.get(b.parent))collapsed.delete(b.parent);
+  if(!target.flow){if(current!==target.parent)navigate(target.parent);select(target.owner);openSource(target.owner.sources,target.title);return;}
+  if(current===key){businessPlot();return;}
+  viewMemory.set(current,{selected,reading,zoom,pan:{...pan},left:$('#canvas').scrollLeft,top:$('#canvas').scrollTop});
+  current=key;const saved=viewMemory.get(key);
+  selected=saved?.selected||null;reading=saved?.reading||null;
+  zoom=saved?.zoom||1;pan=saved?.pan||{x:0,y:0};
+  render();
+  $('#canvas').scrollTo(saved?.left||0,saved?.top||0);
+}
+function choices(){
+  if(!viewChoices.has(current))viewChoices.set(current,Object.fromEntries(flow().objects.filter(o=>o.choices).map(o=>[o.id,o.choices[0].id])));
+  return viewChoices.get(current);
+}
+function whenMatches(when,values){
+  if(!when)return true;
+  if(Array.isArray(when))return when.some(item=>whenMatches(item,values));
+  return Object.entries(when).every(([id,value])=>values[id]===value);
+}
+function allowed(relation,values){
+  return whenMatches(relation.when,values)&&(!relation.branch||values[relation.from]===relation.branch);
+}
+function activeSet(flow,values){
+  const structural=flow.relations.filter(r=>['data','control','failure'].includes(r.type));
+  const forward=structural.filter(r=>allowed(r,values));
+  const incoming=new Map(flow.objects.map(o=>[o.id,0]));
+  for(const r of structural)if(incoming.has(r.to))incoming.set(r.to,incoming.get(r.to)+1);
+  // Roots come from the declared graph, not from the filtered one: a node whose only
+  // entrance sits on an unchosen branch is not an entrance.
+  const roots=flow.objects.filter(o=>incoming.get(o.id)===0).map(o=>o.id);
+  const seen=new Set(),queue=[...roots];
+  while(queue.length){
+    const id=queue.pop();
+    if(seen.has(id))continue;
+    seen.add(id);
+    for(const r of forward)if(r.from===id)queue.push(r.to);
+  }
+  for(const r of flow.relations)if(['effect','capability'].includes(r.type)&&seen.has(r.from))seen.add(r.to);
+  return seen;
+}
+function readingPlan(flow,values){
+  const active=activeSet(flow,values);
+  const steps=flow.objects.filter(o=>active.has(o.id)&&!['resource','component'].includes(o.type)&&o.type!=='boundary');
+  const forward=flow.relations.filter(r=>['data','control','failure'].includes(r.type)&&allowed(r,values));
+  const dependencies=Object.fromEntries(steps.map(o=>[o.id,[...new Set(forward.filter(r=>r.to===o.id).map(r=>r.from))].filter(id=>steps.some(s=>s.id===id))]));
+  const preferred=flow.reading||[];
+  const rank=id=>{const index=preferred.indexOf(id);return index<0?preferred.length+steps.findIndex(s=>s.id===id):index;};
+  const done=new Set(),order=[];
+  while(order.length<steps.length){
+    const ready=steps.filter(o=>!done.has(o.id)&&dependencies[o.id].every(id=>done.has(id))).sort((a,b)=>rank(a.id)-rank(b.id));
+    if(!ready.length)break;
+    const last=order.at(-1);
+    const immediate=ready.find(o=>forward.some(r=>r.type==='data'&&r.timing==='immediate'&&r.from===last&&r.to===o.id));
+    const pick=immediate||ready[0];
+    order.push(pick.id);done.add(pick.id);
+  }
+  return {order,blocked:steps.filter(o=>!done.has(o.id)).map(o=>o.id),active};
+}
+function paintReading(){
+  const plan=reading?.plan, done=new Set(reading?plan.order.slice(0,reading.cursor):[]), last=reading?.plan.order[reading.cursor-1];
+  const active=plan?plan.active:activeSet(flow(),choices());
+  for(const [id,record] of currentDiagram?.positions||[]){
+    record.group.classList.toggle('is-selected',selected?.kind!=='relation'&&selected?.object?.id===id);
+    record.group.classList.toggle('is-current',id===last);
+    record.group.classList.toggle('is-done',done.has(id));
+    record.group.classList.toggle('is-dim',!active.has(id));
+  }
+  for(const [id,record] of currentDiagram?.drawn||[]){
+    record.group.classList.toggle('is-selected',selected?.kind==='relation'&&selected.relation.id===id);
+    const inactive=!allowed(record.relation,choices());
+    record.line.classList.toggle('is-dim',inactive);
+    record.group.classList.toggle('is-dim',inactive);
+    const focus=selected?.kind==='relation'?null:selected?.object?.id;
+    record.line.classList.toggle('related',selected?.kind==='relation'?selected.relation.id===id:!!focus&&(record.relation.from===focus||record.relation.to===focus));
+  }
+  const completed=reading&&reading.cursor===reading.plan.order.length;
+  $('#read-start').hidden=!!reading;
+  $('#read-next').hidden=!reading||completed;
+  $('#read-next').disabled=!reading||completed;
+  $('#read-reset').hidden=!reading;
+  $('#read-status').textContent=!reading?'选择对象查看说明，或按依赖逐步阅读。':plan.blocked.length?'阅读受阻：'+plan.blocked.join('、'):completed?'本层阅读完成；不是程序执行成功。':`${reading.cursor}/${plan.order.length} · 按作者声明的关系阅读`;
+  syncFlow();
+}
+function renderChoices(){
+  const values=choices();
+  $('#choices').replaceChildren();
+  const owners=flow().objects.filter(o=>o.choices);
+  $('#choices-panel').hidden=!owners.length;
+  for(const object of owners){
+    const label=html('label',object.title), select=html('select');
+    select.dataset.choice=object.id;
+    for(const choice of object.choices){const option=html('option',choice.label);option.value=choice.id;select.append(option);}
+    select.value=values[object.id];
+    select.onchange=()=>{values[object.id]=select.value;reading=null;renderChoices();plot();paintReading();};
+    label.append(select);
+    $('#choices').append(label);
+  }
+}
+function showDetails(target){
+  if(target.kind==='relation'){
+    const relation=target.relation;
+    $('#selected-title').textContent=relation.label;
+    $('#selected-role').textContent='关系 · '+(relation.type==='data'?(relation.timing==='immediate'?'实线':'虚线'):'控制/作用');
+    const note=relation.timingNote?`\n判断依据：${relation.timingNote}`:'';
+    $('#selected-text').textContent=(relation.from+' → '+relation.to)+note;
+    $('#show-source').hidden=!relation.sources?.length;
+    $('#show-source').onclick=()=>openSource(relation.sources,relation.label);
+    $('#expand').hidden=true;
+  }else{
+    const object=target.object;
+    $('#selected-title').textContent=object.title;
+    $('#selected-role').textContent=roleNames[object.type]||'对象';
+    $('#selected-text').textContent=object.text||'';
+    $('#show-source').hidden=!object.sources?.length;
+    $('#show-source').onclick=()=>openSource(object.sources,object.title);
+    $('#expand').hidden=!object.detail;
+    $('#expand').onclick=()=>navigate(current+'/'+object.id);
+  }
+  selected=target;
+  businessPlot();paintReading();
+}
+function select(object,enter=false){if(enter&&object.detail){navigate(current+'/'+object.id);return;}showDetails({kind:'object',object});}
+function selectRelation(relation){showDetails({kind:'relation',relation});}
+function relationIndex(){
+  const diagram=flow();
+  $('#relation-index-title').textContent='本层全部关系 · '+diagram.relations.length;
+  $('#relation-list').replaceChildren();
+  for(const relation of diagram.relations){
+    const item=html('li'),button=html('button');
+    const pair=html('span',relation.from+' → '+relation.to);pair.className='pair';
+    const meaning=html('span',relation.label);meaning.className='meaning';
+    button.append(pair,meaning);
+    button.dataset.relationEntry=relation.id;
+    button.onclick=()=>selectRelation(relation);
+    item.append(button);
+    $('#relation-list').append(item);
+  }
+}
+function businessPlot(){
+  const host=$('#business'), root=current.split('/')[0];
+  const visible=[...businesses.values()].filter(b=>b.key===root||b.key.startsWith(root+'/'));
+  const children=new Map(visible.map(b=>[b.key,[]]));
+  for(const b of visible)children.get(b.parent)?.push(b);
+  const shown=visible.filter(b=>{for(let p=b.parent;p;p=businesses.get(p)?.parent)if(collapsed.has(p))return false;return true;});
+  const width=Math.max(220,host.clientWidth-20);
+  const maxDepth=Math.max(1,...shown.map(b=>b.key.split('/').length-1));
+  const indent=Math.min(16,(width-170)/maxDepth);
+  const positions=new Map();let cursor=8;
+  for(const b of shown){
+    const depth=b.key.split('/').length-1, left=18+depth*indent, w=width-left-4;
+    const rows=LitFluxDrawing.wrap(b.title,w-44,12), height=Math.max(40,rows.height+20);
+    positions.set(b.key,{left,w,y:cursor+height/2,height,rows});cursor+=height+10;
+  }
+  const out=svg('svg',{width,height:cursor+4,role:'group','aria-label':'业务分解图'});
+  for(const b of shown){
+    const p=positions.get(b.key),a=positions.get(b.parent);
+    if(a){
+      const active=current===b.key||current.startsWith(b.key+'/');
+      out.append(svg('path',{class:'business-connector'+(active?' active':''),d:`M${a.left+8} ${a.y+a.height/2} V${p.y-5} Q${a.left+8} ${p.y} ${a.left+13} ${p.y} H${p.left}`}));
+    }
+  }
+  const activate=(g,action)=>{g.onclick=action;g.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();action();}};};
+  for(const b of shown){
+    const p=positions.get(b.key),count=children.get(b.key).length;
+    const g=svg('g',{class:'business-node'+(b.key===current?' current':'')+(selected?.object===b.owner&&b.owner?' selected':''),transform:`translate(${p.left},${p.y})`,tabindex:0,role:'button','aria-label':b.title,'data-business':b.key});
+    if(b.key===current)g.setAttribute('aria-current','location');
+    g.append(svg('rect',{class:'business-card',x:0,y:-p.height/2,width:p.w,height:p.height,rx:7}));
+    const t=svg('text',{class:'business-label',y:-(p.rows.height-p.rows.lineHeight)/2+4});
+    p.rows.lines.forEach((row,i)=>{const span=svg('tspan',{x:12,dy:i?p.rows.lineHeight:0});span.textContent=row;t.append(span);});
+    g.append(t);
+    if(count){const label=svg('text',{class:'business-count',x:p.w-12,y:4,'text-anchor':'end'});label.textContent=count;g.append(label);}
+    activate(g,()=>navigate(b.key));out.append(g);
+    if(count){
+      const toggle=svg('g',{class:'business-toggle',transform:`translate(${p.left-9},${p.y})`,tabindex:0,role:'button','aria-label':(collapsed.has(b.key)?'展开':'收拢')+b.title,'aria-expanded':String(!collapsed.has(b.key)),'data-toggle':b.key});
+      toggle.append(svg('rect',{class:'toggle-hit',x:-9,y:-10,width:18,height:20,rx:5}),svg('path',{class:'toggle-chevron',d:collapsed.has(b.key)?'M-2 -4 L2 0 L-2 4':'M-4 -2 L0 2 L4 -2'}));
+      activate(toggle,()=>{
+        if(collapsed.has(b.key))collapsed.delete(b.key);else collapsed.add(b.key);
+        businessPlot();
+        [...host.querySelectorAll('[data-toggle]')].find(n=>n.dataset.toggle===b.key)?.focus();
+      });out.append(toggle);
+    }
+  }
+  host.replaceChildren(out);
+}
+function scale(){
+  if(!currentDiagram?.svg)return;
+  const s=currentDiagram.svg;
+  s.style.width=currentDiagram.width*zoom+'px';
+  s.style.height=currentDiagram.height*zoom+'px';
+  s.style.marginLeft=Math.max(0,($('#canvas').clientWidth-currentDiagram.width*zoom)/2)+'px';
+  s.style.transform=`translate(${pan.x}px,${pan.y}px)`;
+}
+function plot(){
+  const host=$('#canvas');
+  try{
+    const view=flow();
+    const scene=LitFluxDrawing.create(view,host,{onObject:select,onRelation:selectRelation});
+    view.draw(scene,{width:host.clientWidth,height:host.clientHeight});
+    currentDiagram=scene.finish();
+    currentDiagram.error=null;
+    scale();
+  }catch(error){
+    currentDiagram={error:String(error.message||error)};
+    const box=html('p','绘图错误：'+currentDiagram.error);box.className='drawing-error';
+    host.replaceChildren(box);
+  }
+}
+function syncFlow(){
+  const out=currentDiagram?.svg;
+  if(!out)return;
+  out.querySelectorAll('.flow-particles').forEach(n=>n.remove());
+  if(!motionEnabled||reducedMotion.matches)return;
+  const focus=selected?.kind==='relation'?null:selected?.object?.id;
+  if(!focus)return;
+  const layer=svg('g',{class:'flow-particles','aria-hidden':'true'});
+  for(const [id,record] of currentDiagram.drawn){
+    const relation=record.relation;
+    if(relation.type!=='data'||(relation.from!==focus&&relation.to!==focus))continue;
+    const path=record.line;
+    path.id='flow-'+id;
+    const duration=Math.max(1.5,Math.min(4,path.getTotalLength()/110));
+    for(let i=0;i<2;i++){
+      const dot=svg('circle',{r:i?2.5:3,class:'flow-dot','data-direction':relation.to===focus?'input':'output'});
+      const motion=svg('animateMotion',{dur:duration+'s',begin:-(i*duration/2)+'s',repeatCount:'indefinite',calcMode:'paced'});
+      motion.append(svg('mpath',{href:'#'+path.id}));
+      dot.append(motion);layer.append(dot);
+    }
+  }
+  out.querySelector('g').append(layer);
+}
+function openSource(refs,title){
+  sourceRefs=[...new Set(refs||[])];returnFocus=document.activeElement;
+  $('#source-title').textContent=title;$('#sources').replaceChildren();
+  for(const ref of sourceRefs){
+    const source=payload.sources[ref];
+    if(!source)continue;
+    const section=html('section'),pre=html('pre');
+    section.className='source';section.dataset.ref=ref;
+    section.append(html('h3',source.path+':'+source.start+'–'+source.end));
+    source.lines.forEach((value,i)=>{
+      const row=html('span'),ln=html('span',String(source.start+i));
+      row.className='row';ln.className='ln';row.append(ln,html('span',value));pre.append(row);
+    });
+    section.append(pre);$('#sources').append(section);
+  }
+  $('#drawer').hidden=false;$('#scrim').hidden=false;$('.app').inert=true;$('#close-source').focus();
+}
+function closeSource(){sourceRefs=[];$('#drawer').hidden=true;$('#scrim').hidden=true;$('.app').inert=false;returnFocus?.focus();}
+function applyTheme(theme,persist=false){
+  document.documentElement.dataset.theme=theme==='dark'?'dark':'light';
+  $('#theme').textContent=theme==='dark'?'切换白天':'切换夜间';
+  if(persist)try{localStorage.setItem('litflux.theme',theme);}catch{}
+}
+function updateMotion(){
+  $('#motion').disabled=reducedMotion.matches;
+  $('#motion').textContent=reducedMotion.matches?'已减少动态':'流动：'+(motionEnabled?'开':'关');
+  $('#motion').setAttribute('aria-pressed',String(motionEnabled&&!reducedMotion.matches));
+  syncFlow();
+}
+function render(){
+  const view=businesses.get(current);
+  $('#workflow-select').value=current.slice(9).split('/')[0];
+  $('#flow-title').textContent=view.title;
+  const diagram=flow();
+  $('#relation-count').textContent=diagram.objects.length+' 对象 · '+diagram.relations.length+' 关系';
+  const chain=[];for(let b=view;b;b=businesses.get(b.parent))chain.unshift(b);
+  $('#crumbs').hidden=chain.length===1;$('#crumbs').replaceChildren();
+  chain.forEach((item,i)=>{
+    if(i)$('#crumbs').append(html('span','/'));
+    const button=html('button',item.title);button.onclick=()=>navigate(item.key);$('#crumbs').append(button);
+  });
+  businessPlot();renderChoices();relationIndex();plot();
+  if(!selected||!flow().objects.includes(selected.object))select(diagram.objects[0]);
+  else showDetails(selected);
+  paintReading();
+}
+$('#toggle-business').onclick=()=>{const open=$('#business-panel').hidden;$('#business-panel').hidden=!open;$('.dual-layout').classList.toggle('sidebar-collapsed',!open);$('#toggle-business').setAttribute('aria-expanded',String(open));};
+$('#toggle-details').onclick=()=>{const open=!$('#details-body').hidden;$('#details-body').hidden=!open;$('#toggle-details').textContent=open?'收起说明':'展开说明';$('#toggle-details').setAttribute('aria-expanded',String(open));};
+$('#collapse-all').onclick=()=>{for(const b of businesses.values())if(b.flow)collapsed.add(b.key);businessPlot();};
+$('#expand-all').onclick=()=>{collapsed.clear();businessPlot();};
+$('#read-start').onclick=()=>{reading={plan:readingPlan(flow(),choices()),cursor:0};paintReading();};
+$('#read-next').onclick=()=>{
+  if(!reading||reading.cursor>=reading.plan.order.length)return;
+  const id=reading.plan.order[reading.cursor++];
+  select(flow().objects.find(o=>o.id===id));
+  const position=currentDiagram?.positions?.get(id);
+  if(position)$('#canvas').scrollTo({left:Math.max(0,position.x*zoom-$('#canvas').clientWidth/2),top:Math.max(0,position.y*zoom-$('#canvas').clientHeight/2)});
+};
+$('#read-reset').onclick=()=>{reading=null;paintReading();};
+$('#theme').onclick=()=>applyTheme(document.documentElement.dataset.theme==='dark'?'light':'dark',true);
+$('#motion').onclick=()=>{motionEnabled=!motionEnabled;updateMotion();};
+reducedMotion.addEventListener('change',updateMotion);
+$('#fit').onclick=()=>{
+  if(!currentDiagram?.svg)return;
+  zoom=Math.min(1,($('#canvas').clientWidth-32)/currentDiagram.width,($('#canvas').clientHeight-32)/currentDiagram.height);
+  pan={x:0,y:0};scale();$('#canvas').scrollTo(0,0);
+};
+$('#reset-view').onclick=()=>{zoom=1;pan={x:0,y:0};scale();$('#canvas').scrollTo(0,0);};
+$('#zoom-in').onclick=()=>{zoom=Math.min(2,zoom+.1);scale();};
+$('#zoom-out').onclick=()=>{zoom=Math.max(.3,zoom-.1);scale();};
+let drag=null;
+$('#canvas').addEventListener('pointerdown',event=>{
+  if(event.button!==0||event.target.closest('.node,.relation-note,button'))return;
+  drag={x:event.clientX,y:event.clientY,px:pan.x,py:pan.y};
+  $('#canvas').setPointerCapture(event.pointerId);$('#canvas').classList.add('grabbing');
+});
+$('#canvas').addEventListener('pointermove',event=>{if(drag){pan={x:drag.px+event.clientX-drag.x,y:drag.py+event.clientY-drag.y};scale();}});
+for(const name of ['pointerup','pointercancel','lostpointercapture'])$('#canvas').addEventListener(name,()=>{drag=null;$('#canvas').classList.remove('grabbing');});
+document.addEventListener('keydown',event=>{
+  if(event.key==='Escape'){if(!$('#drawer').hidden)closeSource();else{$('#display-menu').open=false;$('#choices-panel').open=false;}}
+  if(event.key==='Tab'&&!$('#drawer').hidden){event.preventDefault();$('#close-source').focus();}
+});
+$('#workflow-select').onchange=()=>navigate('workflow:'+$('#workflow-select').value);
+$('#close-source').onclick=closeSource;$('#scrim').onclick=closeSource;
+$('#delivery-badge').textContent={'draft':'草稿','checked':'已检查','reviewed':'已复核'}[payload.status]||'草稿';
+$('#title').textContent=$('#project-title').textContent=model.title;
+$('#summary').textContent=model.summary;$('#scope').textContent=model.scope;
+document.title=model.title+' · LitFlux';
+for(const workflow of model.workflows){const option=html('option',workflow.title);option.value=workflow.id;$('#workflow-select').append(option);}
+window.litfluxState=()=>({current,selected:selected?(selected.kind==='relation'?selected.relation.id:selected.object.id):null,
+  sourceRefs:[...sourceRefs],objects:flow().objects.length,relations:flow().relations.length,
+  geometry:currentDiagram?.geometry||null,error:currentDiagram?.error||null,
+  reading:reading?{cursor:reading.cursor,order:reading.plan.order,blocked:reading.plan.blocked}:null,
+  theme:document.documentElement.dataset.theme,zoom,pan:{...pan}});
+let treeWidth=0;
+new ResizeObserver(()=>{const width=$('#business').clientWidth;if(width&&width!==treeWidth){treeWidth=width;businessPlot();}}).observe($('#business'));
+let frame=0,lastViewport='';
+new ResizeObserver(()=>{
+  const size=$('#canvas').clientWidth+'x'+$('#canvas').clientHeight;
+  if(size===lastViewport)return;lastViewport=size;
+  cancelAnimationFrame(frame);frame=requestAnimationFrame(()=>{plot();paintReading();});
+}).observe($('#canvas'));
+let theme='light';try{theme=localStorage.getItem('litflux.theme')||'light';}catch{}applyTheme(theme);
+render();updateMotion();
+</script>
+<script>__AUDIT__</script>
+<script>const semanticLocalizer=(__LOCALIZER__)(document.body,{language:model.language||'zh'},__MESSAGES__);semanticLocalizer.apply();</script></body></html>

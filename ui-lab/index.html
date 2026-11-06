@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LitFlux · 五种界面方向</title>
+<style>
+:root{
+  --bg:#f6f3ec; --card:#fffdf8; --ink:#1d1b17; --muted:#6e675c; --faint:#9b9284;
+  --line:#e5ded0; --accent:#1d1b17;
+  --sans:"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei UI",system-ui,sans-serif;
+  --serif:"Songti SC","Noto Serif SC",Georgia,serif;
+  --mono:"Cascadia Code",Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.7 var(--sans);-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1400px;margin:0 auto;padding:0 40px}
+header{padding:38px 0 26px;border-bottom:1px solid var(--ink)}
+.top{display:flex;align-items:baseline;justify-content:space-between;gap:20px;font:10px/1.6 var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--faint)}
+.top b{color:var(--ink);font-weight:500;letter-spacing:.14em}
+.hero{display:flex;align-items:flex-end;justify-content:space-between;gap:60px;padding:22px 0 8px}
+.hero h1{font-family:var(--serif);font-size:clamp(44px,5vw,72px);line-height:1;letter-spacing:-.03em;margin:0;font-weight:600}
+.hero p{max-width:46em;margin:0 0 6px;color:var(--muted);font-size:14.5px}
+.hero .n{font:10px/1.6 var(--mono);letter-spacing:.16em;color:var(--faint);white-space:nowrap}
+.meta{display:flex;gap:26px;flex-wrap:wrap;padding:14px 0 0;border-top:1px solid var(--line);margin-top:18px;font:10px/1.6 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+.meta b{color:var(--muted);font-weight:400}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:26px;padding:30px 0 12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;transition:transform .18s ease,box-shadow .18s ease;position:relative}
+.card:hover{transform:translateY(-3px);box-shadow:0 18px 40px rgba(60,48,30,.1)}
+.card .accent{position:absolute;left:0;right:0;top:0;height:4px;background:var(--c);z-index:2}
+.shot{display:block;aspect-ratio:16/10;overflow:hidden;background:#ddd;border-bottom:1px solid var(--line)}
+.shot img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block}
+.body{padding:19px 22px 20px;display:flex;flex-direction:column;gap:8px;flex:1}
+.title{display:flex;align-items:baseline;gap:12px}
+.title .no{font:10px/1 var(--mono);color:var(--faint);letter-spacing:.1em}
+.title h2{font-family:var(--serif);font-size:24px;line-height:1.2;margin:0;font-weight:600;letter-spacing:-.02em}
+.title .en{font:9.5px/1 var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--faint);margin-left:auto}
+.body p{margin:0;color:var(--muted);font-size:13px;line-height:1.75}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+.tags span{font:9.5px/1 var(--mono);letter-spacing:.06em;color:#6a6254;background:#f5efe4;border:1px solid #ece3d4;border-radius:999px;padding:4px 8px}
+.open{margin-top:auto;display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px solid var(--line);font-size:12px;color:var(--ink)}
+.open span{font:9.5px/1 var(--mono);letter-spacing:.12em;color:var(--faint)}
+.card.wide{grid-column:1/-1;flex-direction:row}
+.card.wide .shot{width:56%;aspect-ratio:auto;border-bottom:0;border-right:1px solid var(--line);min-height:380px}
+.card.wide .body{width:44%;padding:30px 30px}
+.card.wide .title h2{font-size:34px}
+.card.wide p{font-size:14px}
+.card[data-style="paper"]{--c:#b4472e}
+.card[data-style="blueprint"]{--c:#2c6174}
+.card[data-style="editorial"]{--c:#9a3b2e}
+.card[data-style="terminal"]{--c:#5c9a58}
+.card[data-style="soft"]{--c:#8fae95}
+.note{display:flex;gap:26px;justify-content:space-between;align-items:flex-start;border-top:1px solid var(--ink);margin-top:26px;padding:18px 0 46px;font-size:12px;color:var(--muted)}
+.note p{margin:0;max-width:54em;line-height:1.8}
+.note .k{font:9.5px/1.6 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--faint);white-space:nowrap}
+@media (max-width:980px){
+  .wrap{padding:0 22px}
+  .hero{flex-direction:column;align-items:flex-start;gap:14px}
+  .grid{grid-template-columns:1fr}
+  .card.wide{flex-direction:column}
+  .card.wide .shot,.card.wide .body{width:100%}
+  .card.wide .shot{aspect-ratio:16/10;min-height:0;border-right:0;border-bottom:1px solid var(--line)}
+  .note{flex-direction:column;gap:10px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="top"><span><b>LitFlux</b> · UI Lab</span><span>五种界面方向 / 2026-11</span></div>
+    <div class="hero">
+      <h1>五种读法</h1>
+      <p>同一份项目脉络、同一组交互（分解、判断、阅读、源码），五种完全不同的界面主张。全部为可点击的静态设计稿，使用虚构的 <b>Lumen</b> 演示项目，不改动生产查看器。</p>
+    </div>
+    <div class="meta"><span>基准 <b>1440 × 900</b></span><span>演示数据 <b>3 入口 · 15 节点</b></span><span>技术 <b>原生 HTML / CSS / JS</b></span><span>状态 <b>设计稿，未验收</b></span></div>
+  </header>
+
+  <main class="grid">
+    <a class="card wide" data-style="paper" href="01-paper.html">
+      <span class="accent"></span>
+      <span class="shot"><img src="shots/01-paper.png?v=4" alt="纸本方向截图"></span>
+      <span class="body">
+        <span class="title"><span class="no">01</span><h2>纸本</h2><span class="en">Paper / Minimal</span></span>
+        <p>以图为先：侧栏与节点说明默认收起，正交连线、统一箭头，按窗口自适应铺满；纸色界面可切换黑夜。需要解释时再展开侧栏或底部说明，不打断图面。</p>
+        <span class="tags"><span>图优先</span><span>面板默认收起</span><span>正交连线</span><span>按屏适配</span><span>黑夜模式</span></span>
+        <span class="open">打开纸本 <span>OPEN →</span></span>
+      </span>
+    </a>
+
+    <a class="card" data-style="blueprint" href="02-blueprint.html">
+      <span class="accent"></span>
+      <span class="shot"><img src="shots/02-blueprint.png?v=3" alt="蓝图方向截图"></span>
+      <span class="body">
+        <span class="title"><span class="no">02</span><h2>蓝图</h2><span class="en">Blueprint</span></span>
+        <p>工程制图的隐喻：深蓝图纸、坐标网格、图号与标题栏。每一次选择都变成一次标注，右侧注释与图中的编号引线一一对应。</p>
+        <span class="tags"><span>等宽字体</span><span>标题栏</span><span>编号引线</span><span>坐标读数</span></span>
+        <span class="open">打开蓝图 <span>OPEN →</span></span>
+      </span>
+    </a>
+
+    <a class="card" data-style="editorial" href="03-editorial.html">
+      <span class="accent"></span>
+      <span class="shot"><img src="shots/03-editorial.png?v=3" alt="篇章方向截图"></span>
+      <span class="body">
+        <span class="title"><span class="no">03</span><h2>篇章</h2><span class="en">Editorial</span></span>
+        <p>把一次业务流程读成一篇文章。左侧图版固定，右侧正文滚动；章节、摘要、编号段落与图注，让“解释”成为第一等公民。</p>
+        <span class="tags"><span>杂志跨页</span><span>图版 + 正文</span><span>章节编号</span><span>滚动阅读</span></span>
+        <span class="open">打开篇章 <span>OPEN →</span></span>
+      </span>
+    </a>
+
+    <a class="card" data-style="terminal" href="04-terminal.html">
+      <span class="accent"></span>
+      <span class="shot"><img src="shots/04-terminal.png?v=3" alt="终端方向截图"></span>
+      <span class="body">
+        <span class="title"><span class="no">04</span><h2>终端</h2><span class="en">Terminal</span></span>
+        <p>给愿意用键盘的人：三窗格、等宽字、状态行与命令行。↑↓ 选节点，r 阅读，n 下一步，/ 直接输入命令切换入口。</p>
+        <span class="tags"><span>键盘优先</span><span>三窗格</span><span>命令行</span><span>ASCII 树</span></span>
+        <span class="open">打开终端 <span>OPEN →</span></span>
+      </span>
+    </a>
+
+    <a class="card" data-style="soft" href="05-soft.html">
+      <span class="accent"></span>
+      <span class="shot"><img src="shots/05-soft.png?v=3" alt="柔和方向截图"></span>
+      <span class="body">
+        <span class="title"><span class="no">05</span><h2>柔和</h2><span class="en">Soft / Organic</span></span>
+        <p>面向非工程读者：圆角卡片、柔和色块与浮动阅读岛。业务脉络变成可分层的胶囊，点开节点从右侧滑出说明，源码从底部展开。</p>
+        <span class="tags"><span>分段控件</span><span>浮动阅读岛</span><span>侧滑说明</span><span>底部源码抽屉</span></span>
+        <span class="open">打开柔和 <span>OPEN →</span></span>
+      </span>
+    </a>
+  </main>
+
+  <div class="note">
+    <span class="k">验证边界</span>
+    <p>五页均已在真实 Chromium 中以 1440×900 截图；交互仅验证了主路径（切换入口、逐层进入、选择节点、阅读步进、打开源码），未做全量回归、键盘审计、窄屏逐页验收与像素级评审结论。演示内容为虚构项目，不代表任何真实仓库；生产查看器 <span style="font-family:var(--mono)">skills/litflux/assets/semantic-viewer.html</span> 未改动。</p>
+  </div>
+</div>
+</body>
+</html>

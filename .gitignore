@@ -1,0 +1,42 @@
+# Local development history and benchmark material
+/history/
+/test-results/
+/test-projects/
+/artworks/
+/.zcode/
+/ui-lab/shots/
+
+# Generated maps, distribution bundles, and build output
+/dist/
+/build/
+/demo.html
+.litflux/
+litflux-output/
+
+# Python / Node local state
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+node_modules/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+*.egg-info/
+
+# Local credentials and machine files
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+AGENTS.md
+
+litflux-deepseek-isolated-20261025/
+simulation_test/

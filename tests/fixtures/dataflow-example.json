@@ -1,0 +1,208 @@
+{
+  "schemaVersion": "0.3",
+  "project": {
+    "name": "真实数据依赖示例",
+    "scope": "int 比较后返回 bool，然后写入数据库；配置读取是资源输入。",
+    "sourceKind": "declaration",
+    "coverage": [
+      {
+        "entry": "比较与入库",
+        "kind": "business",
+        "status": "covered",
+        "operations": [
+          "positive",
+          "save"
+        ],
+        "reason": null
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "id": "ev.example",
+      "kind": "declaration",
+      "ref": null,
+      "note": "声明式示例：不代表被分析项目的源码事实。"
+    }
+  ],
+  "entities": [
+    {
+      "id": "x",
+      "name": "x",
+      "kind": "value",
+      "scope": "example",
+      "type": "int",
+      "evidence": [
+        "ev.example"
+      ]
+    },
+    {
+      "id": "result",
+      "name": "是否为正数",
+      "kind": "value",
+      "scope": "example",
+      "type": "bool",
+      "evidence": [
+        "ev.example"
+      ],
+      "lineage": [
+        "x",
+        "config"
+      ]
+    }
+  ],
+  "resources": [
+    {
+      "id": "config",
+      "name": "比较配置",
+      "kind": "config",
+      "scope": "example",
+      "type": "Settings",
+      "evidence": [
+        "ev.example"
+      ]
+    },
+    {
+      "id": "db",
+      "name": "结果数据库",
+      "kind": "database",
+      "scope": "example",
+      "type": "Session",
+      "evidence": [
+        "ev.example"
+      ]
+    }
+  ],
+  "phases": [
+    {
+      "id": "phase.demo",
+      "label": "比较与保存",
+      "requires": [],
+      "completion": null,
+      "evidence": [
+        "ev.example"
+      ]
+    }
+  ],
+  "operations": [
+    {
+      "id": "positive",
+      "name": "is_positive(x: int, config: Settings) -> bool",
+      "definition": "is_positive(x: int, config: Settings) -> bool",
+      "signature": "is_positive(x: int, config: Settings) -> bool",
+      "phase": "phase.demo",
+      "trigger": "all",
+      "operationKind": "source-function",
+      "inputs": [
+        {
+          "port": "i0",
+          "entity": "x",
+          "role": "argument",
+          "required": true
+        },
+        {
+          "port": "i1",
+          "entity": "config",
+          "role": "capture",
+          "required": true,
+          "label": "被读取"
+        }
+      ],
+      "outcomes": [
+        {
+          "id": "return",
+          "condition": null,
+          "outputs": [
+            {
+              "port": "value",
+              "entity": "result",
+              "role": "return"
+            }
+          ]
+        }
+      ],
+      "effects": [],
+      "accesses": [],
+      "evidence": [
+        "ev.example"
+      ],
+      "expansion": null,
+      "explanation": {
+        "purpose": "is_positive(x: int, config: Settings) -> bool",
+        "steps": [],
+        "result": "返回实际计算值。",
+        "caveats": [
+          "这是用户声明的示例。"
+        ]
+      },
+      "stop": {
+        "reason": "simple",
+        "detail": "单一比较或写入操作。"
+      }
+    },
+    {
+      "id": "save",
+      "name": "save_result(result: bool, db: Session) -> None",
+      "definition": "save_result(result: bool, db: Session) -> None",
+      "signature": "save_result(result: bool, db: Session) -> None",
+      "phase": "phase.demo",
+      "trigger": "all",
+      "operationKind": "source-function",
+      "inputs": [
+        {
+          "port": "i0",
+          "entity": "result",
+          "role": "argument",
+          "required": true
+        },
+        {
+          "port": "i1",
+          "entity": "db",
+          "role": "capture",
+          "required": true
+        }
+      ],
+      "outcomes": [
+        {
+          "id": "return",
+          "condition": null,
+          "outputs": []
+        }
+      ],
+      "effects": [],
+      "accesses": [
+        {
+          "port": "insert",
+          "resource": "db",
+          "mode": "write",
+          "label": "执行了入库",
+          "data": [
+            "result"
+          ],
+          "evidence": [
+            "ev.example"
+          ]
+        }
+      ],
+      "evidence": [
+        "ev.example"
+      ],
+      "expansion": null,
+      "explanation": {
+        "purpose": "save_result(result: bool, db: Session) -> None",
+        "steps": [],
+        "result": "无数据返回；更新外部数据库。",
+        "caveats": [
+          "这是用户声明的示例。"
+        ]
+      },
+      "stop": {
+        "reason": "simple",
+        "detail": "单一比较或写入操作。"
+      }
+    }
+  ],
+  "unknowns": [],
+  "components": [],
+  "events": []
+}

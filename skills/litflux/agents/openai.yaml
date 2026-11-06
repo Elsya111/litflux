@@ -1,0 +1,6 @@
+interface:
+  display_name: "LitFlux"
+  icon_small: "./assets/litflux-logo.png"
+  icon_large: "./assets/litflux-logo.png"
+  short_description: "从业务流程探索项目并直达原始源码"
+  default_prompt: "使用 $litflux，按 SKILL.md 的六步流程和完成条件推进：明确讲解范围、追踪真实源码、组织业务解释、编写模块与绘制、检查与修正、交付与说明。先读机制说明，编写时再查作者方式与教学例。各阶段由你自检后继续，遇到阻塞问题按主流程处理。交付时说明实际覆盖、检查结果和未完成项。"

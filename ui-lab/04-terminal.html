@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>终端 · LitFlux</title>
+<style>
+:root{
+  --void:#070907; --panel:#0b0e0c; --panel-2:#0e1210; --ink:#c9dcc4; --dim:#7d8f7b; --faint:#4f5f4e;
+  --line:#1d2a1f; --line-2:#2a3a2c; --green:#8be27c; --green-2:#5c9a58; --amber:#d6a35c; --red:#cf7862; --violet:#a58cc0;
+  --mono:"Cascadia Mono","Cascadia Code","JetBrains Mono",Consolas,"Microsoft YaHei UI",monospace;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--void);color:var(--ink);font:12px/1.6 var(--mono);overflow:hidden;-webkit-font-smoothing:antialiased}
+body::after{content:"";position:fixed;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.22) 0 1px,transparent 1px 3px);pointer-events:none;z-index:50;opacity:.35}
+button,select,input{font:inherit;color:inherit;background:none;border:0;outline:none;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible,[tabindex]:focus-visible{outline:1px solid var(--green);outline-offset:2px}
+::selection{background:rgba(139,226,124,.25)}
+.tty{position:fixed;inset:10px;border:1px solid var(--line-2);display:flex;flex-direction:column;background:var(--panel);overflow:hidden}
+.bar{height:34px;flex:none;display:flex;align-items:center;gap:18px;padding:0 12px;border-bottom:1px solid var(--line);color:var(--dim);font-size:11px;letter-spacing:.04em}
+.bar .path{color:var(--green)}
+.bar .path b{font-weight:400;color:var(--dim)}
+.tabs{display:flex;gap:2px;margin-left:8px}
+.tabs button{padding:4px 9px;border:1px solid transparent;color:var(--faint);font-size:11px;line-height:1}
+.tabs button[aria-current="true"]{border-color:var(--line-2);color:var(--green);background:rgba(139,226,124,.06)}
+.tabs button:hover{color:var(--ink)}
+.bar .right{margin-left:auto;display:flex;gap:16px;align-items:center;font-size:10px;color:var(--faint);letter-spacing:.08em}
+.blink{display:inline-block;width:6px;height:11px;background:var(--green);animation:blink 1.1s steps(1) infinite;vertical-align:-1px}
+.grid{flex:1;min-height:0;display:grid;grid-template-columns:236px minmax(0,1fr) 330px}
+.pane{min-width:0;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.pane+.pane{border-left:1px solid var(--line)}
+.pane-title{height:26px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 10px;border-bottom:1px solid var(--line);color:var(--faint);font-size:9px;letter-spacing:.16em;text-transform:uppercase}
+.pane-title span{color:var(--dim);letter-spacing:.05em}
+.tree{flex:1;overflow:auto;padding:8px 0 12px}
+.tree button{display:flex;gap:8px;width:100%;text-align:left;padding:3px 10px;color:var(--dim);font-size:11px;line-height:1.5;white-space:nowrap}
+.tree button:hover{color:var(--ink);background:rgba(139,226,124,.04)}
+.tree button[data-current="true"]{color:var(--green);background:rgba(139,226,124,.07)}
+.tree .pre{color:var(--faint);white-space:pre}
+.tree button[data-current="true"] .pre{color:var(--green-2)}
+.tree .code{margin-left:auto;color:var(--faint);font-size:9px}
+.tree .src{color:var(--faint);font-size:9px}
+.cap{padding:7px 10px 10px;border-top:1px solid var(--line);font-size:10px;max-height:190px;overflow:auto}
+.cap-row{display:flex;gap:7px;padding:2px 0;color:var(--dim);line-height:1.5}
+.cap-row .s{color:var(--faint)}
+.cap-row.covered .s{color:var(--green-2)}
+.cap-row.pending .s{color:var(--amber)}
+.cap-row.unavailable .s{color:var(--red)}
+.mid{background:var(--panel-2);position:relative}
+.flowhead{height:28px;flex:none;display:flex;align-items:center;gap:14px;padding:0 12px;border-bottom:1px solid var(--line);font-size:10px;color:var(--faint);letter-spacing:.08em}
+.flowhead b{font-weight:400;color:var(--dim);letter-spacing:.04em}
+.flowhead .scale{margin-left:auto}
+.flowhead select{font-size:10px;color:var(--amber);border:1px solid var(--line-2);padding:2px 5px;max-width:220px}
+.walkbar{height:27px;flex:none;display:flex;align-items:center;gap:12px;padding:0 12px;border-bottom:1px solid var(--line);font-size:9.5px;color:var(--faint);letter-spacing:.06em;background:#0a0f0c}
+.walkbar b{font-weight:400;color:var(--green-2)}
+.walkbar .lbl{color:var(--dim);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:48%}
+.walkbar.reading b,.walkbar.reading .lbl{color:var(--green)}
+.walkbar .ctl{margin-left:auto;display:flex;gap:4px}
+.walkbar .ctl button{width:22px;height:18px;border:1px solid var(--line-2);color:var(--dim);font-size:11px;line-height:1}
+.walkbar .ctl button:hover:not(:disabled){color:var(--green);border-color:var(--green-2)}
+.walkbar .ctl button:disabled{opacity:.35;cursor:default}
+.canvas{flex:1;min-height:0;position:relative;padding:8px 10px 0}
+#graph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:10px}
+#graph svg{width:100%;height:100%}
+.cmd{height:34px;flex:none;display:flex;align-items:center;gap:8px;padding:0 12px;border-top:1px solid var(--line);background:var(--panel)}
+.cmd .prompt{color:var(--green)}
+.cmd input{flex:1;font-size:11px;color:var(--ink);caret-color:var(--green)}
+.cmd input::placeholder{color:var(--faint)}
+.cmd .hint{color:var(--faint);font-size:9px;letter-spacing:.08em}
+.log{padding:0 12px;height:20px;flex:none;display:flex;align-items:center;color:var(--faint);font-size:9.5px;border-top:1px solid var(--line);overflow:hidden;white-space:nowrap;background:var(--panel)}
+.log b{color:var(--dim);font-weight:400}
+.right .body{flex:1;overflow:auto;display:flex;flex-direction:column}
+.inspect{padding:10px 12px;border-bottom:1px solid var(--line)}
+.inspect .id{color:var(--green-2);font-size:10px;letter-spacing:.06em}
+.inspect h2{font-size:14px;line-height:1.45;font-weight:400;color:var(--ink);margin:4px 0 8px}
+.inspect p{font-size:10.5px;line-height:1.8;color:var(--dim);margin:0 0 10px}
+.kv{display:grid;grid-template-columns:64px 1fr;gap:2px 8px;font-size:9.5px;line-height:1.6}
+.kv dt{color:var(--faint);letter-spacing:.08em}
+.kv dd{margin:0;color:var(--dim);overflow-wrap:anywhere}
+.acts{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.acts button{border:1px solid var(--line-2);padding:3px 7px;font-size:9px;color:var(--green-2);letter-spacing:.08em}
+.acts button:hover{color:var(--green);border-color:var(--green-2)}
+.mini{flex:1;overflow:auto;padding:10px 12px}
+.mini h3{font-size:9px;color:var(--faint);font-weight:400;margin:0 0 6px;letter-spacing:.06em}
+.mini pre{margin:0 0 12px;font:10px/1.8 var(--mono);color:#87a483;background:#080b09;border:1px solid var(--line);padding:8px 9px;overflow:auto;white-space:pre}
+.mini .ln{display:inline-block;width:24px;color:#3c4b3a}
+.status{height:26px;flex:none;display:flex;align-items:center;gap:18px;padding:0 12px;border-top:1px solid var(--line);color:var(--faint);font-size:9.5px;letter-spacing:.06em;background:var(--panel)}
+.status b{color:var(--green-2);font-weight:400}
+.status .r{margin-left:auto;display:flex;gap:16px;align-items:center}
+.status .cur{width:6px;height:11px;background:var(--green);animation:blink 1.1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.reader{position:fixed;inset:0;background:rgba(4,7,5,.94);z-index:60;display:none;overflow:auto}
+.reader.on{display:block}
+.reader .box{max-width:940px;margin:52px auto;border:1px solid var(--line-2);background:var(--panel);padding:0 0 20px}
+.reader .head{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--line);font-size:10px;color:var(--faint);letter-spacing:.12em}
+.reader .head b{color:var(--ink);font-weight:400;letter-spacing:.04em}
+.reader .head button{border:1px solid var(--line-2);padding:3px 8px;font-size:9px;color:var(--dim);letter-spacing:.1em}
+.reader .body{padding:14px 16px}
+.reader .src h3{font-size:9.5px;color:var(--faint);font-weight:400;margin:0 0 6px}
+.reader .src pre{margin:0 0 20px;padding:12px 14px;background:#080b09;border:1px solid var(--line);font:11.5px/1.8 var(--mono);color:#a8c4a3;overflow:auto}
+.reader .ln{display:inline-block;width:30px;color:#3c4b3a;user-select:none}
+@media (max-width:1100px){.grid{grid-template-columns:200px minmax(0,1fr) 260px}}
+@media (max-width:850px){
+  body{overflow:auto}
+  .tty{position:relative;inset:0;margin:8px;height:auto;min-height:100vh}
+  .grid{grid-template-columns:1fr;grid-template-rows:auto auto auto}
+  .pane+.pane{border-left:0;border-top:1px solid var(--line)}
+  .tree{max-height:220px}
+  .canvas{min-height:380px}
+  .right .body{display:flex}
+  .inspect{flex:1}
+  .mini{display:none}
+}
+@media (prefers-reduced-motion:reduce){.blink,.status .cur{animation:none}body::after{opacity:.2}}
+/* graph */
+.lf-graph{overflow:visible}
+.lf-graph .edge{fill:none;stroke:#30513a;stroke-width:1}
+.lf-graph .edge.role-control{stroke:#8f7434;stroke-dasharray:5 4}
+.lf-graph .edge.role-failure{stroke:#9c4f3d;stroke-dasharray:2 3}
+.lf-graph .edge.role-provider-edge{stroke:#6b5a7a;stroke-dasharray:1 3}
+.lf-graph .edge.role-resource-edge{stroke:#7d6a3a;stroke-dasharray:4 3}
+.lf-graph .edge.role-data.is-primary{stroke:#4d7a56;stroke-width:1.25}
+.lf-graph .edge.role-data:not(.is-primary){stroke-dasharray:2 4;stroke:#3a5741}
+.lf-graph .edge.is-dim{opacity:.38}
+.lf-graph .edge-label text{font:10.5px var(--mono);fill:#93b08f;letter-spacing:.02em}
+.lf-graph .edge-label-bg{fill:#0b0e0c;opacity:.96}
+.lf-graph .edge-label.is-dim{opacity:.42}
+.lf-graph .marker-fill{fill:#30513a}
+.lf-graph .marker-data{fill:#4d7a56}
+.lf-graph .marker-control{fill:#8f7434}
+.lf-graph .marker-failure{fill:#9c4f3d}
+.lf-graph .marker-provider-edge{fill:#6b5a7a}
+.lf-graph .marker-resource-edge{fill:#7d6a3a}
+.lf-graph .node{cursor:pointer}
+.lf-graph .node .shape{fill:#0c110d;stroke:#3c5c42;stroke-width:1}
+.lf-graph .node.role-data .shape{fill:transparent;stroke:#3d5c47;stroke-dasharray:2 3}
+.lf-graph .node.role-decision .shape{fill:#12100a;stroke:#a8823f}
+.lf-graph .node.role-resource .shape{fill:#0f100b;stroke:#7d6a3a;stroke-dasharray:5 3}
+.lf-graph .node.role-provider .shape{fill:#0e0b11;stroke:#6b5a7a;stroke-dasharray:1 3}
+.lf-graph .node.role-boundary .shape{fill:transparent;stroke:#7d4f42;stroke-dasharray:4 3}
+.lf-graph .node .cyl{stroke:#7d6a3a}
+.lf-graph .node .n-rule{display:none}
+.lf-graph .n-title{fill:#b6cfae;font-family:var(--mono)}
+.lf-graph .role-data .n-title{fill:#6f8f78}
+.lf-graph .role-decision .n-title{fill:#d6b06c}
+.lf-graph .role-resource .n-title{fill:#c2a874}
+.lf-graph .role-provider .n-title{fill:#b09cc6}
+.lf-graph .n-tag{fill:#50694f;font:8px var(--mono);letter-spacing:.1em}
+.lf-graph .source-dot{fill:#5c9a58}
+.lf-graph .node.is-dim{opacity:.42}
+.lf-graph .node.is-selected .shape{stroke:var(--green);stroke-width:1.6}
+.lf-graph .node.is-selected .n-title{fill:#d9f5d0}
+.lf-graph .node.is-current .shape{stroke:var(--green);stroke-width:1.8}
+.lf-graph .node.is-current .n-title{fill:var(--green)}
+.lf-graph .node.is-done .shape{stroke:#5c9a58}
+.lf-graph .node:hover .shape{stroke:#7fc079}
+</style>
+</head>
+<body>
+<div class="tty">
+  <header class="bar">
+    <span class="path">litflux://<b id="path">lumen/search</b></span>
+    <nav class="tabs" id="tabs" aria-label="工作流"></nav>
+    <div class="right"><span id="clock">--:--</span><span>PID 046</span><span class="blink"></span></div>
+  </header>
+
+  <div class="grid">
+    <aside class="pane left">
+      <div class="pane-title"><span>ENTRIES</span><span id="treecount">12</span></div>
+      <div class="tree" id="tree"></div>
+      <div class="pane-title"><span>CAPABILITIES</span><span id="capcount">4/7</span></div>
+      <div class="cap" id="caps"></div>
+    </aside>
+
+    <main class="pane mid">
+      <div class="flowhead"><span>FLOW</span><span id="flow-title">检索主流程</span><label class="scale">BRANCH <select id="branch"></select></label></div>
+      <div class="walkbar" id="walkbar"><span>WALK</span><b id="walk-pos">00/00</b><span class="lbl" id="walk-label">idle · 按 r 开始</span><div class="ctl"><button id="w-prev" disabled aria-label="上一步">‹</button><button id="w-next" disabled aria-label="下一步">›</button></div></div>
+      <div class="canvas"><div id="graph"></div></div>
+      <div class="log" id="log"># ready · ↑↓ 选择 · Enter 源码 · r 阅读 · / 命令</div>
+      <div class="cmd"><span class="prompt">›</span><input id="cmd" autocomplete="off" spellcheck="false" placeholder="/search /recommend /sync /read /next /source /top"><span class="hint">ENTER</span></div>
+    </main>
+
+    <aside class="pane right">
+      <div class="pane-title"><span>INSPECT</span><span id="role">—</span></div>
+      <div class="body">
+        <div class="inspect" id="inspect"></div>
+        <div class="mini"><h3>SOURCE PREVIEW</h3><pre id="mini">选择节点查看源码。</pre></div>
+      </div>
+    </aside>
+  </div>
+
+  <footer class="status">
+    <span>NODES <b id="s-nodes">12</b></span>
+    <span>REL <b id="s-rel">15</b></span>
+    <span>READ <b id="s-read">00/00</b></span>
+    <span id="s-step">idle</span>
+    <span class="r"><span>r read · n next · ←/→ step · esc close</span><span class="cur"></span></span>
+  </footer>
+</div>
+
+<div class="reader" id="reader" role="dialog" aria-modal="true" aria-labelledby="reader-title">
+  <div class="box">
+    <div class="head"><span>SOURCE / <b id="reader-title">—</b></span><button id="reader-close">CLOSE [ESC]</button></div>
+    <div class="body" id="reader-body"></div>
+  </div>
+</div>
+
+<script src="assets/demo.js"></script>
+<script src="assets/engine.js"></script>
+<script>
+(function(){
+  var state={wf:'search',key:'workflow:search',selected:null,choices:{},cursor:0,reading:false};
+  var $=function(s){return document.querySelector(s)};
+  function view(){return LFD.view(state.key)}
+  function flow(){return view().flow}
+  function dia(){return LFD.diagram(flow())}
+  function plan(){return LFD.plan(flow(),dia(),state.choices)}
+  function pad2(n){return String(n).padStart(2,'0')}
+  function log(msg){$('#log').textContent='# '+msg}
+
+  function go(key){
+    var t=LFD.view(key);
+    if(!t)return;
+    if(!t.flow){state.key=t.parent;state.selected=t.owner.id;state.cursor=0;state.reading=false;render();openSource(t.owner.sources,t.owner.title);return}
+    state.key=key;state.selected=null;state.cursor=0;state.reading=false;render();
+  }
+  function goWf(id){state={wf:id,key:'workflow:'+id,selected:null,choices:{},cursor:0,reading:false};render()}
+  function select(id){state.selected=id;render()}
+
+  function render(){
+    renderTabs();renderTree();renderGraph();renderInspect();renderStatus();
+  }
+
+  function renderTabs(){
+    $('#tabs').innerHTML=LFD.workflows.map(function(w){
+      return '<button data-w="'+w.id+'" aria-current="'+(w.id===state.wf)+'">['+w.id+'] '+LFD.esc(w.title)+'</button>';
+    }).join('');
+    $('#tabs').querySelectorAll('button').forEach(function(b){b.onclick=function(){goWf(b.dataset.w)}});
+    $('#path').textContent='lumen/'+state.wf;
+  }
+
+  function renderTree(){
+    var rows=[];
+    (function walk(key,prefix,last){
+      var v=LFD.view(key);
+      rows.push({key:key,v:v,prefix:prefix?(prefix+(last?'└─ ':'├─ ')):''});
+      if(!v.flow)return;
+      var kids=LFD.children(key);
+      kids.forEach(function(k,i){walk(k,prefix?(prefix+(last?'   ':'│  ')):'   ',i===kids.length-1)});
+    })('workflow:'+state.wf,'',true);
+    $('#treecount').textContent=rows.length;
+    $('#tree').innerHTML=rows.map(function(r){
+      return '<button data-k="'+r.key+'" data-current="'+(r.key===state.key)+'"><span class="pre">'+r.prefix+'</span><span>'+LFD.esc(r.v.title)+'</span>'+(r.v.flow?'':'<span class="src">src</span>')+'</button>';
+    }).join('');
+    $('#tree').querySelectorAll('button').forEach(function(b){b.onclick=function(){go(b.dataset.k)}});
+    var glyph={covered:'ok',pending:'pending',unavailable:'off','not-implemented':'todo'};
+    var covered=LFD.capabilities.filter(function(c){return c.status==='covered'}).length;
+    $('#capcount').textContent=covered+'/'+LFD.capabilities.length;
+    $('#caps').innerHTML=LFD.capabilities.map(function(c){
+      return '<div class="cap-row '+c.status+'" title="'+LFD.esc(c.reason||'')+'"><span class="s">['+(glyph[c.status]||'?')+']</span><span>'+LFD.esc(c.title)+'</span></div>';
+    }).join('');
+  }
+
+  function renderGraph(){
+    var d=dia(),p=plan(),lay=LFD.layout(d,{gapX:74,pad:22,gapY:24});
+    $('#flow-title').textContent=flow().title;
+    LFD.render($('#graph'),{dia:d,lay:lay,plan:p,selected:state.selected,cursor:state.cursor,radius:0,edgeLabels:'control'});
+    $('#graph').querySelectorAll('.node').forEach(function(g){
+      g.addEventListener('click',function(){select(g.dataset.id)});
+      g.addEventListener('dblclick',function(){var k=state.key+'/'+g.dataset.id;if(LFD.view(k)&&LFD.view(k).flow)go(k)});
+      g.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();e.stopPropagation();select(g.dataset.id)}});
+    });
+    var decisions=flow().nodes.filter(function(n){return n.choices&&n.choices.length});
+    var sel=$('#branch');
+    sel.innerHTML=decisions.map(function(n){
+      return n.choices.map(function(c){return '<option value="'+n.id+'|'+c.id+'" '+((p.choices[n.id]||n.choices[0].id)===c.id?'selected':'')+'>'+LFD.esc(c.label)+'</option>'}).join('');
+    }).join('')||'<option>none</option>';
+    sel.disabled=!decisions.length;
+    sel.onchange=function(){
+      var parts=sel.value.split('|');
+      state.choices[parts[0]]=parts[1];state.reading=false;state.cursor=0;render();
+      log('branch → '+parts[0]+'='+parts[1]);
+    };
+    var total=p.order.length;
+    var node=state.selected?d.byId.get(state.selected):null;
+    $('#s-read').textContent=pad2(state.cursor)+'/'+pad2(total);
+    $('#s-step').textContent=!state.reading?'idle':state.cursor>=total?'done · not executed':(p.reasons[state.cursor-1]||'resources ready');
+    $('#walk-pos').textContent=pad2(state.cursor)+'/'+pad2(total);
+    $('#walk-label').textContent=state.reading?(node?'第 '+pad2(Math.max(state.cursor,1))+' 步 · '+node.title:(p.order.length?'从输入开始':'本层无步骤')):(node?'selected · '+node.title:'idle · 按 r 开始');
+    $('#walkbar').classList.toggle('reading',state.reading);
+    $('#w-prev').disabled=!state.reading||state.cursor<=0;
+    $('#w-next').disabled=!state.reading||state.cursor>=total;
+    $('#s-nodes').textContent=stats().business;
+    $('#s-rel').textContent=stats().relations;
+  }
+
+  function stats(){return LFD.stats(flow())}
+
+  function renderInspect(){
+    var d=dia(),node=state.selected?d.byId.get(state.selected):null;
+    var host=$('#inspect');
+    if(!node){
+      host.innerHTML='<div class="id">— / NO SELECTION</div><h2>选择节点</h2><p>点击画布节点，或使用 ↑ ↓ 在节点间移动。Enter 打开源码，r 开始逐段阅读。</p><dl class="kv"><dt>FLOW</dt><dd>'+LFD.esc(flow().title)+'</dd><dt>NODES</dt><dd>'+stats().business+' business · '+stats().data+' data</dd><dt>REL</dt><dd>'+stats().relations+'</dd></dl>';
+      $('#role').textContent='—';
+      $('#mini').textContent='选择节点查看源码。';
+      return;
+    }
+    var refs=LFD.source(node.sources||[]);
+    $('#role').textContent=(LFD.roleLabel[node.role]||node.role);
+    host.innerHTML='<div class="id">'+LFD.esc(node.id)+'</div><h2>'+LFD.esc(node.title)+'</h2><p>'+LFD.esc(node.text||'（这条关系没有额外说明）')+'</p><dl class="kv"><dt>ROLE</dt><dd>'+(LFD.roleLabel[node.role]||node.role)+'</dd><dt>OWNER</dt><dd>'+(node.owner||'—')+'</dd><dt>SOURCES</dt><dd>'+refs.length+'</dd><dt>DETAIL</dt><dd>'+(node.detail?'可展开':'—')+'</dd></dl><div class="acts"><button id="i-src">SOURCE</button><button id="i-child">EXPLORE</button></div>';
+    $('#i-src').hidden=!refs.length;
+    $('#i-child').hidden=!node.detail;
+    $('#i-src').onclick=function(){openSource(node.sources,node.title)};
+    $('#i-child').onclick=function(){go(state.key+'/'+node.id)};
+    if(refs.length){
+      var s=refs[0];
+      $('#mini').innerHTML=s.lines.slice(0,7).map(function(line,i){
+        return '<span class="ln">'+(s.start+i)+'</span>'+LFD.esc(line||' ');
+      }).join('\n');
+    }else $('#mini').textContent='（无源码依据）';
+  }
+
+  function renderStatus(){
+    var p=plan();
+    $('#s-read').textContent=pad2(state.cursor)+'/'+pad2(p.order.length);
+  }
+
+  function startRead(){
+    state.reading=true;state.cursor=0;state.selected=null;render();
+    log('read · '+plan().order.length+' steps planned');
+  }
+  function nextStep(){
+    var p=plan();if(!state.reading){log('read not started · press r');return}
+    if(state.cursor>=p.order.length){log('already at end');return}
+    state.selected=p.order[state.cursor];state.cursor+=1;render();
+    var node=dia().byId.get(state.selected);
+    log('step '+pad2(state.cursor)+'/'+p.order.length+' · '+node.title);
+  }
+  function prevStep(){
+    if(!state.reading||state.cursor<=0){log('nothing to step back');return}
+    state.cursor-=1;state.selected=state.cursor?plan().order[state.cursor-1]:null;render();
+    log('back to '+pad2(state.cursor));
+  }
+  function current(){return state.selected?dia().byId.get(state.selected):null}
+  function openSelected(){var n=current();if(!n||!n.sources||!n.sources.length){log('selected node has no source');return}openSource(n.sources,n.title)}
+  function goTop(){state.key='workflow:'+state.wf;state.selected=null;state.cursor=0;state.reading=false;render();log('top')}
+
+  function openSource(refs,title){
+    if(!refs||!refs.length)return;
+    $('#reader-title').textContent=title;
+    $('#reader-body').innerHTML=LFD.source(refs).map(function(s){
+      return '<section class="src"><h3>'+LFD.esc(s.path)+':'+s.start+'–'+s.end+'</h3><pre>'+s.lines.map(function(l,i){return '<span class="ln">'+(s.start+i)+'</span>'+LFD.esc(l||' ')}).join('\n')+'</pre></section>';
+    }).join('');
+    $('#reader').classList.add('on');
+    $('#reader-close').focus();
+  }
+  function closeSource(){$('#reader').classList.remove('on')}
+
+  $('#reader-close').onclick=closeSource;
+  $('#clock').textContent=new Date().toTimeString().slice(0,5);
+  $('#w-prev').onclick=prevStep;
+  $('#w-next').onclick=nextStep;
+
+  var commands={
+    '/search':function(){goWf('search')},
+    '/recommend':function(){goWf('recommend')},
+    '/sync':function(){goWf('sync')},
+    '/read':startRead,
+    '/next':nextStep,
+    '/prev':prevStep,
+    '/source':openSelected,
+    '/top':goTop,
+    '/reset':function(){state.reading=false;state.cursor=0;state.selected=null;render();log('reading reset')}
+  };
+  $('#cmd').addEventListener('keydown',function(e){
+    if(e.key!=='Enter')return;
+    var raw=e.target.value.trim(),key=raw.indexOf('/')===0?raw:'/'+raw;
+    e.target.value='';
+    if(commands[key]){commands[key]();log(raw+' · ok')}
+    else log(raw?'unknown command: '+raw:'type /read, /next, /search, /source');
+  });
+
+  document.addEventListener('keydown',function(e){
+    if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT')return;
+    if(e.key==='Escape'){closeSource();return}
+    if(e.key==='r'){startRead();return}
+    if(e.key==='n'){nextStep();return}
+    if(e.key==='ArrowRight'){nextStep();return}
+    if(e.key==='ArrowLeft'){prevStep();return}
+    if(e.key==='Enter'){openSelected();return}
+    if(e.key==='/'){e.preventDefault();$('#cmd').focus();return}
+    if(e.key==='ArrowDown'||e.key==='ArrowUp'){
+      e.preventDefault();
+      var nodes=dia().nodes,ids=nodes.map(function(n){return n.id});
+      var at=state.selected?ids.indexOf(state.selected):-1;
+      var next=at+(e.key==='ArrowDown'?1:-1);
+      if(next<0)next=ids.length-1;
+      if(next>=ids.length)next=0;
+      state.selected=ids[next];render();
+      return;
+    }
+  });
+  render();
+})();
+</script>
+</body>
+</html>
