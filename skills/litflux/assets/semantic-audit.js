@@ -77,11 +77,31 @@
       warnings.push({ code: 'I1', ids: [], detail: `全图适配约 ${Math.round(fit * 100)}%，正文按 100% 阅读`, info: true });
     }
     const ratio = width / Math.max(1, height);
-    if (ratio > 4 || ratio < 0.25) warnings.push({ code: 'G8', ids: [], detail: `画布纵横比 ${round(ratio)}:1` });
+    if (ratio > 4 || ratio < 0.25) warnings.push({ code: 'G8', ids: [], detail: `画布纵横比 ${round(ratio)}:1；可按阅读需要考虑折返`, info:true });
     for (const box of nodes) {
-      if (box.textWidth > box.width - 8 || box.textHeight > box.height - 8) {
+      const inside=(x,y)=>{
+        const w=box.width/2-2,h=box.height/2-2;
+        if(box.role==='data')return x*x+y*y<=w*w;
+        if(box.role==='decision')return Math.abs(x)/w+Math.abs(y)/h<=1;
+        return Math.abs(x)<=w&&Math.abs(y)<=h;
+      };
+      if ((box.textBoxes||[]).some(r=>[[r.x,r.y],[r.x+r.width,r.y],[r.x,r.y+r.height],[r.x+r.width,r.y+r.height]].some(([x,y])=>!inside(x,y)))) {
         warnings.push({ code: 'G9', ids: [box.id], detail: '文字超出形状' });
       }
+    }
+    const offset=diagram.geometry.offset||{x:0,y:0};
+    for(const warning of warnings){
+      warning.coordinateSpace='author';
+      warning.boxes=[...nodes,...notes].filter(b=>warning.ids.includes(b.id)).map(b=>({...b,x:b.x-offset.x,y:b.y-offset.y}));
+      const note=notes.find(n=>n.id===warning.ids[0]),edge=edges.find(e=>e.id===note?.id);
+      if(!note||!edge||!['G2','G3','G4','G5'].includes(warning.code))continue;
+      const candidates=edge.points.map(([x,y])=>({x,y,width:note.width,height:note.height})).filter(b=>
+        b.x-b.width/2>=8&&b.y-b.height/2>=8&&b.x+b.width/2<=width-8&&b.y+b.height/2<=height-8&&
+        !nodes.some(n=>boxOverlap(b,n)>0)&&!notes.some(n=>n.id!==note.id&&boxOverlap(b,n)>0));
+      candidates.sort((a,b)=>Math.hypot(a.x-note.x,a.y-note.y)-Math.hypot(b.x-note.x,b.y-note.y));
+      warning.suggestion=candidates.length?{noteAt:[round(candidates[0].x-offset.x),round(candidates[0].y-offset.y)],reason:'同一实际路径上的局部可放位置；供作者选择'}:{noteAt:null,reason:'当前路径未找到足够空间，可调整走线、位置或 noteWidth'};
+      const nearest=[...edge.points].sort((a,b)=>Math.hypot(a[0]-note.x,a[1]-note.y)-Math.hypot(b[0]-note.x,b[1]-note.y))[0];
+      warning.nearestPathPoint=nearest.map((v,i)=>round(v-(i?offset.y:offset.x)));
     }
     const seen = new Set();
     return warnings.filter((warning) => {
@@ -121,10 +141,17 @@
   }
 
   let job = null;
-  const pause = () => new Promise((resolve) => setTimeout(resolve, 0));
+  const pause = async () => { await document.fonts.ready; await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))); };
 
-  async function run() {
-    const result = { status: 'running', revision: payload.revision, views: [], failures: [], geometry: { warnings: [] }, checks: {} };
+  function scenarios(flow,limit=32){
+    const owners=flow.objects.filter(o=>o.choices),total=owners.reduce((n,o)=>n*o.choices.length,1),values=[];
+    function visit(i,state){if(values.length>=limit)return;if(i===owners.length){values.push(state);return;}for(const c of owners[i].choices)visit(i+1,{...state,[owners[i].id]:c.id});}
+    visit(0,{});return {values,total,complete:values.length===total};
+  }
+
+  async function run({geometryOnly=false}={}) {
+    const clock=performance.now();
+    const result = { status: 'running', mode:geometryOnly?'geometry-only':'full', revision: payload.revision, views: [], failures: [], geometry: { warnings: [], diagnostics:[] }, checks: {navigation:'not-run',reading:'not-run',sources:'not-run'}, timingsMs:{} };
     const started = current;
     const seenFlows = new Set();
     for (const [key, view] of businesses) {
@@ -139,9 +166,13 @@
       result.views.push({ key, title: view.title, failures, warnings, info: all.filter((warning) => warning.info) });
       result.failures.push(...failures.map((message) => `${view.title}：${message}`));
       result.geometry.warnings.push(...warnings.map((warning) => `${view.title}：${warning.code} ${warning.detail} ${warning.ids.join('/')}`));
+      result.geometry.diagnostics.push(...all.map(w=>({view:key,...w})));
       result.geometry.info = (result.geometry.info || []).concat(
         all.filter((warning) => warning.info).map((warning) => `${view.title}：${warning.detail}`));
     }
+    result.timingsMs.geometry=round(performance.now()-clock);
+    result.viewport={width:document.querySelector('#canvas').clientWidth,height:document.querySelector('#canvas').clientHeight};
+    if(geometryOnly){navigate(started);result.status=result.failures.length?'failed':'passed';result.geometry.status=result.geometry.warnings.length?'warnings':'passed';return result;}
     // Navigation: enter a nested business and come back.
     const nested = [...businesses.values()].find((view) => view.flow
       && [...businesses.values()].some((child) => child.parent === view.key && child.flow));
@@ -157,35 +188,42 @@
     } else {
       result.checks.navigation = 'not-applicable';
     }
-    // Reading plan over the default scenario must cover every executable step.
+    result.checks.reading=[];result.checks.sources=[];
+    for(const checked of result.views){
+      const view=businesses.get(checked.key);navigate(checked.key);await pause();
+      const cases=scenarios(view.flow),failures=[],advisories=[];
+      for(const values of cases.values){
+        const plan=readingPlan(view.flow,values);
+        if(plan.blocked.length)failures.push({values,blocked:plan.blocked,conflicts:plan.conflicts});
+        if(plan.conflicts.length)advisories.push({values,objects:plan.conflicts,detail:'输入可能绕过未选条件；核对是否是独立入口或需要 when，不自动改写'});
+      }
+      result.checks.reading.push({view:checked.key,checked:cases.values.length,total:cases.total,complete:cases.complete,failures,advisories});
+      for(const failure of failures)result.failures.push(`${view.title}：阅读依赖受阻 ${JSON.stringify(failure)}`);
+      let tested=0;
+      for(const [kind,items] of [['object',view.flow.objects],['relation',view.flow.relations]])for(const item of items){
+        if(!item.sources)continue;
+        if(kind==='object')select(item);else selectRelation(item);
+        document.querySelector('#show-source').click();
+        const expected=[...new Set([item.sources].flat())];
+        const found=[...document.querySelectorAll('#sources [data-ref]')].map(n=>n.dataset.ref);
+        const passed=!document.querySelector('#drawer').hidden&&expected.every(ref=>found.includes(ref));
+        if(!passed)result.failures.push(`${view.title}/${item.id}：源码点击未显示声明引用`);
+        closeSource();tested++;
+      }
+      result.checks.sources.push({view:checked.key,tested,status:tested?'tested':'no-declared-source'});
+    }
     navigate(started);
-    const view = businesses.get(current);
-    const plan = readingPlan(view.flow, choices());
-    const steps = view.flow.objects.filter((o) => plan.active.has(o.id) && !['resource', 'component', 'boundary'].includes(o.type));
-    result.checks.reading = plan.blocked.length === 0 && plan.order.length === steps.length;
-    if (!result.checks.reading) {
-      result.failures.push('默认情境下的阅读计划受阻：' + (plan.blocked.join('、') || '数量不符'));
-    }
-    // Source drawer: open and close for a declared reference.
-    const refs = view.flow.objects.flatMap((o) => (o.sources ? [o.sources].flat() : []));
-    if (refs.length) {
-      openSource(refs.slice(0, 1), '检查');
-      result.checks.sources = document.querySelector('#drawer').hidden === false
-        && document.querySelectorAll('#sources [data-ref]').length > 0;
-      closeSource();
-    } else {
-      result.checks.sources = 'no-declared-source';
-    }
+    result.timingsMs.interactions=round(performance.now()-clock-result.timingsMs.geometry);
     result.status = result.failures.length ? 'failed' : 'passed';
     result.geometry.status = result.geometry.warnings.length ? 'warnings' : 'passed';
     return result;
   }
 
   window.litflux = {
-    startEntryAudit() {
-      if (job) return 'running';
+    startEntryAudit(options={}) {
+      if (job?.status==='running') return 'running';
       job = { status: 'running' };
-      run().then(
+      run(options).then(
         (result) => { job = result; },
         (error) => { job = { status: 'failed', failures: [String(error.message || error)], geometry: { warnings: [] } }; },
       );

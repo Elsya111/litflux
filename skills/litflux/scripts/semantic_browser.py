@@ -24,7 +24,7 @@ def decode(raw):
     return parsed
 
 
-def browser_check(html_path, revision):
+def browser_check(html_path, revision, *, geometry_only=False):
     executable = shutil.which('agent-browser')
     if executable and os.name == 'nt':
         native = Path(executable).parent / 'node_modules/agent-browser/bin/agent-browser-win32-x64.exe'
@@ -50,8 +50,10 @@ def browser_check(html_path, revision):
         return output
 
     try:
+        started = time.monotonic()
         run('open', Path(html_path).as_uri())
-        run('eval', 'window.litflux.startEntryAudit()')
+        opened = time.monotonic()
+        run('eval', 'window.litflux.startEntryAudit(' + json.dumps({'geometryOnly': geometry_only}) + ')')
         deadline = time.monotonic() + 120
         while time.monotonic() < deadline:
             status = decode(run('eval', 'window.litflux.entryAuditStatus()'))
@@ -68,6 +70,7 @@ def browser_check(html_path, revision):
             return {'status': 'failed', 'revision': revision,
                     'failures': ['Browser audit returned no structured result']}
         result.setdefault('revision', revision)
+        result['browserTimingsMs'] = {'open': round((opened-started)*1000), 'audit': round((time.monotonic()-opened)*1000)}
         return result
     except (OSError, ValueError, subprocess.TimeoutExpired) as error:
         return {'status': 'failed', 'revision': revision, 'failures': [str(error)]}

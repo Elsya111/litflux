@@ -20,7 +20,7 @@ html[data-theme=dark]{color-scheme:dark;--page:#171d23;--surface:#1e282f;--soft:
 </style></head><body id="litflux-canvas-app"><div class="app"><header class="app-header"><div class="brand">LitFlux</div><span id="delivery-badge" class="badge">草稿</span><div id="title" class="project-name"></div><button id="toggle-business" class="panel-toggle" aria-expanded="false" aria-controls="business-panel">业务分解图</button><label class="workflow-picker"><select id="workflow-select" aria-label="选择工作流"></select></label><details class="menu" id="display-menu"><summary>显示</summary><div class="menu-body"><button id="theme">切换夜间</button><button id="motion" aria-pressed="true">流动：开</button><button id="zoom-in">放大视野</button><button id="zoom-out">缩小视野</button><p>关系文字完整显示在边旁，点击可查看说明与来源。</p></div></details></header>
 <div class="dual-layout sidebar-collapsed"><aside id="business-panel" class="business-panel" hidden><div class="panel-head"><h2>业务分解图</h2><div class="branch-tools"><button id="collapse-all">收拢</button><button id="expand-all">展开</button></div></div><p class="business-caption">组成与层级 · 点击业务进入</p><div id="business" class="business-canvas" aria-label="业务分解图"></div><details class="project-info"><summary>项目信息</summary><h2 id="project-title"></h2><p id="summary"></p><p id="scope"></p></details></aside>
 <main class="workspace"><nav id="crumbs" class="crumbs" aria-label="当前业务路径"></nav><div class="page-heading"><div><h1 id="flow-title"></h1></div><div class="read-actions"><button id="read-start" class="primary">开始阅读</button><button id="read-next" class="primary" hidden disabled>下一步</button><button id="read-reset" hidden>退出阅读</button></div></div><div class="context-bar"><p id="read-status" class="read-status"></p><details class="menu choices-menu" id="choices-panel"><summary>分支情景</summary><div class="menu-body"><div id="choices" class="choices"></div><p>只选择阅读情景，不执行源码条件。</p></div></details></div>
-<section class="graph-panel"><div class="graph-top"><strong>内部流程图</strong><div class="graph-actions"><span id="relation-count"></span><button id="fit">全图</button><button id="reset-view">原始大小</button></div></div><div id="canvas" class="scene" aria-label="当前业务的完整内部流程图"></div><div class="graph-note"><span class="key">实线：即时承接</span><span class="key later">虚线：保留后用</span><span class="key control">◇ 条件出口</span><span>↺ 循环回指独立表示</span><span>沿箭头阅读，拖拽平移。</span></div></section>
+<section class="graph-panel"><div class="graph-top"><strong>内部流程图</strong><div class="graph-actions"><span id="relation-count"></span><button id="fit">全图</button><button id="reset-view">原始大小</button></div></div><div id="canvas" class="scene" aria-label="当前业务的完整内部流程图"></div><div class="graph-note"><span class="key" data-legend="data">数据实线：即时承接</span><span class="key later" data-legend="data">数据虚线：保留后用</span><span class="key control" data-legend="control">◇ 控制与条件</span><span data-legend="failure">╌ 失败路径</span><span data-legend="loop">↺ 循环回指</span><span data-legend="effect">→ 资源作用</span><span data-legend="capability">⋯ 组件能力</span><span>沿箭头阅读，拖拽平移。</span></div></section>
 <section class="details-panel"><div class="details-heading"><button id="toggle-details" aria-expanded="false" aria-controls="details-body">展开说明</button><span id="selected-role" class="role"></span><h2 id="selected-title"></h2></div><div class="details-actions"><button id="expand" hidden>进入内部</button><button id="show-source" hidden>查看源码</button></div><div id="details-body" hidden><p id="selected-text"></p><details class="relation-index" id="relation-index"><summary id="relation-index-title">本层全部关系</summary><ul id="relation-list"></ul></details></div></section></main></div></div><div id="scrim" class="scrim" hidden></div><aside id="drawer" class="drawer" hidden role="dialog" aria-modal="true" aria-labelledby="source-title"><div class="drawer-head"><h2 id="source-title">源码</h2><button id="close-source">关闭</button></div><div id="sources" class="drawer-body"></div></aside>
 <script>__DRAWING__</script>
 <script id="module" type="text/plain">__MODULE__</script>
@@ -57,7 +57,7 @@ function navigate(key){
   const target=businesses.get(key);
   if(!target)return;
   for(let b=target;b.parent;b=businesses.get(b.parent))collapsed.delete(b.parent);
-  if(!target.flow){if(current!==target.parent)navigate(target.parent);select(target.owner);openSource(target.owner.sources,target.title);return;}
+  if(!target.flow){if(current!==target.parent)navigate(target.parent);select(target.owner);if(target.owner.sources?.length)openSource(target.owner.sources,target.title);return;}
   if(current===key){businessPlot();return;}
   viewMemory.set(current,{selected,reading,zoom,pan:{...pan},left:$('#canvas').scrollLeft,top:$('#canvas').scrollTop});
   current=key;const saved=viewMemory.get(key);
@@ -86,6 +86,10 @@ function activeSet(flow,values){
   // Roots come from the declared graph, not from the filtered one: a node whose only
   // entrance sits on an unchosen branch is not an entrance.
   const roots=flow.objects.filter(o=>incoming.get(o.id)===0).map(o=>o.id);
+  const structuralReach=new Set(),pending=[...roots];
+  while(pending.length){const id=pending.pop();if(structuralReach.has(id))continue;structuralReach.add(id);for(const r of structural)if(r.from===id)pending.push(r.to);}
+  // Rootless components must participate in dependency checks, not disappear as zero work.
+  roots.push(...flow.objects.filter(o=>!structuralReach.has(o.id)).map(o=>o.id));
   const seen=new Set(),queue=[...roots];
   while(queue.length){
     const id=queue.pop();
@@ -93,7 +97,7 @@ function activeSet(flow,values){
     seen.add(id);
     for(const r of forward)if(r.from===id)queue.push(r.to);
   }
-  for(const r of flow.relations)if(['effect','capability'].includes(r.type)&&seen.has(r.from))seen.add(r.to);
+  for(const r of flow.relations)if(['effect','capability'].includes(r.type)&&seen.has(r.from)&&flow.objects.some(o=>o.id===r.to&&['resource','component'].includes(o.type)))seen.add(r.to);
   return seen;
 }
 function readingPlan(flow,values){
@@ -112,7 +116,20 @@ function readingPlan(flow,values){
     const pick=immediate||ready[0];
     order.push(pick.id);done.add(pick.id);
   }
-  return {order,blocked:steps.filter(o=>!done.has(o.id)).map(o=>o.id),active};
+  const conflicts=steps.filter(o=>{
+    const branches=flow.relations.filter(r=>r.to===o.id&&r.branch&&active.has(r.from));
+    if(!branches.length||branches.some(r=>allowed(r,values)))return false;
+    const queue=branches.map(r=>r.from),seen=new Set();
+    while(queue.length){const id=queue.pop();if(id===o.id)return false;if(seen.has(id))continue;seen.add(id);for(const r of forward)if(r.from===id&&active.has(r.to))queue.push(r.to);}
+    return true;
+  }).map(o=>o.id);
+  // Include boundary/resource vertices in cycle detection even though they are not reading steps.
+  const degree=new Map([...active].map(id=>[id,0]));
+  for(const r of forward)if(active.has(r.from)&&active.has(r.to))degree.set(r.to,degree.get(r.to)+1);
+  const queue=[...degree].filter(([,n])=>!n).map(([id])=>id),visited=new Set();
+  while(queue.length){const id=queue.pop();visited.add(id);for(const r of forward)if(r.from===id&&degree.has(r.to)){degree.set(r.to,degree.get(r.to)-1);if(!degree.get(r.to))queue.push(r.to);}}
+  const cyclic=[...active].filter(id=>!visited.has(id));
+  return {order,blocked:[...new Set([...steps.filter(o=>!done.has(o.id)).map(o=>o.id),...cyclic])],active,conflicts};
 }
 function paintReading(){
   const plan=reading?.plan, done=new Set(reading?plan.order.slice(0,reading.cursor):[]), last=reading?.plan.order[reading.cursor-1];
@@ -125,7 +142,7 @@ function paintReading(){
   }
   for(const [id,record] of currentDiagram?.drawn||[]){
     record.group.classList.toggle('is-selected',selected?.kind==='relation'&&selected.relation.id===id);
-    const inactive=!allowed(record.relation,choices());
+    const inactive=!allowed(record.relation,choices())||!active.has(record.relation.from)||!active.has(record.relation.to);
     record.line.classList.toggle('is-dim',inactive);
     record.group.classList.toggle('is-dim',inactive);
     const focus=selected?.kind==='relation'?null:selected?.object?.id;
@@ -137,6 +154,7 @@ function paintReading(){
   $('#read-next').disabled=!reading||completed;
   $('#read-reset').hidden=!reading;
   $('#read-status').textContent=!reading?'选择对象查看说明，或按依赖逐步阅读。':plan.blocked.length?'阅读受阻：'+plan.blocked.join('、'):completed?'本层阅读完成；不是程序执行成功。':`${reading.cursor}/${plan.order.length} · 按作者声明的关系阅读`;
+  if(reading&&plan.conflicts.length)$('#read-status').textContent+=' · 输入可能绕过未选条件：'+plan.conflicts.join('、');
   syncFlow();
 }
 function renderChoices(){
@@ -157,12 +175,12 @@ function renderChoices(){
 function showDetails(target){
   if(target.kind==='relation'){
     const relation=target.relation;
-    $('#selected-title').textContent=relation.label;
+    $('#selected-title').textContent=relation.label||relation.from+' → '+relation.to;
     $('#selected-role').textContent='关系 · '+(relation.type==='data'?(relation.timing==='immediate'?'实线':'虚线'):'控制/作用');
     const note=relation.timingNote?`\n判断依据：${relation.timingNote}`:'';
     $('#selected-text').textContent=(relation.from+' → '+relation.to)+note;
     $('#show-source').hidden=!relation.sources?.length;
-    $('#show-source').onclick=()=>openSource(relation.sources,relation.label);
+    $('#show-source').onclick=()=>openSource(relation.sources,relation.label||relation.from+' → '+relation.to);
     $('#expand').hidden=true;
   }else{
     const object=target.object;
@@ -186,7 +204,7 @@ function relationIndex(){
   for(const relation of diagram.relations){
     const item=html('li'),button=html('button');
     const pair=html('span',relation.from+' → '+relation.to);pair.className='pair';
-    const meaning=html('span',relation.label);meaning.className='meaning';
+    const meaning=html('span',relation.label||relation.type);meaning.className='meaning';
     button.append(pair,meaning);
     button.dataset.relationEntry=relation.id;
     button.onclick=()=>selectRelation(relation);
@@ -270,10 +288,12 @@ function syncFlow(){
   if(!motionEnabled||reducedMotion.matches)return;
   const focus=selected?.kind==='relation'?null:selected?.object?.id;
   if(!focus)return;
+  const active=activeSet(flow(),choices());
   const layer=svg('g',{class:'flow-particles','aria-hidden':'true'});
   for(const [id,record] of currentDiagram.drawn){
     const relation=record.relation;
     if(relation.type!=='data'||(relation.from!==focus&&relation.to!==focus))continue;
+    if(!allowed(relation,choices())||!active.has(relation.from)||!active.has(relation.to))continue;
     const path=record.line;
     path.id='flow-'+id;
     const duration=Math.max(1.5,Math.min(4,path.getTotalLength()/110));
@@ -287,13 +307,13 @@ function syncFlow(){
   out.querySelector('g').append(layer);
 }
 function openSource(refs,title){
-  sourceRefs=[...new Set(refs||[])];returnFocus=document.activeElement;
+  sourceRefs=[...new Set(refs==null?[]:Array.isArray(refs)?refs:[refs])];returnFocus=document.activeElement;
   $('#source-title').textContent=title;$('#sources').replaceChildren();
   for(const ref of sourceRefs){
     const source=payload.sources[ref];
     if(!source)continue;
     const section=html('section'),pre=html('pre');
-    section.className='source';section.dataset.ref=ref;
+    section.className='source';section.dataset.ref=ref;section.dataset.noTranslate='';
     section.append(html('h3',source.path+':'+source.start+'–'+source.end));
     source.lines.forEach((value,i)=>{
       const row=html('span'),ln=html('span',String(source.start+i));
@@ -320,6 +340,7 @@ function render(){
   $('#workflow-select').value=current.slice(9).split('/')[0];
   $('#flow-title').textContent=view.title;
   const diagram=flow();
+  document.querySelectorAll('[data-legend]').forEach(el=>{el.hidden=!diagram.relations.some(r=>r.type===el.dataset.legend);});
   $('#relation-count').textContent=diagram.objects.length+' 对象 · '+diagram.relations.length+' 关系';
   const chain=[];for(let b=view;b;b=businesses.get(b.parent))chain.unshift(b);
   $('#crumbs').hidden=chain.length===1;$('#crumbs').replaceChildren();
@@ -333,7 +354,7 @@ function render(){
   paintReading();
 }
 $('#toggle-business').onclick=()=>{const open=$('#business-panel').hidden;$('#business-panel').hidden=!open;$('.dual-layout').classList.toggle('sidebar-collapsed',!open);$('#toggle-business').setAttribute('aria-expanded',String(open));};
-$('#toggle-details').onclick=()=>{const open=!$('#details-body').hidden;$('#details-body').hidden=!open;$('#toggle-details').textContent=open?'收起说明':'展开说明';$('#toggle-details').setAttribute('aria-expanded',String(open));};
+$('#toggle-details').onclick=()=>{const open=$('#details-body').hidden;$('#details-body').hidden=!open;$('#toggle-details').textContent=open?'收起说明':'展开说明';$('#toggle-details').setAttribute('aria-expanded',String(open));};
 $('#collapse-all').onclick=()=>{for(const b of businesses.values())if(b.flow)collapsed.add(b.key);businessPlot();};
 $('#expand-all').onclick=()=>{collapsed.clear();businessPlot();};
 $('#read-start').onclick=()=>{reading={plan:readingPlan(flow(),choices()),cursor:0};paintReading();};
@@ -358,7 +379,7 @@ $('#zoom-in').onclick=()=>{zoom=Math.min(2,zoom+.1);scale();};
 $('#zoom-out').onclick=()=>{zoom=Math.max(.3,zoom-.1);scale();};
 let drag=null;
 $('#canvas').addEventListener('pointerdown',event=>{
-  if(event.button!==0||event.target.closest('.node,.relation-note,button'))return;
+  if(event.button!==0||event.target.closest('.node,.relation-note,.edge-hit,button'))return;
   drag={x:event.clientX,y:event.clientY,px:pan.x,py:pan.y};
   $('#canvas').setPointerCapture(event.pointerId);$('#canvas').classList.add('grabbing');
 });

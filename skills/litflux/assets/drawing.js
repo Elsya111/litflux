@@ -48,7 +48,9 @@ const LitFluxDrawing = (() => {
     return result;
   }
   function measure(text, options = {}) {
-    return wrap(text, options.maxWidth ?? 260, options.fontSize ?? 14);
+    const result = wrap(text, options.maxWidth ?? 260, options.fontSize ?? 14);
+    return { ...result, lines: [...result.lines],
+      boxWidth: result.width + 10, boxHeight: result.height + 6 };
   }
 
   const SIDES = { left: [-1, 0], right: [1, 0], top: [0, -1], bottom: [0, 1] };
@@ -108,6 +110,8 @@ const LitFluxDrawing = (() => {
       '.edge.role-effect{stroke:var(--resource-line,#558c7a)}',
       '.edge.role-capability{stroke:var(--provider-line,#6d86a9);stroke-dasharray:1 4}',
       '.edge.related{stroke-width:2.2}',
+      '.edge-hit{fill:none;stroke:transparent;stroke-width:12;cursor:pointer}',
+      '.edge-hit:focus-visible{stroke:var(--accent);stroke-opacity:.25;outline:none}',
       '.edge.is-dim{opacity:.3}',
       '.relation-note{cursor:pointer}',
       '.relation-note .note-hit{fill:var(--surface,#fffefa);opacity:.97}',
@@ -179,7 +183,13 @@ const LitFluxDrawing = (() => {
     }
 
     const scene = {
-      svg: out, positions, drawn, boxes, notes, polylines,
+      svg: out, positions, drawn, boxes, notes, polylines, measure,
+      nodeBox(id) {
+        const p = positions.get(id);
+        if (!p) throw Error(`${id}: place the node before calling nodeBox()`);
+        const {x,y,width,height} = p;
+        return Object.freeze({x,y,width,height,left:x-width/2,right:x+width/2,top:y-height/2,bottom:y+height/2});
+      },
       node(id, x, y, options = {}) {
         const object = objectById.get(id);
         if (!object) throw Error(`Unknown object: ${id}`);
@@ -230,6 +240,8 @@ const LitFluxDrawing = (() => {
         activate(group, () => handlers.onObject?.(object, false));
         group.ondblclick = () => handlers.onObject?.(object, true);
         nodeLayer.append(group);
+        const textBox=text.getBBox();
+        text.setAttribute('y', Number(text.getAttribute('y'))-textBox.y-textBox.height/2);
         const record = {
           id, type: object.type, x, y, width: size.width, height: size.height,
           group, textWidth: rows.width, textHeight: rows.height,
@@ -251,10 +263,11 @@ const LitFluxDrawing = (() => {
           if (!Array.isArray(point) || point.length !== 2) throw Error(`${id}: via must be [x,y] points`);
           finite(point, id);
         }
-        if (!Array.isArray(options.noteAt) || options.noteAt.length !== 2) {
+        const hasNote = !!relation.label?.trim();
+        if (hasNote && (!Array.isArray(options.noteAt) || options.noteAt.length !== 2)) {
           throw Error(`${id}: provide noteAt:[x,y] for the relation note`);
         }
-        finite(options.noteAt, id);
+        if (hasNote) finite(options.noteAt, id);
         const points = [
           inside(from, via[0] || [to.x, to.y], sides[0]),
           ...via,
@@ -267,17 +280,40 @@ const LitFluxDrawing = (() => {
           'marker-end': `url(#arrow-${relation.type})`,
         });
         edgeLayer.append(line);
+        const hit = el('path', {class:'edge-hit', d:line.getAttribute('d'),
+          'data-relation':id, 'aria-label':relation.label || `${from.id} → ${to.id} (${relation.type})`});
+        activate(hit, () => handlers.onRelation?.(relation));
+        edgeLayer.append(hit);
         if (relation.type === 'control') {
+          const start=line.getPointAtLength(0);
           edgeLayer.append(el('path', {
             class: 'control-mark',
-            d: `M${points[0][0]} ${points[0][1] - 5} l5 5 -5 5 -5 -5 Z`,
+            d: `M${start.x} ${start.y - 5} l5 5 -5 5 -5 -5 Z`,
           }));
         }
-        const note = wrap(relation.label || '', options.noteWidth ?? 260, 14);
+        polylines.push({ id, type: relation.type, line, points });
+        if (!hasNote) {
+          drawn.set(id, {relation,line,group:hit,noteAt:null});
+          return scene;
+        }
+        let maxWidth = options.noteWidth ?? 260;
+        if (options.noteWidth === undefined && !options.path) {
+          const [nx,ny] = options.noteAt;
+          const segment = points.slice(1).map((b,i)=>[points[i],b]).find(([a,b])=>
+            Math.abs(a[1]-b[1])<.01 && Math.abs(ny-a[1])<20 && nx>Math.min(a[0],b[0]) && nx<Math.max(a[0],b[0]));
+          if (segment) {
+            const [a,b] = segment;
+            const available = 2*Math.min(nx-Math.min(a[0],b[0]),Math.max(a[0],b[0])-nx)-26;
+            // Narrower than 56px usually means choosing another segment, not single-letter wrapping.
+            if (available >= 56) maxWidth = Math.min(maxWidth, available);
+          }
+        }
+        if (!Number.isFinite(maxWidth) || maxWidth <= 0) throw Error(`${id}: noteWidth must be positive`);
+        const note = wrap(relation.label || '', maxWidth, 14);
         const [nx, ny] = options.noteAt;
         const w = note.width + 10, h = note.height + 6;
         const group = el('g', {
-          class: 'relation-note', 'data-relation': id, 'data-role': relation.type,
+          class: 'relation-note', 'data-note': id, 'data-role': relation.type,
           transform: `translate(${nx},${ny})`, 'aria-label': relation.label,
         });
         group.append(el('rect', { class: 'note-hit', x: -w / 2, y: -h / 2, width: w, height: h, rx: 3 }));
@@ -295,9 +331,10 @@ const LitFluxDrawing = (() => {
         group.onmouseenter = () => line.classList.add('related');
         group.onmouseleave = () => line.classList.remove('related');
         noteLayer.append(group);
+        const textBox=text.getBBox();
+        text.setAttribute('y', Number(text.getAttribute('y'))-textBox.y-textBox.height/2);
         drawn.set(id, { relation, line, group, noteAt: [nx, ny] });
         notes.push({ id, type: relation.type, label: relation.label || '', x: nx, y: ny, width: w, height: h, group });
-        polylines.push({ id, type: relation.type, points });
         return scene;
       },
       size(w, h) {
@@ -330,20 +367,25 @@ const LitFluxDrawing = (() => {
           positions,
           drawn,
           geometry: {
+            offset: {x:dx,y:dy},
             width: canvasWidth,
             height: canvasHeight,
             nodes: boxes.map((b) => ({
-              id: b.id, role: b.type, x: b.x + dx, y: b.y + dy,
+              id: b.id, kind:'node', role: b.type, x: b.x + dx, y: b.y + dy,
               width: b.width, height: b.height, textWidth: b.textWidth, textHeight: b.textHeight,
+              textBoxes: [...b.group.querySelectorAll('tspan')].map(t=>{const r=t.getBBox();return {x:r.x,y:r.y,width:r.width,height:r.height};}),
             })),
             notes: notes.map((n) => ({
-              id: n.id, role: n.type, x: n.x + dx, y: n.y + dy,
+              id: n.id, kind:'note', role: n.type, x: n.x + dx, y: n.y + dy,
               width: n.width, height: n.height,
             })),
-            edges: polylines.map((p) => ({
-              id: p.id, role: p.type,
-              points: p.points.map(([x, y]) => [x + dx, y + dy]),
-            })),
+            edges: polylines.map((p) => {
+              const length=p.line.getTotalLength(), steps=Math.max(1,Math.ceil(length/4));
+              const samples=Array.from({length:steps+1},(_,i)=>{
+                const point=p.line.getPointAtLength(length*i/steps);return [point.x+dx,point.y+dy];
+              });
+              return {id:p.id,role:p.type,points:samples};
+            }),
           },
         };
       },

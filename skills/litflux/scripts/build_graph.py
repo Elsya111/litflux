@@ -20,17 +20,22 @@ def main() -> None:
     parser.add_argument('--preflight', action='store_true', help='Check the module and sources without rendering')
     parser.add_argument('--check-only', action='store_true', help='Check current evidence without writing output')
     parser.add_argument('--no-browser', action='store_true', help='Skip the browser check; geometry stays unchecked')
+    parser.add_argument('--geometry-only', action='store_true', help='Render and check geometry only; delivery stays draft')
     args = parser.parse_args()
+    if args.geometry_only and (args.preflight or args.check_only or args.no_browser or args.review):
+        parser.error('--geometry-only cannot combine with --preflight/--check-only/--no-browser/--review')
     try:
         if args.preflight:
             compiled = compile_module_file(args.project.resolve(), args.source_root.resolve())
             print(json.dumps({'valid': True, 'counts': compiled['counts'],
                               'requiredNotes': compiled['requiredNotes'],
+                              'timingNotes': compiled['timingNotes'],
+                              'warnings': compiled['warnings'],
                               'boundary': compiled['boundary']}, ensure_ascii=False))
             return
         report = build_semantic(args.project, args.output, args.source_root, args.language,
                                 draft=args.draft, qa_path=args.review,
-                                browser=not args.no_browser, check_only=args.check_only)
+                                browser=not args.no_browser, check_only=args.check_only, geometry_only=args.geometry_only)
     except (OSError, ValueError, KeyError, TypeError, AttributeError) as error:
         print(json.dumps({'valid': False, 'error': str(error)}, ensure_ascii=False))
         raise SystemExit(1)
@@ -41,6 +46,8 @@ def main() -> None:
     if audit['errors']:
         print(json.dumps({'deliveryStatus': report['deliveryStatus'], 'errors': audit['errors'],
                           'geometry': audit.get('geometry')}, ensure_ascii=False))
+    if audit['errors'] or audit.get('geometry', {}).get('status') == 'failed':
+        raise SystemExit(1)
 
 
 if __name__ == '__main__':

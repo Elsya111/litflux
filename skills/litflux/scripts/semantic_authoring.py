@@ -9,6 +9,7 @@ import re
 import shutil
 import subprocess
 import tempfile
+import time
 import unicodedata
 from pathlib import Path
 
@@ -93,6 +94,43 @@ def _fields(value, allowed, place, errors):
     return True
 
 
+def relation_conditions(relation: dict) -> list[dict]:
+    """Declared AND clauses, joined by OR; never infer guards from prose."""
+    when = relation.get('when')
+    clauses = when if isinstance(when, list) else [when or {}]
+    branch = {relation['from']: relation['branch']} if relation.get('branch') is not None else {}
+    return [dict(clause, **branch) for clause in clauses
+            if all(key not in clause or clause[key] == value for key, value in branch.items())]
+
+
+def intermediate_path(forward: dict, direct: dict, budget: int = 10000) -> bool | None:
+    """Find a compatible path of >=2 edges. None means the bounded search stopped."""
+    start, goal = direct['from'], direct['to']
+    queue = [(start, condition, frozenset([start])) for condition in relation_conditions(direct)]
+    seen = set()
+    while queue:
+        budget -= 1
+        if budget < 0:
+            return None  # ponytail: bounded local search; report uncertainty instead of a SAT engine.
+        node, condition, visited = queue.pop()
+        state = (node, tuple(sorted(condition.items())), visited)
+        if state in seen:
+            continue
+        seen.add(state)
+        for edge in forward.get(node, []):
+            if edge is direct or edge['to'] in visited:
+                continue
+            for clause in relation_conditions(edge):
+                if any(key in condition and condition[key] != value for key, value in clause.items()):
+                    continue
+                if edge['to'] == goal:
+                    if len(visited) > 1:
+                        return True
+                    continue
+                queue.append((edge['to'], {**condition, **clause}, visited | {edge['to']}))
+    return False
+
+
 def compile_module(module_path: Path, root: Path) -> dict:
     """Validate one module and resolve its source references."""
     errors, excerpts, notes, warnings = [], {}, [], []
@@ -131,7 +169,9 @@ def compile_module(module_path: Path, root: Path) -> dict:
             if target is None or not target.is_relative_to(root) or not target.is_file():
                 errors.append(f'{place}: unknown source alias {alias!r}')
                 continue
-            raw = loaded.setdefault(target, target.read_bytes())
+            if target not in loaded:
+                loaded[target] = target.read_bytes()
+            raw = loaded[target]
             lines = raw.decode('utf-8-sig').splitlines()
             if not 1 <= start <= end <= len(lines):
                 errors.append(f'{place}: {ref} is outside {rel} ({len(lines)} lines)')
@@ -146,12 +186,15 @@ def compile_module(module_path: Path, root: Path) -> dict:
             errors.append(f'{place}: objects and relations must be arrays')
             return
         counts['views'] += 1
+        if any(not isinstance(item, dict) for item in view['objects'] + view['relations']):
+            errors.append(f'{place}: objects and relations must contain objects')
+            return
         ids = [o.get('id') for o in view['objects']]
         relations_ids = [r.get('id') for r in view['relations']]
         for value in ids + relations_ids:
             if not isinstance(value, str) or not ID_RE.fullmatch(value):
                 errors.append(f'{place}: IDs use letters, digits, dot, dash or underscore')
-                break
+                return
         if len(set(ids)) != len(ids):
             errors.append(f'{place}: object IDs must be unique')
         if len(set(relations_ids)) != len(relations_ids):
@@ -196,8 +239,8 @@ def compile_module(module_path: Path, root: Path) -> dict:
                 errors.append(f'{item}: type must be one of {sorted(RELATION_TYPES)}')
             if rel.get('from') not in idset or rel.get('to') not in idset:
                 errors.append(f'{item}: unknown endpoint')
-            if not rel.get('label'):
-                errors.append(f'{item}: label is required; the note is what the reader sees')
+            if 'label' in rel and not isinstance(rel['label'], str):
+                errors.append(f'{item}: label must be a string or omitted')
             source_refs(rel.get('sources'), item + '/sources')
             timing = rel.get('timing')
             if kind == 'data':
@@ -211,7 +254,7 @@ def compile_module(module_path: Path, root: Path) -> dict:
             if rel.get('branch') is not None:
                 if not owner_choices or rel['branch'] not in owner_choices:
                     errors.append(f'{item}: branch must name a choice of the source object')
-                if kind in ('data', 'loop'):
+                if kind not in ('control', 'failure'):
                     errors.append(f'{item}: branch belongs to control/failure relations')
             elif owner_choices and kind in ('control', 'failure'):
                 errors.append(f'{item}: outgoing control from a decision needs branch')
@@ -228,30 +271,19 @@ def compile_module(module_path: Path, root: Path) -> dict:
             if kind in FORWARD and rel.get('from') in idset and rel.get('to') in idset:
                 forward.setdefault(rel['from'], []).append(rel)
 
-        # C4: a data edge that could pass through other nodes must say why it is immediate or deferred.
-        def intermediates(start, goal, skip):
-            seen = {start}
-            queue = [start]
-            while queue:
-                current = queue.pop()
-                for rel in forward.get(current, []):
-                    if rel is skip:
-                        continue
-                    if rel['to'] == goal:
-                        return True
-                    if rel['to'] not in seen:
-                        seen.add(rel['to'])
-                        queue.append(rel['to'])
-            return False
-
+        if errors:
+            return
         for rel in view['relations']:
             if rel.get('type') != 'data':
                 continue
-            if rel.get('from') in idset and rel.get('to') in idset and intermediates(rel['from'], rel['to'], rel):
-                if not str(rel.get('timingNote') or '').strip():
-                    errors.append(f"{place}/{rel.get('id')}: an intermediate path exists; add timingNote explaining the declared timing")
-                else:
-                    notes.append(f"{place}/{rel.get('id')}")
+            path = intermediate_path(forward, rel)
+            if path is not False and not str(rel.get('timingNote') or '').strip():
+                message = ('a compatible intermediate path exists under the declared conditions; '
+                           'a timingNote may help explain your choice' if path else
+                           'intermediate-path search reached its limit; timing remains your declaration')
+                warnings.append(f"{place}/{rel['id']}: {message}")
+            if rel.get('timingNote'):
+                notes.append(f"{place}/{rel['id']}")
 
     if not model.get('title') or not model.get('summary') or not model.get('scope'):
         errors.append('module needs title, summary and an explicit scope')
@@ -268,6 +300,7 @@ def compile_module(module_path: Path, root: Path) -> dict:
             errors.append(f'{place}: expected an object')
             continue
         _fields(workflow, 'id title entry flow sources', place, errors)
+        source_refs(workflow.get('sources'), place + '/sources')
         if not isinstance(workflow.get('id'), str) or not ID_RE.fullmatch(workflow['id']) or workflow['id'] in seen_ids:
             errors.append(f'{place}: unique alphanumeric id is required')
         else:
@@ -287,7 +320,7 @@ def compile_module(module_path: Path, root: Path) -> dict:
     if errors:
         raise ValueError('\n'.join(errors))
     return dict(model=model, excerpts=excerpts, counts=counts,
-                requiredNotes=notes, warnings=warnings,
+                requiredNotes=[], timingNotes=notes, warnings=warnings,
                 boundary='Structure, sources and the author\'s own timing declarations were checked; '
                          'source entailment and visual readability need a separate judgement.')
 
@@ -299,7 +332,7 @@ def compile_module_file(module_path: Path, root: Path) -> dict:
 
 
 def _escape_script(source: str) -> str:
-    return source.replace('</script', '<\\/script')
+    return re.sub(r'</script', lambda match: '<\\/' + match[0][2:], source, flags=re.IGNORECASE)
 
 
 def render_viewer(compiled: dict, module_source: str, assets: Path, payload: dict) -> str:
@@ -312,30 +345,40 @@ def render_viewer(compiled: dict, module_source: str, assets: Path, payload: dic
         '__LOCALIZER__': (assets / 'localizer.js').read_text(encoding='utf-8'),
         '__MESSAGES__': (assets / 'semantic-messages.en.json').read_text(encoding='utf-8'),
     }
-    for key, value in replacements.items():
-        marker = '__' + key.strip('_') + '__'
+    for marker in replacements:
         if marker not in template:
             raise ValueError(f'viewer template is missing {marker}')
-        template = template.replace(marker, value)
-    return template
+    # Replace template markers once; source text containing a marker stays literal.
+    return re.sub('|'.join(map(re.escape, replacements)), lambda match: replacements[match[0]], template)
 
 
 def check_review(qa_path: Path, revision: str, author: str) -> dict:
     if qa_path is None or not Path(qa_path).is_file():
-        return {'status': 'missing', 'error': 'no review.json; status stays checked'}
+        return {'status': 'missing', 'error': 'no review.json; reviewed status not requested'}
     data = json.loads(Path(qa_path).read_text(encoding='utf-8-sig'))
+    if not isinstance(data, dict):
+        return {'status': 'failed', 'errors': ['review.json must be an object']}
     errors = []
     if data.get('revision') != revision:
         errors.append('review.json revision does not match this build')
     if not isinstance(data.get('reviewer'), str) or not data['reviewer'].strip() or data['reviewer'] == author:
         errors.append('reviewer must be a separate agent session, not the author')
     checks = data.get('checks') or {}
+    if not isinstance(checks, dict):
+        checks = {}
+    evidence = data.get('evidence')
+    if not isinstance(evidence, list) or not evidence or any(not isinstance(e, str) or not e.strip() for e in evidence):
+        errors.append('provide a non-empty evidence file list')
+        evidence = []
     for name in ('coverage', 'semantics', 'visuals'):
         value = checks.get(name)
         passed = value == 'passed' or (isinstance(value, dict) and value.get('status') == 'passed')
         if not passed:
             errors.append(f'{name} review is not passed')
-    for item in data.get('evidence') or []:
+        refs = value.get('evidence', evidence) if isinstance(value, dict) else evidence
+        if not isinstance(refs, list) or not refs or any(ref not in evidence for ref in refs):
+            errors.append(f'{name} evidence must reference the evidence file list')
+    for item in evidence:
         target = Path(qa_path).parent / item
         if not target.is_file():
             errors.append(f'evidence file missing: {item}')
@@ -345,7 +388,10 @@ def check_review(qa_path: Path, revision: str, author: str) -> dict:
 
 
 def build_semantic(module_path: Path, output: Path, source_root: Path, language=None, *,
-                   draft=False, qa_path=None, browser=True, check_only=False) -> dict:
+                   draft=False, qa_path=None, browser=True, check_only=False, geometry_only=False) -> dict:
+    started = time.monotonic()
+    if geometry_only and (not browser or check_only or qa_path):
+        raise ValueError('--geometry-only requires browser rendering and cannot combine with --check-only/--no-browser/--review')
     assets = Path(__file__).resolve().parents[1] / 'assets'
     module_path = Path(module_path).resolve()
     root = Path(source_root).resolve()
@@ -354,17 +400,18 @@ def build_semantic(module_path: Path, output: Path, source_root: Path, language=
     module_source = module_path.read_text(encoding='utf-8-sig')
     if language and model.get('language', 'zh') != language:
         raise ValueError(f'module.language is {model.get("language", "zh")} but --language is {language}')
-    revision = hashlib.sha256((module_source + engine_revision()).encode('utf-8')).hexdigest()[:16]
+    source_hashes = sorted({(s['path'], s['sha256']) for s in compiled['excerpts'].values()})
+    revision = hashlib.sha256((module_source + engine_revision() + json.dumps(source_hashes)).encode('utf-8')).hexdigest()[:16]
     payload = {
         'revision': revision,
         'sources': compiled['excerpts'],
         'status': 'draft',
-        'requiredNotes': compiled['requiredNotes'],
+        'timingNotes': compiled['timingNotes'],
     }
     html = render_viewer(compiled, module_source, assets, payload)
     if check_only:
         return {'valid': True, 'deliveryStatus': 'draft', 'counts': compiled['counts'],
-                'qualityRevision': revision, 'outputs': [], 'semanticAudit': {'errors': [], 'warnings': []}}
+                'qualityRevision': revision, 'outputs': [], 'semanticAudit': {'errors': [], 'warnings': compiled['warnings']}}
     output = Path(output)
     output.mkdir(parents=True, exist_ok=True)
     page = (output / html_filename(model.get('title'))).resolve()
@@ -372,19 +419,20 @@ def build_semantic(module_path: Path, output: Path, source_root: Path, language=
     (output / 'litflux.graph.json').write_text(
         json.dumps({'revision': revision, 'project': model, 'sources': compiled['excerpts']},
                    ensure_ascii=False, indent=2), encoding='utf-8')
-    audit = {'errors': [], 'warnings': [], 'browser': {'status': 'not-run'}, 'geometry': {'status': 'not-run'}}
+    audit = {'errors': [], 'warnings': compiled['warnings'], 'browser': {'status': 'not-run'}, 'geometry': {'status': 'not-run'}}
+    prepared = time.monotonic()
     delivery = 'draft'
     if browser:
         from semantic_browser import browser_check
-        audit['browser'] = browser_check(page, revision)
+        audit['browser'] = browser_check(page, revision, geometry_only=geometry_only)
         failures = audit['browser'].get('failures') or []
         geometry = audit['browser'].get('geometry') or {}
-        if audit['browser'].get('status') == 'passed':
+        if geometry.get('status') in ('passed', 'warnings'):
             audit['geometry'] = {'status': 'passed' if not geometry.get('warnings') else 'failed',
                                  'warnings': geometry.get('warnings') or []}
         else:
             audit['geometry'] = {'status': 'not-run', 'warnings': []}
-        if audit['browser'].get('status') == 'passed' and audit['geometry']['status'] == 'passed':
+        if not geometry_only and audit['browser'].get('status') == 'passed' and audit['geometry']['status'] == 'passed':
             delivery = 'checked'
         else:
             audit['errors'].extend(failures)
@@ -393,11 +441,14 @@ def build_semantic(module_path: Path, output: Path, source_root: Path, language=
         delivery = 'reviewed'
     if delivery != 'draft':
         # The badge is part of the page payload, so keep the file and the report in step.
-        page.write_text(page.read_text(encoding='utf-8').replace(
-            '"status": "draft"', f'"status": "{delivery}"'), encoding='utf-8')
+        payload['status'] = delivery
+        page.write_text(render_viewer(compiled, module_source, assets, payload), encoding='utf-8')
     report = {'valid': True, 'deliveryStatus': delivery, 'counts': compiled['counts'],
               'qualityRevision': revision, 'outputs': [str(page)],
               'semanticAudit': audit, 'review': review,
-              'boundary': compiled['boundary']}
+              'boundary': compiled['boundary'], 'mode': 'geometry-only' if geometry_only else 'full',
+              'timingsMs': {'prepare': round((prepared-started)*1000), 'total': round((time.monotonic()-started)*1000)}}
     (output / 'litflux.build-report.json').write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding='utf-8')
+    if geometry_only:
+        (output / 'litflux.geometry-report.json').write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding='utf-8')
     return report

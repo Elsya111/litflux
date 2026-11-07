@@ -2,13 +2,10 @@
 
 LitFlux's original code and documentation are licensed under Apache-2.0; see [LICENSE](LICENSE).
 
-The offline viewer includes the following third-party software:
-
-| Component | Bundled version | License | Location |
-| --- | --- | --- | --- |
-| [Dagre](https://github.com/dagrejs/dagre/tree/v1.1.5) | 1.1.5 | MIT | `skills/litflux/assets/dagre-1.1.5.min.js` |
-| [Graphlib](https://github.com/dagrejs/graphlib/tree/v2.2.4) | 2.2.4 | MIT | Included in the Dagre browser bundle |
-
-Both libraries carry the notice `Copyright (c) 2012-2014 Chris Pettitt` and the MIT permission text preserved in [DAGRE-LICENSE.txt](skills/litflux/assets/DAGRE-LICENSE.txt). Rendering embeds that notice into generated HTML.
+The current offline viewer uses LitFlux's own drawing.js, semantic-viewer.html,
+semantic-audit.js and localizer.js. It bundles no third-party layout engine.
+Python, Node.js and agent-browser are external execution/checking tools, not
+redistributed in the skill archive. Historical test references to Dagre do not
+describe the current package.
 
 Target-project source shown in generated maps remains subject to its original license. Local development benchmarks and design drafts are not included in the LitFlux distribution.
