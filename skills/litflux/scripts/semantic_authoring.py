@@ -14,12 +14,13 @@ import unicodedata
 from pathlib import Path
 
 TYPES = {'business', 'data', 'resource', 'component', 'decision', 'boundary'}
+RESOURCE_KINDS = {'database', 'config', 'directory', 'file', 'memory', 'generic'}
 RELATION_TYPES = {'data', 'control', 'failure', 'loop', 'effect', 'capability'}
 # Relations that describe execution order; effect/capability describe resources instead.
 FORWARD = {'data', 'control', 'failure'}
 MODULE_FIELDS = 'title summary scope language files workflows unknowns coverage author'
 FLOW_FIELDS = 'title sources objects relations reading draw'
-OBJECT_FIELDS = 'id type title text sources detail choices'
+OBJECT_FIELDS = 'id type title text sources detail choices resourceKind'
 RELATION_FIELDS = 'id from to type label sources when branch timing timingNote'
 ID_RE = re.compile(r'[A-Za-z0-9_.-]+')
 REF_RE = re.compile(r'([\w-]+):(\d+)(?:-(\d+))?')
@@ -210,6 +211,11 @@ def compile_module(module_path: Path, root: Path) -> dict:
                 errors.append(f'{item}: type must be one of {sorted(TYPES)}')
                 continue
             counts[kind] = counts.get(kind, 0) + 1
+            if 'resourceKind' in obj:
+                if kind != 'resource' or not isinstance(obj['resourceKind'], str):
+                    errors.append(f'{item}: resourceKind must be a string on a resource object')
+                elif obj['resourceKind'] not in RESOURCE_KINDS:
+                    warnings.append(f'{item}: unknown resourceKind {obj["resourceKind"]!r}; rendered as generic resource')
             if not obj.get('title'):
                 errors.append(f'{item}: title is required')
             source_refs(obj.get('sources'), item + '/sources')
@@ -338,6 +344,7 @@ def _escape_script(source: str) -> str:
 def render_viewer(compiled: dict, module_source: str, assets: Path, payload: dict) -> str:
     template = (assets / 'semantic-viewer.html').read_text(encoding='utf-8')
     replacements = {
+        '__VIEWER_CSS__': (assets / 'semantic-viewer.css').read_text(encoding='utf-8'),
         '__DRAWING__': (assets / 'drawing.js').read_text(encoding='utf-8'),
         '__MODULE__': _escape_script(module_source),
         '__PAYLOAD__': _escape_script(json.dumps(payload, ensure_ascii=False)),

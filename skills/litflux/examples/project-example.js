@@ -2,12 +2,12 @@
 const saved = {
   title: '写入文本', sources: 'app:9-11',
   objects: [
-    { id: 'text', type: 'data', title: '清理后的文本', sources: 'app:18' },
-    { id: 'path', type: 'data', title: '目标路径', sources: 'app:18' },
-    { id: 'write', type: 'business', title: '写入文本', text: '通过当前 writer 写入；默认实现使用 UTF-8。' },
-    { id: 'location', type: 'data', title: '保存位置' },
+    { id: 'text', type: 'data', title: '清理后的文本', text: '去除首尾空白后的字符串，对应 submit() 中的 cleaned。非空检查通过后，作为 writer 的第二个参数传入。', sources: 'app:18' },
+    { id: 'path', type: 'data', title: '目标路径', text: '调用者指定的写入位置，对应参数 path。这里表示定位信息，实际被修改的文件在另一个资源节点中表示。', sources: 'app:18' },
+    { id: 'write', type: 'business', title: '写入文本', text: '调用当前 writer 将文本写入目标位置。默认实现 write_text() 使用 UTF-8 编码，再返回路径字符串。', sources:'app:9-11' },
+    { id: 'location', type: 'data', title: '保存位置', text:'写入器返回的位置标识，默认是 str(path)，供外层构造保存响应。',sources:'app:11' },
     { id: 'writer', type: 'component', title: '当前写入器', text: '默认 write_text，也可由调用者替换。', sources: ['app:14', 'app:18'] },
-    { id: 'file', type: 'resource', title: '目标文本文件', sources: 'app:10' },
+    { id: 'file', type: 'resource', resourceKind:'file', title: '目标文本文件', text:'默认 write_text() 实际写入的文件载体。Path(path).write_text() 用 UTF-8 写入文本；它与“目标路径”字符串分别表示载体和定位信息。',sources: 'app:10' },
   ],
   relations: [
     { id: 'content', type: 'data', from: 'text', to: 'write', label: '待写文本', timing: 'immediate' },
@@ -31,11 +31,11 @@ const saved = {
 const submit = {
   title: '提交文本', sources: 'app:14-19',
   objects: [
-    { id: 'raw', type: 'data', title: '原始文本', text: '调用者提交的内容。' },
-    { id: 'normalize', type: 'business', title: '规范化文本', text: '去除首尾空白即可，无需为这一个库调用再造子图。', sources: ['app:5-6', 'app:15'] },
-    { id: 'cleaned', type: 'data', title: '清理后的文本' },
-    { id: 'nonempty', type: 'decision', title: '文本非空吗？', choices: [{ id: 'yes', label: '非空：保存' }, { id: 'no', label: '空：拒绝' }] },
-    { id: 'path', type: 'data', title: '目标路径' },
+    { id: 'raw', type: 'data', title: '原始文本', text: '调用者提交的内容，对应 submit(text, path, writer) 的 text 参数。首尾可能带有空白，先交给 normalize() 处理。',sources:'app:14-15' },
+    { id: 'normalize', type: 'business', title: '规范化文本', text: '去除文本首尾的空白，保留中间内容。对应 normalize() 中的 text.strip()，结果用于后面的非空判断。', sources: ['app:5-6', 'app:15'] },
+    { id: 'cleaned', type: 'data', title: '清理后的文本',text:'对应局部变量 cleaned。既作为非空判据，也在判断通过后作为待保存内容，两个用途共享同一份字符串。',sources:'app:15-18' },
+    { id: 'nonempty', type: 'decision', title: '文本非空吗？', text:'检查 cleaned 是否为空。空字符串直接返回拒绝响应；非空时才调用 writer，避免把空内容写入文件。',sources:'app:16-18', choices: [{ id: 'yes', label: '非空：保存' }, { id: 'no', label: '空：拒绝' }] },
+    { id: 'path', type: 'data', title: '目标路径',text:'调用者给出的保存位置，在非空分支传给 writer。这里是路径值，不是文件本体。',sources:'app:14-18' },
     { id: 'save', type: 'business', title: '保存文本', text: '非空时调用选定 writer；进入内部可见组件与文件作用。', detail: saved },
     { id: 'location', type: 'data', title: '保存位置' },
     { id: 'accepted', type: 'business', title: '返回保存结果' },
@@ -87,7 +87,7 @@ const batch = {
     { id: 'submit', type: 'business', title: '提交一条文本', detail: submit, sources: 'app:25' },
     { id: 'one', type: 'data', title: '单条响应' },
     { id: 'collect', type: 'business', title: '收集本条结果', sources: 'app:25' },
-    { id: 'results', type: 'resource', title: '累计结果列表', text: '循环中共享的可变状态：先初始化，再逐条追加。' },
+    { id: 'results', type: 'resource', resourceKind:'memory', title: '累计结果列表', text: '保存每条文本的提交响应。循环开始时创建，每轮追加一个结果，结束后作为批量响应返回；对应 submit_many() 中的 results 列表。',sources:'app:23-26' },
     { id: 'finish', type: 'business', title: '返回累计结果', sources: 'app:26' },
     { id: 'reply', type: 'data', title: '批量响应', sources: 'app:26' },
   ],

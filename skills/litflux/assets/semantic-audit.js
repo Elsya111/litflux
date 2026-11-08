@@ -88,6 +88,11 @@
       if ((box.textBoxes||[]).some(r=>[[r.x,r.y],[r.x+r.width,r.y],[r.x,r.y+r.height],[r.x+r.width,r.y+r.height]].some(([x,y])=>!inside(x,y)))) {
         warnings.push({ code: 'G9', ids: [box.id], detail: '文字超出形状' });
       }
+      if(box.iconBox){
+        const icon=box.iconBox;
+        if(!inside(icon.x,icon.y)||!inside(icon.x+icon.width,icon.y+icon.height))warnings.push({code:'G9',ids:[box.id],detail:'资源图标超出形状'});
+        if((box.textBoxes||[]).some(t=>t.x<icon.x+icon.width+4&&t.x+t.width>icon.x&&t.y<icon.y+icon.height&&t.y+t.height>icon.y))warnings.push({code:'G9',ids:[box.id],detail:'文字与资源图标重叠'});
+      }
     }
     const offset=diagram.geometry.offset||{x:0,y:0};
     for(const warning of warnings){
@@ -122,6 +127,7 @@
       const node = objects.find((item) => item.dataset.node === object.id);
       if (!node) { failures.push(`缺少对象 ${object.id}`); continue; }
       if (node.dataset.role !== object.type) failures.push(`对象 ${object.id} 的角色与声明不符`);
+      if(object.type==='resource'&&node.dataset.resourceKind!==LitFluxDrawing.resourceKind(object.resourceKind))failures.push(`资源 ${object.id} 的图标与声明不符`);
     }
     for (const relation of flow.relations) {
       const drawn = currentDiagram?.drawn.get(relation.id);
@@ -211,6 +217,10 @@
         closeSource();tested++;
       }
       result.checks.sources.push({view:checked.key,tested,status:tested?'tested':'no-declared-source'});
+      await pause();
+      const panelWarnings=geometryWarnings(currentDiagram,view.flow).filter(w=>!w.info);
+      result.geometry.diagnostics.push(...panelWarnings.map(w=>({view:checked.key,context:'details-open',...w})));
+      result.geometry.warnings.push(...panelWarnings.map(w=>`${view.title}（详情打开）：${w.code} ${w.detail} ${w.ids.join('/')}`));
     }
     navigate(started);
     result.timingsMs.interactions=round(performance.now()-clock-result.timingsMs.geometry);

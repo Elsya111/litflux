@@ -15,7 +15,7 @@
   </p>
 </div>
 
-LitFlux 让编码 Agent 阅读真实源码，把项目的用途、业务组成和内部流程整理成可以逐层探索的页面。你可以从一个入口出发，查看输入如何变成结果、条件分支如何影响流程，再打开相关源码核对实现。
+LitFlux 让编码 Agent 阅读真实源码，把项目的用途、业务组成和内部流程整理成可以逐层探索的页面。你可以从一个入口出发，查看输入如何变成结果、条件分支如何影响流程，悬浮或聚焦节点先看短介绍，点击在右侧查看完整说明、关联对象和源码位置，再打开源码摘录核对实现。
 
 生成的项目脉络图是一个可离线打开的 HTML 文件，包含图、说明和引用的源码摘录。适合接手陌生项目、理解关键算法，或在修改代码前梳理受影响的业务流程。
 
@@ -188,6 +188,7 @@ Agent 负责解释源码、划分业务层级、判断关系并安排坐标。�
 | 模块字段、绘图原语、命令与复核格式 | [作者方式](skills/litflux/references/semantic-authoring.md) |
 | 一个可运行的项目模块 | [教学例](skills/litflux/examples/project-example.js) |
 | 当前产品约束 | [项目规范](SPEC.md) |
+| 节点说明与资源符号 | [作者方式](skills/litflux/references/semantic-authoring.md#节点介绍参考)、[资源示例](skills/litflux/examples/resource-examples.js) |
 | 排版思路与尺寸测量 | [布局参考](skills/litflux/references/layout-guidance.md)，供作者自行取舍 |
 
 在仓库根目录预检教学模块：

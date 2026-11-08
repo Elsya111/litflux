@@ -60,7 +60,7 @@ const branch={
   }
 };
 const loop={
-  objects:[business('init','初始化累计列表','src:23'),{id:'more',type:'decision',title:'还有词语吗？',choices:[{id:'yes',label:'继续一轮'},{id:'no',label:'结束循环'}],sources:['src:24']},business('append','计算长度并追加','src:25'),{id:'counts',type:'resource',title:'累计长度列表',sources:['src:23-25']},business('finish','返回累计长度','src:26'),data('result','累计长度')],
+  objects:[business('init','初始化累计列表','src:23'),{id:'more',type:'decision',title:'还有词语吗？',choices:[{id:'yes',label:'继续一轮'},{id:'no',label:'结束循环'}],sources:['src:24']},business('append','计算长度并追加','src:25'),{id:'counts',type:'resource',resourceKind:'memory',title:'累计长度列表',sources:['src:23-25']},business('finish','返回累计长度','src:26'),data('result','累计长度')],
   relations:[{id:'start',from:'init',to:'more',type:'control',label:'开始遍历'},
     {id:'yes',from:'more',to:'append',type:'control',branch:'yes',label:'读取下一词语'},
     {id:'no',from:'more',to:'finish',type:'control',branch:'no',label:'已经遍历完'},

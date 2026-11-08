@@ -7,6 +7,24 @@ const LitFluxDrawing = (() => {
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
   const cache = new Map();
+  const resourceKinds = Object.freeze({database:'数据库',config:'运行配置',directory:'目录',file:'文件',memory:'共享状态',generic:'通用资源'});
+  const resourceKind = kind => Object.hasOwn(resourceKinds,kind) ? kind : 'generic';
+  function resourceIcon(kind) {
+    kind=resourceKind(kind);
+    const icon=el('svg',{viewBox:'0 0 24 24',width:24,height:24,fill:'none',stroke:'currentColor','stroke-width':1.5,'stroke-linecap':'round','stroke-linejoin':'round','aria-hidden':'true',class:'resource-icon','data-resource-icon':kind});
+    const paths={
+      database:'M4 6C4 2 20 2 20 6C20 10 4 10 4 6V18C4 22 20 22 20 18V6 M4 12C4 16 20 16 20 12',
+      directory:'M3 7V5H9L12 8H21V20H3Z M3 8H12',
+      file:'M6 2H14L20 8V22H6Z M14 2V8H20 M9 13H17 M9 17H15',
+      memory:'M3 6L12 2L21 6L12 10Z M3 11L12 15L21 11 M3 16L12 20L21 16',
+      generic:'M3 7L12 3L21 7V17L12 21L3 17Z M3 7L12 11L21 7 M12 11V21'
+    };
+    if(kind==='config'){
+      const points=Array.from({length:32},(_,i)=>{const angle=i*Math.PI/16-Math.PI/2,r=i%4<2?10:8;return `${12+r*Math.cos(angle)},${12+r*Math.sin(angle)}`;});
+      icon.append(el('polygon',{points:points.join(' ')}),el('circle',{cx:12,cy:12,r:3}));
+    }else icon.append(el('path',{d:paths[kind]}));
+    return icon;
+  }
 
   function el(tag, attrs = {}) {
     const node = document.createElementNS(NS, tag);
@@ -96,7 +114,8 @@ const LitFluxDrawing = (() => {
       '.node.role-decision .shape{fill:var(--decision,#f3edf7);stroke:#aa95bd}',
       '.node.role-boundary .shape{fill:var(--soft,#eef1ed);stroke:#9aa8aa;stroke-dasharray:3 3}',
       '.node .n-title{fill:var(--ink,#263b34)}',
-      '.node .resource-cap{fill:none;stroke:var(--resource-line,#558c7a);stroke-width:1.1;pointer-events:none}',
+      '.node .resource-icon{color:var(--resource-line,#558c7a);pointer-events:none}',
+      '.node .detail-hint{fill:var(--accent,#32674e);pointer-events:none}',
       '.node{cursor:pointer}',
       '.node.is-selected .shape{stroke:var(--accent,#32674e);stroke-width:2}',
       '.node.is-current .shape{stroke:var(--accent,#32674e);stroke-width:2.5}',
@@ -167,7 +186,6 @@ const LitFluxDrawing = (() => {
       if (object.type === 'data') return el('circle', { class: 'shape', r: 1 });
       if (object.type === 'decision') return el('polygon', { class: 'shape' });
       if (object.type === 'component') return el('polygon', { class: 'shape' });
-      if (object.type === 'resource') return el('path', { class: 'shape' });
       return el('rect', { class: 'shape' });
     }
     function sizeOf(object, options) {
@@ -176,10 +194,12 @@ const LitFluxDrawing = (() => {
         const side = options.width ?? Math.max(96, Math.min(200, width(title, 15) + 36));
         return { width: side, height: side, text: side * 0.74 };
       }
-      const box = options.width ?? Math.max(124, Math.min(248, width(title, 15) + 42));
-      const rows = wrap(title, box - 24, 15);
+      const resource=object.type==='resource';
+      const box = options.width ?? Math.max(resource?148:124, Math.min(resource?280:248, width(title, 15) + (resource?72:42)));
+      const textWidth=Math.max(1,box-(resource?56:24));
+      const rows = wrap(title, textWidth, 15);
       const height = options.height ?? Math.max(object.type === 'decision' ? 104 : 74, rows.height + 34);
-      return { width: box, height, text: box - 24 };
+      return { width: box, height, text: textWidth };
     }
 
     const scene = {
@@ -210,35 +230,38 @@ const LitFluxDrawing = (() => {
         } else if (object.type === 'component') {
           const w = size.width / 2, h = size.height / 2;
           node.setAttribute('points', `${-w + 14},${-h} ${w - 14},${-h} ${w},0 ${w - 14},${h} ${-w + 14},${h} ${-w},0`);
-        } else if (object.type === 'resource') {
-          const w = size.width / 2, h = size.height / 2, cap = Math.min(10, h / 3);
-          node.setAttribute('d', `M${-w},${-h + cap} A${w},${cap} 0 0 1 ${w},${-h + cap} V${h - cap} A${w},${cap} 0 0 1 ${-w},${h - cap} Z`);
         } else {
           const w = size.width / 2, h = size.height / 2;
           node.setAttribute('x', -w); node.setAttribute('y', -h);
           node.setAttribute('width', size.width); node.setAttribute('height', size.height);
-          node.setAttribute('rx', object.type === 'boundary' ? h : 8);
+          node.setAttribute('rx', object.type === 'boundary' ? h : object.type==='resource'?3:8);
         }
         group.append(node);
         if (object.type === 'resource') {
-          const w = size.width / 2, h = size.height / 2, cap = Math.min(10, h / 3);
-          group.append(el('path', {
-            class: 'resource-cap', d: `M${-w},${-h + cap} A${w},${cap} 0 0 0 ${w},${-h + cap}`,
-          }));
+          group.dataset.resourceKind=resourceKind(object.resourceKind);
+          const icon=resourceIcon(object.resourceKind);
+          icon.setAttribute('x',-size.width/2+12);icon.setAttribute('y',-12);group.append(icon);
+        }
+        if(object.detail){
+          group.append(el('path',{class:'detail-hint',d:`M${size.width/2-15} ${size.height/2-18} l5 4 -5 4 Z`,'aria-hidden':'true'}));
         }
         const rows = wrap(object.title || '', size.text, 15);
         const text = el('text', {
-          x: 0, y: -(rows.height - rows.lineHeight) / 2, 'text-anchor': 'middle',
+          x: object.type==='resource'?16:0, y: -(rows.height - rows.lineHeight) / 2, 'text-anchor': 'middle',
           class: 'n-title', 'font-size': 15, 'font-family': FONT,
         });
         rows.lines.forEach((row, index) => {
-          const span = el('tspan', { x: 0, dy: index ? rows.lineHeight : 0 });
+          const span = el('tspan', { x: object.type==='resource'?16:0, dy: index ? rows.lineHeight : 0 });
           span.textContent = row;
           text.append(span);
         });
         group.append(text);
         activate(group, () => handlers.onObject?.(object, false));
         group.ondblclick = () => handlers.onObject?.(object, true);
+        group.onpointerenter = event => { if(event.pointerType!=='touch')handlers.onPreview?.(object,group); };
+        group.onpointerleave = () => handlers.onPreviewEnd?.();
+        group.addEventListener('focus', () => handlers.onPreview?.(object,group,true));
+        group.addEventListener('blur', () => handlers.onPreviewEnd?.());
         nodeLayer.append(group);
         const textBox=text.getBBox();
         text.setAttribute('y', Number(text.getAttribute('y'))-textBox.y-textBox.height/2);
@@ -374,6 +397,7 @@ const LitFluxDrawing = (() => {
               id: b.id, kind:'node', role: b.type, x: b.x + dx, y: b.y + dy,
               width: b.width, height: b.height, textWidth: b.textWidth, textHeight: b.textHeight,
               textBoxes: [...b.group.querySelectorAll('tspan')].map(t=>{const r=t.getBBox();return {x:r.x,y:r.y,width:r.width,height:r.height};}),
+              iconBox: b.type==='resource'?{x:-b.width/2+12,y:-12,width:24,height:24}:null,
             })),
             notes: notes.map((n) => ({
               id: n.id, kind:'note', role: n.type, x: n.x + dx, y: n.y + dy,
@@ -392,5 +416,5 @@ const LitFluxDrawing = (() => {
     };
     return scene;
   }
-  return { create, measure, wrap, el };
+  return { create, measure, wrap, el, resourceKinds, resourceKind, resourceIcon };
 })();
