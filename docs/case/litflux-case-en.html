@@ -1,0 +1,1593 @@
+<!doctype html><html lang="zh-CN" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LitFlux</title><style>:root{color-scheme:light;--page:#f3f5f2;--surface:#fffefa;--soft:#eef2ed;--ink:#263b34;--muted:#607168;--line:#dce3dc;--accent:#32674e;--focus:#e5efe6;--process:#edf4ea;--data:#edf4f8;--resource:#e8f1e9;--provider:#eeeaf5;--decision:#f3edf7;--control:#896e32;--failure:#a45d65;--loop:#7f6ca1;--resource-line:#558c7a;--provider-line:#6d86a9;--input:#3e719b;--output:#9a6746;--tree-line:#bac9c1;--shadow:0 12px 36px #172b1f20}
+html[data-theme=dark]{color-scheme:dark;--page:#171d23;--surface:#1e282f;--soft:#26333b;--ink:#e2eced;--muted:#adbec4;--line:#3a4a54;--accent:#a7d1bc;--focus:#304d43;--process:#293d3a;--data:#294453;--resource:#2b443a;--provider:#3c354e;--decision:#40384e;--control:#caba87;--failure:#dfa3ac;--loop:#c4ade7;--resource-line:#a6cfb4;--provider-line:#a9c4e6;--input:#a8c8e6;--output:#e0b393;--tree-line:#52666e;--shadow:0 12px 36px #0005}
+*{box-sizing:border-box}body{margin:0;background:var(--page);color:var(--ink);font:14px/1.6 "Segoe UI","PingFang SC","Microsoft YaHei UI",system-ui,sans-serif}
+button,select{font:inherit;color:inherit}button{cursor:pointer;background:transparent;border:0}button:disabled{opacity:.45;cursor:default}
+button:focus-visible,select:focus-visible,summary:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+[hidden]{display:none!important}button:hover:not(:disabled){background:var(--soft)}
+.app{height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+.app-header{display:flex;align-items:center;gap:20px;padding:14px 22px;border-bottom:1px solid var(--line);background:var(--surface);flex:none;min-height:86px}
+.identity{display:flex;align-items:center;gap:16px;min-width:0}.brand{font:600 27px Georgia,serif;letter-spacing:-1px}
+.project-heading{min-width:0}.project-heading>div{display:flex;gap:8px;align-items:center}.project-name{font-size:14px;font-weight:600;max-width:310px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.project-kicker{font-size:11px;color:var(--muted);margin-top:2px}.badge{font-size:10px;padding:1px 6px;border:1px solid var(--line);border-radius:4px;color:var(--muted);white-space:nowrap}
+.workflow-picker{margin-left:auto;display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:10px;align-items:center;width:390px;min-width:200px;max-width:40%}
+.workflow-picker label{font-size:12px;color:var(--muted)}
+select{border:1px solid var(--line);border-radius:7px;background:var(--surface);padding:7px 10px;max-width:100%;min-width:0}
+.workflow-picker select{width:100%;font-size:14px;font-weight:500;background:var(--soft)}
+.workflow-trigger{grid-column:2;margin:3px 0 0;font:11px/1.4 Consolas,monospace;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.toolbar-button,.panel-toggle{border:1px solid var(--line);border-radius:6px;padding:6px 10px;font-size:12px;white-space:nowrap;min-height:34px;background:var(--surface)}
+.panel-toggle[aria-expanded=true],#motion[aria-pressed=true]{background:var(--focus);border-color:var(--tree-line);color:var(--accent)}
+.dual-layout{flex:1;min-height:0;display:grid;grid-template-columns:248px minmax(0,1fr);gap:12px;padding:12px}
+.dual-layout.sidebar-collapsed{grid-template-columns:minmax(0,1fr)}
+.dual-layout.inspector-open{grid-template-columns:248px minmax(0,1fr) 340px}
+.dual-layout.sidebar-collapsed.inspector-open{grid-template-columns:minmax(0,1fr) 340px}
+.business-panel,.inspector{min-width:0;min-height:0;background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden;display:flex;flex-direction:column}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:14px 16px;border-bottom:1px solid var(--line);flex:none}.panel-head h2{font-size:13px;margin:0;font-weight:600}
+.branch-tools{display:flex;gap:2px}.branch-tools button{font-size:11px;color:var(--muted);padding:4px 5px;border-radius:4px}
+.business-caption{font-size:11px;color:var(--muted);margin:0;padding:10px 16px 0}
+.business-canvas{flex:1;min-height:0;overflow:auto;padding:12px 10px 18px;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+.business-canvas svg{display:block}.business-connector{fill:none;stroke:var(--tree-line);stroke-width:1.2}.business-connector.active{stroke:var(--accent);stroke-width:1.7}
+.business-node{cursor:pointer;outline:none}.business-node .business-card{fill:var(--surface);stroke:var(--line);stroke-width:1}
+.business-node .business-label{fill:var(--ink);font-size:12px;font-weight:500}.business-node .business-count{fill:var(--muted);font-size:10px}
+.business-node:hover .business-card{fill:var(--soft);stroke:var(--tree-line)}.business-node.current .business-card{fill:var(--focus);stroke:var(--accent);stroke-width:1.5}
+.business-node.current .business-label{fill:var(--accent)}.business-node.selected .business-card{stroke:var(--accent)}.business-node:focus-visible .business-card{stroke:var(--accent);stroke-width:2.5}
+.business-toggle{cursor:pointer;outline:none}.business-toggle .toggle-hit{fill:var(--surface);stroke:var(--line)}.business-toggle .toggle-chevron{fill:none;stroke:var(--muted);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.business-toggle:hover .toggle-hit,.business-toggle:focus-visible .toggle-hit{fill:var(--focus);stroke:var(--accent)}
+.project-info{padding:12px 16px;border-top:1px solid var(--line);font-size:12px;color:var(--muted);max-height:40%;overflow:auto}.project-info summary{cursor:pointer}.project-info h2{font-size:15px;color:var(--ink)}
+.workspace{min-width:0;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.crumbs{font-size:12px;color:var(--muted);display:flex;gap:7px;flex-wrap:wrap;padding:0 3px}.crumbs button{padding:0;color:var(--muted)}
+.page-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:5px 2px 8px}.page-heading h1{font-size:19px;font-weight:600;margin:0;line-height:1.4}
+.read-actions{display:flex;gap:8px;align-items:center;flex:none}.primary{background:var(--accent);color:var(--surface);border-radius:6px;padding:8px 13px;font-size:12px;font-weight:600;min-height:34px}
+.primary:hover:not(:disabled){filter:brightness(.92);background:var(--accent)}html[data-theme=dark] .primary{color:#172820}
+.read-actions>button:not(.primary){font-size:12px;color:var(--muted);padding:5px}.context-bar{display:flex;justify-content:space-between;gap:12px;align-items:center;margin:0 3px 10px}
+.read-status{font-size:12px;color:var(--muted);margin:0;min-height:20px}
+.menu{position:relative}.menu>summary{cursor:pointer;font-size:12px;padding:5px 10px;border:1px solid var(--line);border-radius:6px;background:var(--surface);white-space:nowrap}
+.menu-body{position:absolute;right:0;top:38px;width:min(390px,80vw);z-index:30;background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:8px;padding:16px}
+.menu-body p{font-size:11px;color:var(--muted);margin:12px 0 0}.choices{display:grid;gap:12px}.choices label{display:grid;gap:5px;font-size:12px}.choices select{width:100%}
+.graph-panel{border:1px solid var(--line);border-radius:10px;background:var(--surface);overflow:hidden;display:flex;flex-direction:column;flex:1;min-height:220px}
+.graph-top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;padding:9px 12px;border-bottom:1px solid var(--line);flex:none}
+.graph-caption{display:flex;gap:12px;align-items:center}.graph-top strong{font-size:13px;font-weight:600}#relation-count{font-size:11px;color:var(--muted)}
+.graph-actions{display:flex;gap:7px;flex-wrap:wrap;align-items:center}.zoom-tools{display:flex;align-items:center;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.zoom-tools button{font-size:18px;width:30px;height:30px;line-height:1}.zoom-tools output{font-size:12px;width:48px;text-align:center;font-variant-numeric:tabular-nums}
+.scene{flex:1;min-height:0;position:relative;overflow:auto;cursor:grab;touch-action:none;scrollbar-width:thin;scrollbar-color:var(--tree-line) transparent;background:radial-gradient(var(--line) .8px,transparent .8px) 0 0/25px 25px var(--surface)}
+.scene.grabbing{cursor:grabbing;user-select:none}.scene>svg{display:block;transform-origin:0 0;overflow:visible}
+.graph-note{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:8px 12px;border-top:1px solid var(--line);font-size:11px;color:var(--muted);flex:none}
+.key::before{content:'';display:inline-block;width:16px;border-top:1.5px solid var(--muted);vertical-align:3px;margin-right:6px}.key.later::before{border-top-style:dashed}.key.control::before{border-color:var(--control)}
+.drawing-error{padding:24px;color:var(--failure);font:12px/1.7 Consolas,monospace;white-space:pre-wrap}
+.inspector .panel-head{padding:12px 16px}.close-button{font-size:12px;padding:4px 8px;border-radius:4px;color:var(--muted)}
+.details-body{padding:20px;overflow:auto;min-height:0;flex:1;scrollbar-width:thin}
+.selection-heading{display:flex;gap:12px;align-items:flex-start;margin-bottom:16px}.selected-symbol{width:38px;height:38px;display:grid;place-items:center;background:var(--soft);border:1px solid var(--line);border-radius:8px;flex:none;color:var(--accent)}
+.selected-symbol svg{width:24px;height:24px}.role{font-size:11px;color:var(--muted);display:block;margin-bottom:4px}.selection-heading h2{margin:0;font-size:19px;line-height:1.5;overflow-wrap:anywhere}
+#selected-text{font-size:14px;line-height:1.9;white-space:pre-wrap;overflow-wrap:anywhere;margin:0 0 20px}
+.empty-note{color:var(--muted);font-size:13px;line-height:1.8}
+.details-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px}.details-actions button{font-size:12px}
+.detail-section{border-top:1px solid var(--line);padding-top:16px;margin-top:18px}.detail-section h3,.detail-section summary{font-size:12px;font-weight:600;margin:0 0 9px;color:var(--muted)}
+.source-links{display:grid;gap:6px}.source-links button{text-align:left;font:12px/1.6 Consolas,monospace;color:var(--accent);overflow-wrap:anywhere;padding:7px 9px;border-radius:5px;background:var(--soft)}
+.relation-index summary{cursor:pointer}.relation-index ul{list-style:none;padding:0;margin:0}.relation-index li+li{border-top:1px solid var(--line)}
+.relation-index button{width:100%;text-align:left;padding:10px 0}.relation-index .pair{font-size:12px;display:block;color:var(--muted)}.relation-index .meaning{font-size:13px;display:block;margin-top:2px}
+.connected-list{display:grid;gap:5px}.connected-list button{text-align:left;padding:6px 8px;border:1px solid var(--line);border-radius:5px;font-size:12px}.connected-list span{color:var(--muted);margin-right:6px}
+.drawer{flex:1;min-height:0;display:flex;flex-direction:column}.drawer-head{padding:14px 16px;border-bottom:1px solid var(--line);flex:none}.drawer-head h2{font-size:14px;margin:12px 0 0;overflow-wrap:anywhere}.drawer-head button{font-size:12px;color:var(--accent);padding:4px 0}
+.drawer-body{padding:0 16px 20px;overflow:auto;flex:1}.source{margin:18px 0}.source h3{font:12px/1.6 Consolas,monospace;color:var(--muted);overflow-wrap:anywhere}
+.source pre{font:12px/1.8 Consolas,monospace;background:var(--soft);padding:12px;overflow:auto;border:1px solid var(--line);border-radius:6px}.source .row{display:block}.source .ln{display:inline-block;width:34px;color:var(--muted);user-select:none}
+.node-preview{position:fixed;z-index:60;width:300px;max-width:calc(100vw - 24px);max-height:calc(100vh - 24px);overflow:auto;background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:9px;padding:14px 16px;color:var(--ink)}
+.node-preview strong{font-size:14px;display:block;margin:3px 0 7px}.node-preview p{font-size:13px;line-height:1.7;margin:0;overflow-wrap:anywhere}.node-preview .preview-source{font:11px/1.6 Consolas,monospace;color:var(--muted);margin-top:9px}.node-preview .preview-hint{font-size:11px;color:var(--muted);margin-top:8px}
+@media(max-width:1250px){.dual-layout.inspector-open{grid-template-columns:248px minmax(0,1fr)}.dual-layout.sidebar-collapsed.inspector-open{grid-template-columns:minmax(0,1fr)}.inspector{position:absolute;right:12px;top:102px;bottom:12px;width:340px;z-index:35;box-shadow:var(--shadow)}.project-name{max-width:210px}.project-kicker{display:none}.app-header{gap:12px;padding:12px 16px}.workflow-picker{width:330px}}
+@media(max-width:900px){.identity{gap:10px}.project-name{max-width:160px}.badge{display:none}.app-header{flex-wrap:wrap;min-height:120px}.workflow-picker{order:3;width:100%;max-width:none;margin-left:0}.app-header>#theme{margin-left:auto}.dual-layout:not(.sidebar-collapsed){grid-template-columns:minmax(0,1fr)}.business-panel{position:absolute;left:12px;top:140px;bottom:12px;width:248px;z-index:34;box-shadow:var(--shadow)}.inspector{top:140px}.page-heading{align-items:flex-start}.graph-actions{gap:5px}.context-bar{align-items:flex-start}}
+@media(prefers-reduced-motion:reduce){.flow-particles{display:none}}
+
+/* Industrial chrome; soft, quiet diagram surfaces. */
+html[data-theme=dark]{--page:#25282a;--surface:#282c2e;--soft:#32373a;--ink:#f0f0e8;--muted:#aeb4b5;--line:#444a4d;--accent:#e9b563;--focus:#433d31;--process:#34393d;--data:#303639;--resource:#323a3a;--provider:#373a40;--decision:#383b3f;--control:#d3b37a;--failure:#ca9289;--loop:#b3a3c3;--resource-line:#b9c8bc;--provider-line:#b9c0cf;--input:#e9bd77;--output:#c9d7c9;--tree-line:#555e60;--shadow:0 14px 40px #1118}
+.app-header{min-height:76px;padding:12px 24px;background:var(--surface)}
+.brand{font-family:Consolas,'Microsoft YaHei',monospace;font-size:26px;letter-spacing:-1.5px}.brand:before{content:'';display:inline-block;width:10px;height:10px;background:var(--accent);transform:rotate(45deg);border-radius:2px;margin-right:12px}
+.project-kicker{font:10px Consolas,monospace;letter-spacing:1.2px}.badge{border-radius:2px;color:var(--accent)}
+.dual-layout{gap:0;padding:0;grid-template-columns:224px minmax(0,1fr)}.dual-layout.inspector-open{grid-template-columns:224px minmax(0,1fr) 300px}.dual-layout.sidebar-collapsed.inspector-open{grid-template-columns:minmax(0,1fr) 300px}
+.business-panel,.inspector{border-radius:0;border:0}.business-panel{border-right:1px solid var(--line)}.inspector{border-left:1px solid var(--line)}
+.workspace{padding:20px 20px 0}.page-heading h1{font-size:20px;letter-spacing:.3px}.graph-panel{border:0;border-radius:0;background:transparent}.graph-top{padding:12px 0}.graph-note{padding:12px 0}
+.scene{background-color:var(--page);background-image:linear-gradient(#abb8aa05 1px,transparent 1px),linear-gradient(90deg,#abb8aa05 1px,transparent 1px),radial-gradient(#abb8aa15 .7px,transparent .7px);background-size:100px 100px,100px 100px,20px 20px}
+.toolbar-button,.panel-toggle,.zoom-tools,select{border-radius:4px}.primary{border-radius:5px}.workflow-picker select{background:transparent}
+.business-node .business-card{stroke:transparent;fill:transparent}.business-node.current .business-card,.business-node.selected .business-card{fill:var(--focus);stroke:transparent}.business-node.current .business-label{fill:var(--accent)}.business-label{font-weight:400!important}.business-connector{stroke:var(--tree-line);stroke-width:1}
+.panel-head h2{font-size:12px;letter-spacing:1px}.panel-head{padding:18px 16px}.business-caption{padding-top:15px}.business-canvas{padding-top:18px}
+.selected-symbol{border-radius:10px;background:#202426;color:var(--accent)}.selection-heading h2{font-size:21px}.role{color:var(--accent)}.details-body{padding:22px 20px}.source-links button,.source pre{border-radius:5px}.source-links button{border-left:2px solid var(--accent)}
+.node .shape{fill:var(--process)!important;stroke:#51585d!important;stroke-width:1.2!important;filter:drop-shadow(0 4px 6px #13161930)}
+.node.role-data .shape{fill:var(--data)!important}.node.role-resource .shape{fill:var(--resource)!important}.node.is-selected .shape,.node.is-current .shape{stroke:var(--accent)!important;stroke-width:1.6!important;filter:drop-shadow(0 0 5px #e9b56316)}
+.node{outline:none!important}.node:focus-visible{outline:none}.node:focus-visible .shape{stroke:var(--accent)!important;stroke-width:2!important}
+.node .icon-tile{fill:#24292d;stroke:#ffffff05;stroke-width:1}.node .role-glyph{stroke:var(--accent);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}.node .data-dot{fill:var(--accent)}
+#canvas .edge{stroke:#8e9798;stroke-width:1.4}#canvas .edge.role-control{stroke:var(--control)}#canvas .edge.role-effect{stroke:var(--resource-line)}#canvas .edge.role-capability{stroke:var(--provider-line)}#canvas .edge.role-loop{stroke:var(--loop)}#canvas .edge.related{stroke:var(--accent);stroke-width:1.8}.relation-note .note-hit{rx:10;fill:var(--surface)}.relation-note .note-title{font-size:13px;fill:var(--muted)}.edge-port{fill:#e5e6e0;stroke:var(--page);stroke-width:1.8;pointer-events:none}
+@media(max-width:1250px){.dual-layout.inspector-open{grid-template-columns:224px minmax(0,1fr)}.dual-layout.sidebar-collapsed.inspector-open{grid-template-columns:minmax(0,1fr)}.inspector{width:320px;top:88px;right:12px;bottom:12px;border:1px solid var(--line);border-radius:10px}.workspace{padding-left:14px;padding-right:14px}}
+@media(max-width:900px){.dual-layout.inspector-open{grid-template-columns:minmax(0,1fr)}.business-panel,.inspector{top:140px}.business-panel{border:1px solid var(--line);border-radius:8px}}
+</style></head>
+<body id="litflux-canvas-app">
+<div class="app">
+  <header class="app-header">
+    <div class="identity"><div class="brand">LitFlux</div><div class="project-heading"><div><span id="title" class="project-name"></span><span id="delivery-badge" class="badge">草稿</span></div><div class="project-kicker">从业务流程读懂代码</div></div></div>
+    <div class="workflow-picker"><label for="workflow-select">工作流</label><select id="workflow-select" aria-describedby="workflow-trigger"></select><p id="workflow-trigger" class="workflow-trigger" data-no-translate></p></div>
+    <button id="theme" class="toolbar-button">深色主题</button>
+  </header>
+  <div class="dual-layout">
+    <aside id="business-panel" class="business-panel"><div class="panel-head"><h2>业务分解图</h2><div class="branch-tools"><button id="collapse-all">收拢</button><button id="expand-all">展开</button></div></div><p class="business-caption">组成与层级 · 点击业务进入</p><div id="business" class="business-canvas" aria-label="业务分解图"></div><details class="project-info"><summary>项目信息</summary><h2 id="project-title"></h2><p id="summary"></p><p id="scope"></p></details></aside>
+    <main class="workspace">
+      <nav id="crumbs" class="crumbs" aria-label="当前业务路径"></nav>
+      <div class="page-heading"><h1 id="flow-title"></h1><div class="read-actions"><button id="toggle-business" class="panel-toggle" aria-expanded="true" aria-controls="business-panel">业务分解图</button><button id="read-start" class="primary">开始阅读</button><button id="read-next" class="primary" hidden disabled>下一步</button><button id="read-reset" hidden>退出阅读</button></div></div>
+      <div class="context-bar"><p id="read-status" class="read-status"></p><details class="menu choices-menu" id="choices-panel"><summary>分支情景</summary><div class="menu-body"><div id="choices" class="choices"></div><p>只选择阅读情景，不执行源码条件。</p></div></details></div>
+      <section class="graph-panel">
+        <div class="graph-top"><div class="graph-caption"><strong>内部流程图</strong><span id="relation-count"></span></div><div class="graph-actions">
+          <div class="zoom-tools" role="group" aria-label="缩放"><button id="zoom-out" aria-label="缩小">−</button><output id="zoom-value" aria-label="当前比例">100%</output><button id="zoom-in" aria-label="放大">+</button></div>
+          <button id="fit" class="toolbar-button">适应全图</button><button id="reset-view" class="toolbar-button">原始大小</button><button id="motion" class="toolbar-button" aria-pressed="true">流动：开</button><button id="toggle-details" class="panel-toggle" aria-expanded="false" aria-controls="inspector">节点详情</button>
+        </div></div>
+        <div id="canvas" class="scene" aria-label="当前业务的完整内部流程图"></div>
+        <div class="graph-note"><span class="key" data-legend="data">数据实线：即时承接</span><span class="key later" data-legend="data">数据虚线：保留后用</span><span class="key control" data-legend="control">◇ 控制与条件</span><span data-legend="failure">╌ 失败路径</span><span data-legend="loop">↺ 循环回指</span><span data-legend="effect">→ 资源作用</span><span data-legend="capability">⋯ 组件能力</span><span>悬浮预览 · 点击查看详情 · 拖拽平移</span></div>
+      </section>
+    </main>
+    <aside id="inspector" class="inspector" aria-label="节点详情" hidden>
+      <div class="panel-head"><h2>节点详情</h2><button id="close-details" class="close-button" aria-label="关闭详情">关闭</button></div>
+      <div id="details-body" class="details-body">
+        <div class="selection-heading"><div id="selected-symbol" class="selected-symbol" aria-hidden="true"></div><div><span id="selected-role" class="role"></span><h2 id="selected-title"></h2></div></div>
+        <p id="selected-text"></p><p id="no-description" class="empty-note" hidden>此节点尚未提供补充说明。</p>
+        <div class="details-actions"><button id="expand" class="primary" hidden>进入内部</button><button id="show-source" class="toolbar-button" hidden>查看源码</button></div>
+        <section id="source-links-section" class="detail-section" hidden><h3>源码位置</h3><div id="source-links" class="source-links"></div></section>
+        <section id="connections-section" class="detail-section" hidden><h3>关联对象</h3><div id="connections" class="connected-list"></div></section>
+        <details class="relation-index detail-section" id="relation-index"><summary id="relation-index-title">相关关系</summary><ul id="relation-list"></ul></details>
+      </div>
+      <section id="drawer" class="drawer" aria-label="源码摘录" hidden><div class="drawer-head"><button id="close-source">← 返回节点说明</button><h2 id="source-title"></h2></div><div id="sources" class="drawer-body"></div></section>
+    </aside>
+  </div>
+</div>
+<div id="node-preview" class="node-preview" role="tooltip" hidden></div>
+<script>// LitFlux drawing primitives: place, measure, draw. This file never decides layout,
+// line style or object roles — the project module passes everything in.
+const LitFluxDrawing = (() => {
+  const NS = 'http://www.w3.org/2000/svg';
+  const FONT = '"Segoe UI","PingFang SC","Microsoft YaHei UI",system-ui,sans-serif';
+  const LINE = { 15: 21, 14: 19 };
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  const cache = new Map();
+  const resourceKinds = Object.freeze({database:'数据库',config:'运行配置',directory:'目录',file:'文件',memory:'共享状态',generic:'通用资源'});
+  const resourceKind = kind => Object.hasOwn(resourceKinds,kind) ? kind : 'generic';
+  function resourceIcon(kind) {
+    kind=resourceKind(kind);
+    const icon=el('svg',{viewBox:'0 0 24 24',width:24,height:24,fill:'none',stroke:'currentColor','stroke-width':1.5,'stroke-linecap':'round','stroke-linejoin':'round','aria-hidden':'true',class:'resource-icon','data-resource-icon':kind});
+    const paths={
+      database:'M4 6C4 2 20 2 20 6C20 10 4 10 4 6V18C4 22 20 22 20 18V6 M4 12C4 16 20 16 20 12',
+      directory:'M3 7V5H9L12 8H21V20H3Z M3 8H12',
+      file:'M6 2H14L20 8V22H6Z M14 2V8H20 M9 13H17 M9 17H15',
+      memory:'M3 6L12 2L21 6L12 10Z M3 11L12 15L21 11 M3 16L12 20L21 16',
+      generic:'M3 7L12 3L21 7V17L12 21L3 17Z M3 7L12 11L21 7 M12 11V21'
+    };
+    if(kind==='config'){
+      const points=Array.from({length:32},(_,i)=>{const angle=i*Math.PI/16-Math.PI/2,r=i%4<2?10:8;return `${12+r*Math.cos(angle)},${12+r*Math.sin(angle)}`;});
+      icon.append(el('polygon',{points:points.join(' ')}),el('circle',{cx:12,cy:12,r:3}));
+    }else icon.append(el('path',{d:paths[kind]}));
+    return icon;
+  }
+
+  function el(tag, attrs = {}) {
+    const node = document.createElementNS(NS, tag);
+    for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, value);
+    return node;
+  }
+  function width(text, fontSize) {
+    ctx.font = `${fontSize}px ${FONT}`;
+    return ctx.measureText(String(text)).width;
+  }
+  function wrap(text, maxWidth, fontSize = 15) {
+    const key = `${fontSize}|${maxWidth}|${text}`;
+    if (cache.has(key)) return cache.get(key);
+    const lines = [];
+    for (const paragraph of String(text ?? '').split('\n')) {
+      let line = '';
+      for (const token of paragraph.match(/[A-Za-z0-9_./:#-]+|\s+|[^\x00-\xff]|./g) || []) {
+        if (!line && !token.trim()) continue;
+        if (width(line + token, fontSize) <= maxWidth) { line += token; continue; }
+        if (line.trim()) lines.push(line.trim());
+        line = '';
+        if (width(token, fontSize) <= maxWidth) { if (token.trim()) line = token; continue; }
+        for (const ch of token) {
+          if (line && width(line + ch, fontSize) > maxWidth) { lines.push(line.trim()); line = ''; }
+          line += ch;
+        }
+      }
+      if (line.trim()) lines.push(line.trim());
+    }
+    if (!lines.length) lines.push('');
+    const lineHeight = LINE[fontSize] || Math.round(fontSize * 1.4);
+    const result = {
+      lines,
+      lineHeight,
+      width: Math.ceil(Math.max(...lines.map((row) => width(row, fontSize)))),
+      height: lines.length * lineHeight,
+    };
+    cache.set(key, result);
+    return result;
+  }
+  function measure(text, options = {}) {
+    const result = wrap(text, options.maxWidth ?? 260, options.fontSize ?? 14);
+    return { ...result, lines: [...result.lines],
+      boxWidth: result.width + 10, boxHeight: result.height + 6 };
+  }
+
+  const SIDES = { left: [-1, 0], right: [1, 0], top: [0, -1], bottom: [0, 1] };
+  function inside(pos, toward, side) {
+    let dx = toward[0] - pos.x, dy = toward[1] - pos.y;
+    if (side) {
+      const direction = SIDES[side];
+      if (!direction) throw Error(`${pos.id}: sides must be left/right/top/bottom`);
+      [dx, dy] = direction;
+    }
+    if (!dx && !dy) throw Error(`${pos.id}: coincident endpoints need an explicit side`);
+    const hw = pos.width / 2, hh = pos.height / 2;
+    let k;
+    k = Math.min(dx ? Math.abs(hw / dx) : Infinity, dy ? Math.abs(hh / dy) : Infinity);
+    return [pos.x + dx * k, pos.y + dy * k];
+  }
+  function rounded(points) {
+    let d = `M${points[0][0]} ${points[0][1]}`;
+    for (let i = 1; i < points.length - 1; i++) {
+      const a = points[i - 1], b = points[i], c = points[i + 1];
+      const u = Math.hypot(b[0] - a[0], b[1] - a[1]), v = Math.hypot(c[0] - b[0], c[1] - b[1]);
+      const r = Math.min(10, u / 2, v / 2);
+      if (!u || !v) continue;
+      d += ` L${b[0] + (a[0] - b[0]) * r / u} ${b[1] + (a[1] - b[1]) * r / u}`;
+      d += ` Q${b[0]} ${b[1]} ${b[0] + (c[0] - b[0]) * r / v} ${b[1] + (c[1] - b[1]) * r / v}`;
+    }
+    return d + ` L${points.at(-1)[0]} ${points.at(-1)[1]}`;
+  }
+
+  function create(flow, host, handlers = {}) {
+    const objectById = new Map(flow.objects.map((o) => [o.id, o]));
+    const relationById = new Map(flow.relations.map((r) => [r.id, r]));
+    const out = el('svg', { role: 'img', 'aria-label': '当前业务的完整内部流程图' });
+    const defs = el('defs');
+    const style = el('style');
+    style.textContent = [
+      '.node .shape{fill:var(--process,#edf4ea);stroke:#91aa9c;stroke-width:1.3}',
+      '.node.role-data .shape{fill:var(--data,#edf4f8);stroke:#88a4bb}',
+      '.node.role-resource .shape{fill:var(--resource,#e8f1e9);stroke:#558c7a}',
+      '.node.role-component .shape{fill:var(--provider,#eeeaf5);stroke:#6d86a9}',
+      '.node.role-decision .shape{fill:var(--decision,#f3edf7);stroke:#aa95bd}',
+      '.node.role-boundary .shape{fill:var(--soft,#eef1ed);stroke:#9aa8aa;stroke-dasharray:3 3}',
+      '.node .n-title{fill:var(--ink,#263b34)}',
+      '.node .resource-icon{color:var(--resource-line,#558c7a);pointer-events:none}',
+      '.node .detail-hint{fill:var(--accent,#32674e);pointer-events:none}',
+      '.node{cursor:pointer}',
+      '.node.is-selected .shape{stroke:var(--accent,#32674e);stroke-width:2}',
+      '.node.is-current .shape{stroke:var(--accent,#32674e);stroke-width:2.5}',
+      '.node.is-done .shape{stroke:var(--accent,#32674e)}',
+      '.node.is-dim{opacity:.45}',
+      '.edge{fill:none;stroke:var(--accent,#32674e);stroke-width:1.5}',
+      '.edge.deferred{stroke-dasharray:5 5}',
+      '.edge.role-control{stroke:var(--control,#896e32)}',
+      '.edge.role-failure{stroke:var(--failure,#a45d65);stroke-dasharray:2 3}',
+      '.edge.role-loop{stroke:var(--loop,#7f6ca1);stroke-dasharray:2 5}',
+      '.edge.role-effect{stroke:var(--resource-line,#558c7a)}',
+      '.edge.role-capability{stroke:var(--provider-line,#6d86a9);stroke-dasharray:1 4}',
+      '.edge.related{stroke-width:2.2}',
+      '.edge-hit{fill:none;stroke:transparent;stroke-width:12;cursor:pointer}',
+      '.edge-hit:focus-visible{stroke:var(--accent);stroke-opacity:.25;outline:none}',
+      '.edge.is-dim{opacity:.3}',
+      '.relation-note{cursor:pointer}',
+      '.relation-note .note-hit{fill:var(--surface,#fffefa);opacity:.97}',
+      '.relation-note .note-title{fill:var(--ink,#263b34)}',
+      '.relation-note[data-role=control] .note-title{fill:var(--control,#896e32)}',
+      '.relation-note[data-role=loop] .note-title{fill:var(--loop,#7f6ca1)}',
+      '.relation-note:hover .note-title,.relation-note.is-selected .note-title{fill:var(--accent,#32674e)}',
+      '.relation-note.is-selected .note-hit{stroke:var(--line,#dce3dc);stroke-width:.8}',
+      '.control-mark{fill:var(--surface,#fffefa);stroke:var(--control,#896e32);stroke-width:1.2}',
+      '.flow-particles{pointer-events:none}',
+      '.flow-dot{fill:var(--input,#3e719b);stroke:var(--surface,#fffefa);stroke-width:.8}',
+      '.flow-dot[data-direction=output]{fill:var(--output,#9a6746)}',
+    ].join('\n');
+    for (const role of ['data', 'control', 'failure', 'loop', 'effect', 'capability']) {
+      const marker = el('marker', {
+        id: `arrow-${role}`, markerWidth: 9, markerHeight: 9,
+        refX: 8, refY: 4.5, orient: 'auto', markerUnits: 'userSpaceOnUse',
+      });
+      marker.append(el('path', {
+        d: role === 'loop' ? 'M1 1 L8 4.5 L1 8' : 'M0 0 L9 4.5 L0 9 Z',
+        fill: role === 'loop' ? 'none' : 'context-stroke',
+        stroke: role === 'loop' ? 'context-stroke' : 'none',
+        'stroke-width': 1.5,
+      }));
+      defs.append(marker);
+    }
+    defs.append(style);
+    const content = el('g');
+    const edgeLayer = el('g', { class: 'edges' });
+    const noteLayer = el('g', { class: 'notes' });
+    const nodeLayer = el('g', { class: 'nodes' });
+    content.append(edgeLayer, noteLayer, nodeLayer);
+    out.append(defs, content);
+    host.replaceChildren(out);
+
+    const positions = new Map(), drawn = new Map(), boxes = [], notes = [], polylines = [];
+    let explicit = null;
+
+    const finite = (values, where) => {
+      if (values.some((v) => typeof v !== 'number' || !Number.isFinite(v))) {
+        throw Error(`${where}: coordinates must be finite numbers`);
+      }
+    };
+    const activate = (group, run) => {
+      group.setAttribute('tabindex', '0');
+      group.setAttribute('role', 'button');
+      group.onclick = run;
+      group.onkeydown = (event) => {
+        if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); run(); }
+      };
+    };
+    function shape(object) { return el('rect', {class:'shape'}); }
+    function sizeOf(object, options) {
+      const data=object.type==='data', extra=data?46:76;
+      const box=options.width??Math.max(data?124:180,Math.min(280,width(object.title||'',15)+extra));
+      const textWidth=Math.max(1,box-(data?40:66));
+      const rows=wrap(object.title||'',textWidth,15);
+      return {width:box,height:options.height??Math.max(data?48:78,rows.height+30),text:textWidth};
+    }
+
+    const scene = {
+      svg: out, positions, drawn, boxes, notes, polylines, measure,
+      nodeBox(id) {
+        const p = positions.get(id);
+        if (!p) throw Error(`${id}: place the node before calling nodeBox()`);
+        const {x,y,width,height} = p;
+        return Object.freeze({x,y,width,height,left:x-width/2,right:x+width/2,top:y-height/2,bottom:y+height/2});
+      },
+      node(id, x, y, options = {}) {
+        const object = objectById.get(id);
+        if (!object) throw Error(`Unknown object: ${id}`);
+        if (positions.has(id)) throw Error(`Duplicate object: ${id}`);
+        finite([x, y], id);
+        const size = sizeOf(object, options);
+        finite([size.width, size.height], id);
+        if (size.width <= 0 || size.height <= 0) throw Error(`${id}: width and height must be positive`);
+        const group = el('g', {
+          class: `node role-${object.type}`, transform: `translate(${x},${y})`,
+          'data-node': id, 'data-role': object.type, 'aria-label': object.title,
+        });
+        const node = shape(object);
+        const w=size.width/2,h=size.height/2,data=object.type==='data';
+        for(const [key,value] of Object.entries({x:-w,y:-h,width:size.width,height:size.height,rx:data?h:12}))node.setAttribute(key,value);
+        group.append(node);
+        if(data)group.append(el('circle',{class:'data-dot',cx:-w+20,cy:0,r:3.5}));
+        else{
+          group.append(el('rect',{class:'icon-tile',x:-w+12,y:-21,width:38,height:42,rx:8}));
+          if(object.type==='resource'){
+            group.dataset.resourceKind=resourceKind(object.resourceKind);
+            const icon=resourceIcon(object.resourceKind);icon.setAttribute('x',-w+19);icon.setAttribute('y',-12);group.append(icon);
+          }else{
+            const paths={business:'M5 6H19 M5 12H15 M5 18H11 M17 14L21 18 M21 14L17 18',decision:'M4 7L6 9L9 5 M12 7H20 M4 16L6 18L9 14 M12 16H20',component:'M7 3H17L23 12L17 21H7L1 12Z',boundary:'M4 12H20 M14 6L20 12L14 18'};
+            group.append(el('path',{class:'role-glyph',transform:`translate(${-w+19} -12)`,d:paths[object.type]||paths.business}));
+          }
+        }
+        if(object.detail){
+          group.append(el('path',{class:'detail-hint',d:`M${size.width/2-15} ${size.height/2-18} l5 4 -5 4 Z`,'aria-hidden':'true'}));
+        }
+        const rows = wrap(object.title || '', size.text, 15);
+        const text = el('text', {
+          x: object.type==='data'?8:22, y: -(rows.height - rows.lineHeight) / 2, 'text-anchor': 'middle',
+          class: 'n-title', 'font-size': 15, 'font-family': FONT,
+        });
+        rows.lines.forEach((row, index) => {
+          const span = el('tspan', { x: object.type==='data'?8:22, dy: index ? rows.lineHeight : 0 });
+          span.textContent = row;
+          text.append(span);
+        });
+        group.append(text);
+        activate(group, () => handlers.onObject?.(object, false));
+        group.ondblclick = () => handlers.onObject?.(object, true);
+        group.onpointerenter = event => { if(event.pointerType!=='touch')handlers.onPreview?.(object,group); };
+        group.onpointerleave = () => handlers.onPreviewEnd?.();
+        group.addEventListener('focus', () => handlers.onPreview?.(object,group,true));
+        group.addEventListener('blur', () => handlers.onPreviewEnd?.());
+        nodeLayer.append(group);
+        const textBox=text.getBBox();
+        text.setAttribute('y', Number(text.getAttribute('y'))-textBox.y-textBox.height/2);
+        const record = {
+          id, type: object.type, x, y, width: size.width, height: size.height,
+          group, textWidth: rows.width, textHeight: rows.height,
+        };
+        positions.set(id, record);
+        boxes.push(record);
+        return scene;
+      },
+      edge(id, options = {}) {
+        const relation = relationById.get(id);
+        if (!relation) throw Error(`Unknown relation: ${id}`);
+        if (drawn.has(id)) throw Error(`Duplicate relation: ${id}`);
+        const from = positions.get(relation.from), to = positions.get(relation.to);
+        if (!from || !to) throw Error(`${id}: place both endpoints before drawing the relation`);
+        const sides = options.sides;
+        if (!Array.isArray(sides) || sides.length !== 2) throw Error(`${id}: provide sides:[fromSide,toSide]`);
+        const via = options.via || [];
+        for (const point of via) {
+          if (!Array.isArray(point) || point.length !== 2) throw Error(`${id}: via must be [x,y] points`);
+          finite(point, id);
+        }
+        const hasNote = !!relation.label?.trim();
+        if (hasNote && (!Array.isArray(options.noteAt) || options.noteAt.length !== 2)) {
+          throw Error(`${id}: provide noteAt:[x,y] for the relation note`);
+        }
+        if (hasNote) finite(options.noteAt, id);
+        const points = [
+          inside(from, via[0] || [to.x, to.y], sides[0]),
+          ...via,
+          inside(to, via.at(-1) || [from.x, from.y], sides[1]),
+        ];
+        const line = el('path', {
+          class: `edge role-${relation.type}${relation.type === 'data' ? ' ' + relation.timing : ''}`,
+          'data-edge': id,
+          d: options.path || rounded(points),
+          'marker-end': `url(#arrow-${relation.type})`,
+        });
+        edgeLayer.append(line);
+        for(const distance of [0,line.getTotalLength()]){const p=line.getPointAtLength(distance);edgeLayer.append(el('circle',{class:'edge-port',cx:p.x,cy:p.y,r:3}));}
+        const hit = el('path', {class:'edge-hit', d:line.getAttribute('d'),
+          'data-relation':id, 'aria-label':relation.label || `${from.id} → ${to.id} (${relation.type})`});
+        activate(hit, () => handlers.onRelation?.(relation));
+        edgeLayer.append(hit);
+        if (relation.type === 'control') {
+          const start=line.getPointAtLength(0);
+          edgeLayer.append(el('path', {
+            class: 'control-mark',
+            d: `M${start.x} ${start.y - 5} l5 5 -5 5 -5 -5 Z`,
+          }));
+        }
+        polylines.push({ id, type: relation.type, line, points });
+        if (!hasNote) {
+          drawn.set(id, {relation,line,group:hit,noteAt:null});
+          return scene;
+        }
+        let maxWidth = options.noteWidth ?? 260;
+        if (options.noteWidth === undefined && !options.path) {
+          const [nx,ny] = options.noteAt;
+          const segment = points.slice(1).map((b,i)=>[points[i],b]).find(([a,b])=>
+            Math.abs(a[1]-b[1])<.01 && Math.abs(ny-a[1])<20 && nx>Math.min(a[0],b[0]) && nx<Math.max(a[0],b[0]));
+          if (segment) {
+            const [a,b] = segment;
+            const available = 2*Math.min(nx-Math.min(a[0],b[0]),Math.max(a[0],b[0])-nx)-26;
+            // Narrower than 56px usually means choosing another segment, not single-letter wrapping.
+            if (available >= 56) maxWidth = Math.min(maxWidth, available);
+          }
+        }
+        if (!Number.isFinite(maxWidth) || maxWidth <= 0) throw Error(`${id}: noteWidth must be positive`);
+        const note = wrap(relation.label || '', maxWidth, 14);
+        const [nx, ny] = options.noteAt;
+        const w = note.width + 10, h = note.height + 6;
+        const group = el('g', {
+          class: 'relation-note', 'data-note': id, 'data-role': relation.type,
+          transform: `translate(${nx},${ny})`, 'aria-label': relation.label,
+        });
+        group.append(el('rect', { class: 'note-hit', x: -w / 2, y: -h / 2, width: w, height: h, rx: 3 }));
+        const text = el('text', {
+          class: 'note-title', 'text-anchor': 'middle', 'font-size': 14, 'font-family': FONT,
+          y: -(note.height - note.lineHeight) / 2,
+        });
+        note.lines.forEach((row, index) => {
+          const span = el('tspan', { x: 0, dy: index ? note.lineHeight : 0 });
+          span.textContent = row;
+          text.append(span);
+        });
+        group.append(text);
+        activate(group, () => handlers.onRelation?.(relation));
+        group.onmouseenter = () => line.classList.add('related');
+        group.onmouseleave = () => line.classList.remove('related');
+        noteLayer.append(group);
+        const textBox=text.getBBox();
+        text.setAttribute('y', Number(text.getAttribute('y'))-textBox.y-textBox.height/2);
+        drawn.set(id, { relation, line, group, noteAt: [nx, ny] });
+        notes.push({ id, type: relation.type, label: relation.label || '', x: nx, y: ny, width: w, height: h, group });
+        return scene;
+      },
+      size(w, h) {
+        finite([w, h], 'size');
+        if (w <= 0 || h <= 0) throw Error('size: canvas dimensions must be positive');
+        explicit = [w, h];
+        return scene;
+      },
+      finish() {
+        const missing = [
+          ...flow.objects.filter((o) => !positions.has(o.id)).map((o) => `object ${o.id}`),
+          ...flow.relations.filter((r) => !drawn.has(r.id)).map((r) => `relation ${r.id}`),
+        ];
+        if (missing.length) throw Error(`drawing omitted ${missing.join(', ')}`);
+        const box = content.getBBox();
+        const dx = box.x < 16 ? 16 - box.x : 0, dy = box.y < 16 ? 16 - box.y : 0;
+        content.setAttribute('transform', `translate(${dx},${dy})`);
+        const canvasWidth = explicit?.[0] ?? Math.ceil(box.x + box.width + dx + 16);
+        const canvasHeight = explicit?.[1] ?? Math.ceil(box.y + box.height + dy + 16);
+        if (canvasWidth < box.x + box.width + dx || canvasHeight < box.y + box.height + dy) {
+          throw Error('explicit size clips authored content');
+        }
+        out.setAttribute('viewBox', `0 0 ${canvasWidth} ${canvasHeight}`);
+        out.setAttribute('width', canvasWidth);
+        out.setAttribute('height', canvasHeight);
+        return {
+          svg: out,
+          width: canvasWidth,
+          height: canvasHeight,
+          positions,
+          drawn,
+          geometry: {
+            offset: {x:dx,y:dy},
+            width: canvasWidth,
+            height: canvasHeight,
+            nodes: boxes.map((b) => ({
+              id: b.id, kind:'node', role: b.type, x: b.x + dx, y: b.y + dy,
+              width: b.width, height: b.height, textWidth: b.textWidth, textHeight: b.textHeight,
+              textBoxes: [...b.group.querySelectorAll('tspan')].map(t=>{const r=t.getBBox();return {x:r.x,y:r.y,width:r.width,height:r.height};}),
+              outline:'rect', iconBox: b.type!=='data'?{x:-b.width/2+12,y:-21,width:38,height:42}:null,
+            })),
+            notes: notes.map((n) => ({
+              id: n.id, kind:'note', role: n.type, x: n.x + dx, y: n.y + dy,
+              width: n.width, height: n.height,
+            })),
+            edges: polylines.map((p) => {
+              const length=p.line.getTotalLength(), steps=Math.max(1,Math.ceil(length/4));
+              const samples=Array.from({length:steps+1},(_,i)=>{
+                const point=p.line.getPointAtLength(length*i/steps);return [point.x+dx,point.y+dy];
+              });
+              return {id:p.id,role:p.type,points:samples};
+            }),
+          },
+        };
+      },
+    };
+    return scene;
+  }
+  return { create, measure, wrap, el, resourceKinds, resourceKind, resourceIcon };
+})();
+</script>
+<script id="module" type="text/plain">const teaching=(()=>{const module={exports:{}};
+// One content definition; each view arranges its own coordinates.
+// These numbers serve this small diagram only and are not a general layout rule.
+const saved = {
+  title: 'Write text', sources: 'app:9-11',
+  objects: [
+    { id: 'text', type: 'data', title: 'Cleaned text', text: 'The string after leading and trailing whitespace is trimmed; it is cleaned inside submit(). Once the non-empty check passes, it becomes the second argument to the writer.', sources: 'app:18' },
+    { id: 'path', type: 'data', title: 'Target path', text: 'The write location chosen by the caller: the path parameter. It carries address information only; the file that actually changes is a separate resource node.', sources: 'app:18' },
+    { id: 'write', type: 'business', title: 'Write text', text: 'Calls the current writer to put the text at the target location. The default write_text() encodes as UTF-8 and returns the path string.', sources:'app:9-11' },
+    { id: 'location', type: 'data', title: 'Save location', text:'The location identifier returned by the writer, str(path) by default, used by the outer frame to build the save response.',sources:'app:11' },
+    { id: 'writer', type: 'component', title: 'Current writer', text: 'write_text by default; the caller may replace it.', sources: ['app:14', 'app:18'] },
+    { id: 'file', type: 'resource', resourceKind:'file', title: 'Target file', text:'The file carrier the default write_text() actually writes. Path(path).write_text() writes text as UTF-8; this node is the carrier, while "Target path" is its address.',sources: 'app:10' },
+  ],
+  relations: [
+    { id: 'content', type: 'data', from: 'text', to: 'write', label: 'Text to write', timing: 'immediate' },
+    { id: 'destination', type: 'data', from: 'path', to: 'write', label: 'Target path', timing: 'immediate' },
+    { id: 'call', type: 'capability', from: 'writer', to: 'write', label: 'Provides writing' },
+    { id: 'change', type: 'effect', from: 'write', to: 'file', label: 'Writes UTF-8' },
+    { id: 'returned', type: 'data', from: 'write', to: 'location', label: 'Returns location', timing: 'immediate' },
+  ],
+  draw(s) {
+    s.node('write', 420, 240)
+      .node('text', 150, 140).node('path', 150, 340)
+      .node('writer', 420, 80).node('file', 700, 340).node('location', 700, 140);
+    s.edge('content', { sides: ['right', 'left'], via: [[280, 140], [280, 240]], noteAt: [280, 190] })
+      .edge('destination', { sides: ['right', 'left'], via: [[330, 340], [330, 300]], noteAt: [330, 340] })
+      .edge('call', { sides: ['bottom', 'top'], noteAt: [420, 160] })
+      .edge('change', { sides: ['right', 'left'], via: [[580, 240], [580, 340]], noteAt: [580, 290], noteWidth: 120 })
+      .edge('returned', { sides: ['right', 'left'], via: [[560, 240], [560, 140]], noteAt: [560, 190] });
+  },
+};
+
+const submit = {
+  title: 'Submit text', sources: 'app:14-19',
+  objects: [
+    { id: 'raw', type: 'data', title: 'Raw text', text: 'What the caller submitted: the text argument of submit(text, path, writer). It may carry surrounding whitespace, so it goes to normalize() first.',sources:'app:14-15' },
+    { id: 'normalize', type: 'business', title: 'Normalize text', text: 'Trims leading and trailing whitespace and keeps the middle intact. This is text.strip() inside normalize(); the result feeds the non-empty check.', sources: ['app:5-6', 'app:15'] },
+    { id: 'cleaned', type: 'data', title: 'Cleaned text',text:'The local variable cleaned. It is both the emptiness predicate and, once the check passes, the content to save: one string, two uses.',sources:'app:15-18' },
+    { id: 'nonempty', type: 'decision', title: 'Text empty?', text:'Checks whether cleaned is empty. An empty string returns the rejection response; only non-empty text calls the writer, so empty content never reaches the file.',sources:'app:16-18', choices: [{ id: 'yes', label: 'not empty: save' }, { id: 'no', label: 'empty: reject' }] },
+    { id: 'path', type: 'data', title: 'Target path',text:'The location given by the caller, passed to the writer on the non-empty branch. This is a path value, not the file itself.',sources:'app:14-18' },
+    { id: 'save', type: 'business', title: 'Save text', text: 'Calls the chosen writer when the text is non-empty; its internals show the component and the file involvement.', detail: saved },
+    { id: 'location', type: 'data', title: 'Save location' },
+    { id: 'accepted', type: 'business', title: 'Return saved' },
+    { id: 'result', type: 'data', title: 'Save response' },
+    { id: 'rejected', type: 'business', title: 'Return rejected', text: 'Empty content returns saved=False and never calls the writer.', sources: 'app:17' },
+    { id: 'rejection', type: 'data', title: 'Reject response', sources: 'app:17' },
+  ],
+  relations: [
+    { id: 'request', type: 'data', from: 'raw', to: 'normalize', label: 'Raw text', timing: 'immediate' },
+    { id: 'normalized', type: 'data', from: 'normalize', to: 'cleaned', label: 'Cleaned text', timing: 'immediate' },
+    { id: 'predicate', type: 'data', from: 'cleaned', to: 'nonempty', label: 'Empty check', timing: 'immediate' },
+    { id: 'yes', type: 'control', from: 'nonempty', to: 'save', label: 'not empty', branch: 'yes' },
+    { id: 'no', type: 'control', from: 'nonempty', to: 'rejected', label: 'empty', branch: 'no' },
+    // Author's call: the same text is checked first and kept for saving after the check.
+    { id: 'retained', type: 'data', from: 'cleaned', to: 'save', label: 'Kept for saving', timing: 'deferred', when: { nonempty: 'yes' }, timingNote: 'The text goes to the emptiness check first; only after that check passes does the same text reach the save step.' },
+    { id: 'destination', type: 'data', from: 'path', to: 'save', label: 'Target path', timing: 'immediate', when: { nonempty: 'yes' } },
+    { id: 'stored', type: 'data', from: 'save', to: 'location', label: 'Returns', timing: 'immediate' },
+    { id: 'return-location', type: 'data', from: 'location', to: 'accepted', label: 'Save location', timing: 'immediate' },
+    { id: 'public-result', type: 'data', from: 'accepted', to: 'result', label: 'Save response', timing: 'immediate' },
+    { id: 'public-rejection', type: 'data', from: 'rejected', to: 'rejection', label: 'Reject response', timing: 'immediate' },
+  ],
+  draw(s) {
+    s.node('raw', 80, 140).node('normalize', 290, 140).node('cleaned', 500, 140)
+      .node('nonempty', 710, 140).node('save', 930, 140).node('location', 1130, 140)
+      .node('rejection', 80, 350).node('rejected', 290, 350).node('path', 930, 350)
+      .node('accepted', 1130, 350).node('result', 1130, 480);
+    s.edge('request', { sides: ['right', 'left'], noteAt: [178, 140] })
+      .edge('normalized', { sides: ['right', 'left'], noteAt: [395, 140] })
+      .edge('predicate', { sides: ['right', 'left'], noteAt: [604, 140] })
+      .edge('yes', { sides: ['right', 'left'], noteAt: [822, 140] })
+      .edge('retained', { sides: ['top', 'top'], via: [[500, 44], [930, 44]], noteAt: [715, 44] })
+      .edge('no', { sides: ['bottom', 'top'], via: [[710, 270], [290, 270]], noteAt: [500, 270] })
+      .edge('destination', { sides: ['top', 'bottom'], noteAt: [930, 240], noteWidth: 110 })
+      .edge('stored', { sides: ['right', 'left'], noteAt: [1037, 140] })
+      .edge('return-location', { sides: ['bottom', 'top'], noteAt: [1130, 250], noteWidth: 100 })
+      .edge('public-result', { sides: ['bottom', 'top'], noteAt: [1130, 410] })
+      .edge('public-rejection', { sides: ['left', 'right'], noteAt: [176, 350] });
+  },
+};
+
+const batch = {
+  title: 'Submit one by one and collect results', sources: 'app:22-26',
+  objects: [
+    { id: 'texts', type: 'data', title: 'Texts' },
+    { id: 'begin', type: 'business', title: 'Init batch run' },
+    { id: 'more', type: 'decision', title: 'More texts?', choices: [{ id: 'more', label: 'yes: take next' }, { id: 'done', label: 'no: return results' }] },
+    { id: 'take', type: 'business', title: 'Read next text' },
+    { id: 'text', type: 'data', title: 'Current text' },
+    { id: 'submit', type: 'business', title: 'Submit one text', detail: submit, sources: 'app:25' },
+    { id: 'one', type: 'data', title: 'One response' },
+    { id: 'collect', type: 'business', title: 'Collect result', sources: 'app:25' },
+    { id: 'results', type: 'resource', resourceKind:'memory', title: 'Result list', text: 'Stores the submission response for each text. Created before the loop, appended once per round, and returned as the batch response at the end; this is the results list in submit_many().',sources:'app:23-26' },
+    { id: 'finish', type: 'business', title: 'Return results', sources: 'app:26' },
+    { id: 'reply', type: 'data', title: 'Batch response', sources: 'app:26' },
+  ],
+  relations: [
+    { id: 'input', type: 'data', from: 'texts', to: 'begin', label: 'Texts', timing: 'immediate' },
+    { id: 'start', type: 'control', from: 'begin', to: 'more', label: 'Start loop' },
+    { id: 'more', type: 'control', from: 'more', to: 'take', label: 'more texts', branch: 'more' },
+    { id: 'done', type: 'control', from: 'more', to: 'finish', label: 'all visited', branch: 'done' },
+    { id: 'item', type: 'data', from: 'take', to: 'text', label: 'Current text', timing: 'immediate' },
+    { id: 'submit', type: 'data', from: 'text', to: 'submit', label: 'Submit text', timing: 'immediate' },
+    { id: 'response', type: 'data', from: 'submit', to: 'one', label: 'One response', timing: 'immediate' },
+    { id: 'collect', type: 'data', from: 'one', to: 'collect', label: 'To collect', timing: 'immediate' },
+    { id: 'init', type: 'effect', from: 'begin', to: 'results', label: 'Init empty list' },
+    { id: 'append', type: 'effect', from: 'collect', to: 'results', label: 'Append result' },
+    { id: 'read', type: 'effect', from: 'results', to: 'finish', label: 'Read results' },
+    { id: 'repeat', type: 'loop', from: 'collect', to: 'more', label: '↺ next one' },
+    { id: 'reply', type: 'data', from: 'finish', to: 'reply', label: 'Batch response', timing: 'immediate' },
+  ],
+  draw(s) {
+    s.node('texts', 80, 130).node('begin', 290, 130, { width: 140 }).node('more', 500, 130)
+      .node('take', 720, 130).node('text', 940, 130).node('submit', 1140, 130)
+      .node('one', 1150, 350).node('collect', 930, 350).node('results', 700, 350)
+      .node('finish', 430, 520).node('reply', 700, 520);
+    s.edge('input', { sides: ['right', 'left'], noteAt: [178, 130] })
+      .edge('start', { sides: ['right', 'left'], noteAt: [397, 130] })
+      .edge('more', { sides: ['right', 'left'], noteAt: [600, 130] })
+      .edge('item', { sides: ['right', 'left'], noteAt: [830, 130] })
+      .edge('submit', { sides: ['right', 'left'], noteAt: [1038, 130] })
+      .edge('response', { sides: ['bottom', 'top'], noteAt: [1145, 235] })
+      .edge('collect', { sides: ['left', 'right'], noteAt: [1049, 350] })
+      .edge('init', { sides: ['bottom', 'top'], via: [[290, 270], [700, 270]], noteAt: [495, 270] })
+      .edge('append', { sides: ['left', 'right'], noteAt: [815, 350] })
+      .edge('read', { sides: ['bottom', 'top'], via: [[700, 440], [430, 440]], noteAt: [565, 440] })
+      .edge('done', { sides: ['bottom', 'top'], via: [[500, 220], [430, 220]], noteAt: [465, 220], noteWidth: 110 })
+      .edge('repeat', { sides: ['top', 'top'], via: [[930, 290], [1240, 290], [1240, 50], [500, 50]], noteAt: [800, 50], noteWidth: 120 })
+      .edge('reply', { sides: ['right', 'left'], noteAt: [578, 520] });
+  },
+};
+
+module.exports = {
+  title: 'Text saving · project map',
+  language: 'en',
+  author: 'litflux-example',
+  summary: 'A small but real source sample: normalize, then decide, then save through a writer; the batch entry submits one by one and accumulates results.',
+  scope: 'submit, write_text and submit_many in the sample source; none of these functions are executed.',
+  files: { app: 'app.py' },
+  workflows: [
+    { id: 'submit', title: 'Submit and save text', entry: { trigger: 'call submit(text, path, writer)', sources: 'app:14-19' }, flow: submit },
+    { id: 'batch', title: 'Batch submit texts', entry: { trigger: 'call submit_many(texts, path, writer)', sources: 'app:22-26' }, flow: batch },
+  ],
+};
+
+return module.exports;})();
+const resources=(()=>{const module={exports:{}};
+// A source-backed resource key, not an execution-order diagram.
+module.exports={
+  title:'Resources and source · symbol reference',language:'en',summary:'Maps the resources in save_report() and what each one does. The icon comes from the resource type.',scope:'Shows only the resource roles inside one function; it does not string them into an execution order.',files:{source:'resources.py'},
+  workflows:[{id:'resources',title:'Resource types and source mapping',entry:{trigger:'save_report(directory, config, connection, storage, text)',sources:['source:5-14']},flow:{
+    objects:[
+      {id:'db',type:'resource',resourceKind:'database',title:'Report database',text:'The database that stores report bodies. save_report() runs INSERT through the connection it is handed; this node is the database being written, while the call capability of the connection object belongs to an execution view.',sources:['source:10']},
+      {id:'config',type:'resource',resourceKind:'config',title:'Runtime config',text:'Controls the encoding used for this file write. It is the config parameter: reads the encoding option and falls back to UTF-8. It stands for runtime configuration, not one specific file.',sources:['source:5','source:9']},
+      {id:'folder',type:'resource',resourceKind:'directory',title:'Report directory',text:'The directory that holds report.txt. It is folder, built from the directory input as a Path; missing directories are created before writing.',sources:['source:6-8']},
+      {id:'file',type:'resource',resourceKind:'file',title:'Report file',text:'The report.txt carrier that holds the body, i.e. report_file. Content is written with the encoding from the runtime config; the carrier and its address are separate nodes.',sources:['source:8-9']},
+      {id:'recent',type:'resource',resourceKind:'memory',title:'Recent reports',text:'Holds the report path produced by this run. It is the recent list: created, appended with report_file\u2019s path string, then handed to external storage and returned.',sources:['source:11-14']},
+      {id:'storage',type:'resource',title:'External storage',text:'The external carrier that receives the recent report list, written through the caller-supplied storage.save(). The source gives no concrete implementation, so it keeps the generic resource type instead of guessing file or database.',sources:['source:5','source:13']}
+    ],relations:[],draw(s){
+      [['db',180,130],['config',480,130],['folder',780,130],['file',180,340],['recent',480,340],['storage',780,340]].forEach(([id,x,y])=>s.node(id,x,y,{width:210,height:92}));
+    }
+  }}]
+};
+
+return module.exports;})();
+
+// Coordinates are adapted for this example only; no global layout rule is introduced.
+const visited=new Set();function adapt(flow){if(visited.has(flow))return;visited.add(flow);const draw=flow.draw;flow.draw=function(s,viewport){let proxy;proxy={...s,node(id,x,y,opts){s.node(id,x*1.30,y*1.16,opts);return proxy;},edge(id,opts){const adjusted={...opts,via:opts.via?.map(([x,y])=>[x*1.30,y*1.16]),noteAt:opts.noteAt?.map((n,i)=>n*(i?1.16:1.30))};const r=flow.relations.find(r=>r.id===id),a=s.nodeBox(r.from),b=s.nodeBox(r.to);if(!opts.via&&opts.sides.every(side=>['left','right'].includes(side))&&Math.abs(a.y-b.y)<1){const ax=opts.sides[0]==='left'?a.left:a.right,bx=opts.sides[1]==='left'?b.left:b.right;adjusted.noteAt=[(ax+bx)/2,a.y];adjusted.noteWidth=opts.noteWidth??Math.max(56,Math.abs(bx-ax)-24);}s.edge(id,adjusted);return proxy;}};draw(proxy,viewport);};for(const o of flow.objects)if(o.detail)adapt(o.detail);}
+teaching.workflows.forEach(w=>adapt(w.flow));module.exports={...teaching,language:'en',title:'LitFlux · Gunmetal & Amber',summary:'A complete walkthrough in industrial-instrument styling with soft, rounded nodes: text saving, batch submission and resource categories.',files:{...teaching.files,...resources.files},workflows:[...teaching.workflows,...resources.workflows]};
+</script>
+<script id="payload" type="application/json">{"revision": "af427ea08163592a", "sources": {"app:14-19": {"path": "app.py", "start": 14, "end": 19, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["def submit(text, path, writer=write_text):", "    cleaned = normalize(text)", "    if not cleaned:", "        return {\"saved\": False, \"location\": None}", "    location = writer(path, cleaned)", "    return {\"saved\": True, \"location\": location}"]}, "app:14-15": {"path": "app.py", "start": 14, "end": 15, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["def submit(text, path, writer=write_text):", "    cleaned = normalize(text)"]}, "app:5-6": {"path": "app.py", "start": 5, "end": 6, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["def normalize(text):", "    return text.strip()"]}, "app:15": {"path": "app.py", "start": 15, "end": 15, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["    cleaned = normalize(text)"]}, "app:15-18": {"path": "app.py", "start": 15, "end": 18, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["    cleaned = normalize(text)", "    if not cleaned:", "        return {\"saved\": False, \"location\": None}", "    location = writer(path, cleaned)"]}, "app:16-18": {"path": "app.py", "start": 16, "end": 18, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["    if not cleaned:", "        return {\"saved\": False, \"location\": None}", "    location = writer(path, cleaned)"]}, "app:14-18": {"path": "app.py", "start": 14, "end": 18, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["def submit(text, path, writer=write_text):", "    cleaned = normalize(text)", "    if not cleaned:", "        return {\"saved\": False, \"location\": None}", "    location = writer(path, cleaned)"]}, "app:9-11": {"path": "app.py", "start": 9, "end": 11, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["def write_text(path, text):", "    Path(path).write_text(text, encoding=\"utf-8\")", "    return str(path)"]}, "app:18": {"path": "app.py", "start": 18, "end": 18, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["    location = writer(path, cleaned)"]}, "app:11": {"path": "app.py", "start": 11, "end": 11, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["    return str(path)"]}, "app:14": {"path": "app.py", "start": 14, "end": 14, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["def submit(text, path, writer=write_text):"]}, "app:10": {"path": "app.py", "start": 10, "end": 10, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["    Path(path).write_text(text, encoding=\"utf-8\")"]}, "app:17": {"path": "app.py", "start": 17, "end": 17, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["        return {\"saved\": False, \"location\": None}"]}, "app:22-26": {"path": "app.py", "start": 22, "end": 26, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["def submit_many(texts, path, writer=write_text):", "    results = []", "    for text in texts:", "        results.append(submit(text, path, writer))", "    return results"]}, "app:25": {"path": "app.py", "start": 25, "end": 25, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["        results.append(submit(text, path, writer))"]}, "app:23-26": {"path": "app.py", "start": 23, "end": 26, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["    results = []", "    for text in texts:", "        results.append(submit(text, path, writer))", "    return results"]}, "app:26": {"path": "app.py", "start": 26, "end": 26, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["    return results"]}, "source:5-14": {"path": "resources.py", "start": 5, "end": 14, "sha256": "849de92dc074b21063926da33b0eca0faf8226fc17327abdeaac9e6086203a72", "lines": ["def save_report(directory, config, connection, storage, text):", "    folder = Path(directory)", "    folder.mkdir(parents=True, exist_ok=True)", "    report_file = folder / \"report.txt\"", "    report_file.write_text(text, encoding=config.get(\"encoding\", \"utf-8\"))", "    connection.execute(\"INSERT INTO reports(body) VALUES (?)\", (text,))", "    recent = []", "    recent.append(str(report_file))", "    storage.save(recent)", "    return recent"]}, "source:10": {"path": "resources.py", "start": 10, "end": 10, "sha256": "849de92dc074b21063926da33b0eca0faf8226fc17327abdeaac9e6086203a72", "lines": ["    connection.execute(\"INSERT INTO reports(body) VALUES (?)\", (text,))"]}, "source:5": {"path": "resources.py", "start": 5, "end": 5, "sha256": "849de92dc074b21063926da33b0eca0faf8226fc17327abdeaac9e6086203a72", "lines": ["def save_report(directory, config, connection, storage, text):"]}, "source:9": {"path": "resources.py", "start": 9, "end": 9, "sha256": "849de92dc074b21063926da33b0eca0faf8226fc17327abdeaac9e6086203a72", "lines": ["    report_file.write_text(text, encoding=config.get(\"encoding\", \"utf-8\"))"]}, "source:6-8": {"path": "resources.py", "start": 6, "end": 8, "sha256": "849de92dc074b21063926da33b0eca0faf8226fc17327abdeaac9e6086203a72", "lines": ["    folder = Path(directory)", "    folder.mkdir(parents=True, exist_ok=True)", "    report_file = folder / \"report.txt\""]}, "source:8-9": {"path": "resources.py", "start": 8, "end": 9, "sha256": "849de92dc074b21063926da33b0eca0faf8226fc17327abdeaac9e6086203a72", "lines": ["    report_file = folder / \"report.txt\"", "    report_file.write_text(text, encoding=config.get(\"encoding\", \"utf-8\"))"]}, "source:11-14": {"path": "resources.py", "start": 11, "end": 14, "sha256": "849de92dc074b21063926da33b0eca0faf8226fc17327abdeaac9e6086203a72", "lines": ["    recent = []", "    recent.append(str(report_file))", "    storage.save(recent)", "    return recent"]}, "source:13": {"path": "resources.py", "start": 13, "end": 13, "sha256": "849de92dc074b21063926da33b0eca0faf8226fc17327abdeaac9e6086203a72", "lines": ["    storage.save(recent)"]}}, "status": "checked", "timingNotes": ["workflows[0]/flow/retained", "workflows[1]/flow/submit/detail/retained"]}</script>
+<script>
+const payload=JSON.parse(document.querySelector('#payload').textContent);
+const moduleRecord={exports:{}};
+new Function('module','exports',document.querySelector('#module').textContent)(moduleRecord,moduleRecord.exports);
+const model=moduleRecord.exports;
+const $=s=>document.querySelector(s);
+const html=(tag,value)=>{const e=document.createElement(tag);if(value!==undefined)e.textContent=value;return e;};
+const svg=(tag,attrs={})=>LitFluxDrawing.el(tag,attrs);
+
+const businesses=new Map();
+function index(flow,key,title,parent,owner){
+  businesses.set(key,{key,title,flow,parent:parent||null,owner:owner||null});
+  for(const object of flow.objects){
+    if(object.type!=='business')continue;
+    const child=key+'/'+object.id;
+    if(object.detail)index(object.detail,child,object.title,key,object);
+    else businesses.set(child,{key:child,title:object.title,flow:null,parent:key,owner:object});
+  }
+}
+for(const workflow of model.workflows)index(workflow.flow,'workflow:'+workflow.id,workflow.title);
+
+const collapsed=new Set(), viewChoices=new Map(), viewMemory=new Map();
+let current='workflow:'+model.workflows[0].id, selected=null, reading=null, currentDiagram=null;
+let zoom=1, pan={x:0,y:0}, sourceRefs=[], returnFocus=null, motionEnabled=true;
+let pendingAnchor=null, inspectorReturnFocus=null, previewTimer=0, previewCloseTimer=0, previewAnchor=null, previewFocused=false;
+const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
+const roleNames={business:'业务',data:'数据',resource:'资源',component:'组件',decision:'判断',boundary:'边界',relation:'关系'};
+const relationNames={data:'数据依赖',control:'控制与条件',failure:'失败路径',loop:'循环回指',effect:'资源作用',capability:'组件能力'};
+const objectRole=o=>o.type==='resource'?'资源 · '+LitFluxDrawing.resourceKinds[LitFluxDrawing.resourceKind(o.resourceKind)]:roleNames[o.type]||o.type;
+const refsOf=refs=>[...new Set(refs==null?[]:Array.isArray(refs)?refs:[refs])];
+const sourceLabel=ref=>{const s=payload.sources[ref];return s?s.path+':'+s.start+(s.end===s.start?'':'–'+s.end):ref;};
+const objectTitle=id=>flow().objects.find(o=>o.id===id)?.title||id;
+
+function cameraAnchor(){
+  const group=selected?.kind==='relation'?currentDiagram?.drawn?.get(selected.relation.id)?.group:currentDiagram?.positions?.get(selected?.object?.id)?.group;
+  if(!group)return null;
+  const box=group.getBoundingClientRect();
+  return {key:current,id:selected.kind==='relation'?selected.relation.id:selected.object.id,relation:selected.kind==='relation',x:box.x+box.width/2,y:box.y+box.height/2,focused:document.activeElement===group};
+}
+function schedulePlot(){cancelAnimationFrame(frame);frame=requestAnimationFrame(()=>{plot();restoreCamera();paintReading();});}
+function preserveCamera(change){pendingAnchor=cameraAnchor();hidePreview();change();schedulePlot();}
+function restoreCamera(){
+  const a=pendingAnchor;pendingAnchor=null;if(!a||a.key!==current)return;
+  const group=a.relation?currentDiagram?.drawn?.get(a.id)?.group:currentDiagram?.positions?.get(a.id)?.group;
+  if(!group)return;
+  const b=group.getBoundingClientRect(),host=$('#canvas').getBoundingClientRect();
+  let left=host.left,right=host.right;
+  for(const [selector,side] of [['#business-panel','left'],['#inspector','right']]){const panel=$(selector);if(!panel.hidden&&getComputedStyle(panel).position==='absolute'){const r=panel.getBoundingClientRect();if(side==='left')left=Math.max(left,r.right+12);else right=Math.min(right,r.left-12);}}
+  const padX=Math.min(80,b.width/2+12),padY=Math.min(60,b.height/2+12);
+  const x=right-left>padX*2?Math.max(left+padX,Math.min(a.x,right-padX)):host.left+host.width/2;
+  const y=Math.max(host.top+padY,Math.min(a.y,host.bottom-padY));
+  pan.x+=x-b.x-b.width/2;pan.y+=y-b.y-b.height/2;scale();
+  if(a.focused&&document.activeElement===document.body){group.focus({preventScroll:true});hidePreview();}
+}
+function setInspector(open){
+  if($('#inspector').hidden===!open)return;
+  if(open)inspectorReturnFocus=document.activeElement;
+  preserveCamera(()=>{$('#inspector').hidden=!open;$('.dual-layout').classList.toggle('inspector-open',open);$('#toggle-details').setAttribute('aria-expanded',String(open));});
+  if(!open){sourceRefs=[];$('#drawer').hidden=true;$('#details-body').hidden=false;
+    const target=inspectorReturnFocus?.isConnected&&!$('#inspector').contains(inspectorReturnFocus)?inspectorReturnFocus:$('#toggle-details');target.focus();}
+}
+function previewText(text){
+  const paragraph=String(text||'').trim().split(/\n\s*\n|\n/)[0];
+  const first=paragraph.match(/^.*?[。！？]|^.*?[.!?](?=\s|$)/)?.[0]||paragraph;
+  return first.length>200?first.slice(0,200)+'…':first;
+}
+function hidePreview(){
+  clearTimeout(previewTimer);clearTimeout(previewCloseTimer);$('#node-preview').hidden=true;
+  previewAnchor?.removeAttribute('aria-describedby');previewAnchor=null;previewFocused=false;
+}
+function endPreview(){clearTimeout(previewTimer);previewCloseTimer=setTimeout(hidePreview,160);}
+function startPreview(object,anchor,focused=false){
+  hidePreview();previewAnchor=anchor;previewFocused=focused;
+  previewTimer=setTimeout(()=>{
+    if(!anchor.isConnected)return;
+    const preview=$('#node-preview');preview.replaceChildren();
+    const role=html('span',objectRole(object));role.className='role';preview.append(role,html('strong',object.title));
+    if(object.text)preview.append(html('p',previewText(object.text)));
+    const refs=refsOf(object.sources);
+    if(refs.length){const source=html('p',sourceLabel(refs[0])+(refs.length>1?' +'+(refs.length-1):''));source.className='preview-source';source.dataset.noTranslate='';preview.append(source);}
+    const hint=html('p','点击或按 Enter 查看完整详情');hint.className='preview-hint';preview.append(hint);
+    preview.hidden=false;anchor.setAttribute('aria-describedby','node-preview');
+    const a=anchor.getBoundingClientRect(),b=preview.getBoundingClientRect();
+    let x=a.right+12;if(x+b.width>innerWidth-12)x=a.left-b.width-12;
+    preview.style.left=Math.max(12,Math.min(x,innerWidth-b.width-12))+'px';
+    preview.style.top=Math.max(12,Math.min(a.top,innerHeight-b.height-12))+'px';
+  },250);
+}
+
+const flow=()=>businesses.get(current).flow;
+function navigate(key){
+  const target=businesses.get(key);
+  if(!target)return;
+  hidePreview();pendingAnchor=null;sourceRefs=[];$('#drawer').hidden=true;$('#details-body').hidden=false;
+  for(let b=target;b.parent;b=businesses.get(b.parent))collapsed.delete(b.parent);
+  if(!target.flow){if(current!==target.parent)navigate(target.parent);select(target.owner);return;}
+  if(current===key){businessPlot();return;}
+  viewMemory.set(current,{selected,reading,zoom,pan:{...pan},left:$('#canvas').scrollLeft,top:$('#canvas').scrollTop});
+  current=key;const saved=viewMemory.get(key);
+  selected=saved?.selected||null;reading=saved?.reading||null;
+  zoom=saved?.zoom||1;pan=saved?.pan||{x:0,y:0};
+  render();
+  $('#canvas').scrollTo(saved?.left||0,saved?.top||0);
+}
+function choices(){
+  if(!viewChoices.has(current))viewChoices.set(current,Object.fromEntries(flow().objects.filter(o=>o.choices).map(o=>[o.id,o.choices[0].id])));
+  return viewChoices.get(current);
+}
+function whenMatches(when,values){
+  if(!when)return true;
+  if(Array.isArray(when))return when.some(item=>whenMatches(item,values));
+  return Object.entries(when).every(([id,value])=>values[id]===value);
+}
+function allowed(relation,values){
+  return whenMatches(relation.when,values)&&(!relation.branch||values[relation.from]===relation.branch);
+}
+function activeSet(flow,values){
+  const structural=flow.relations.filter(r=>['data','control','failure'].includes(r.type));
+  const forward=structural.filter(r=>allowed(r,values));
+  const incoming=new Map(flow.objects.map(o=>[o.id,0]));
+  for(const r of structural)if(incoming.has(r.to))incoming.set(r.to,incoming.get(r.to)+1);
+  // Roots come from the declared graph, not from the filtered one: a node whose only
+  // entrance sits on an unchosen branch is not an entrance.
+  const roots=flow.objects.filter(o=>incoming.get(o.id)===0).map(o=>o.id);
+  const structuralReach=new Set(),pending=[...roots];
+  while(pending.length){const id=pending.pop();if(structuralReach.has(id))continue;structuralReach.add(id);for(const r of structural)if(r.from===id)pending.push(r.to);}
+  // Rootless components must participate in dependency checks, not disappear as zero work.
+  roots.push(...flow.objects.filter(o=>!structuralReach.has(o.id)).map(o=>o.id));
+  const seen=new Set(),queue=[...roots];
+  while(queue.length){
+    const id=queue.pop();
+    if(seen.has(id))continue;
+    seen.add(id);
+    for(const r of forward)if(r.from===id)queue.push(r.to);
+  }
+  for(const r of flow.relations)if(['effect','capability'].includes(r.type)&&seen.has(r.from)&&flow.objects.some(o=>o.id===r.to&&['resource','component'].includes(o.type)))seen.add(r.to);
+  return seen;
+}
+function readingPlan(flow,values){
+  const active=activeSet(flow,values);
+  const steps=flow.objects.filter(o=>active.has(o.id)&&!['resource','component'].includes(o.type)&&o.type!=='boundary');
+  const forward=flow.relations.filter(r=>['data','control','failure'].includes(r.type)&&allowed(r,values));
+  const dependencies=Object.fromEntries(steps.map(o=>[o.id,[...new Set(forward.filter(r=>r.to===o.id).map(r=>r.from))].filter(id=>steps.some(s=>s.id===id))]));
+  const preferred=flow.reading||[];
+  const rank=id=>{const index=preferred.indexOf(id);return index<0?preferred.length+steps.findIndex(s=>s.id===id):index;};
+  const done=new Set(),order=[];
+  while(order.length<steps.length){
+    const ready=steps.filter(o=>!done.has(o.id)&&dependencies[o.id].every(id=>done.has(id))).sort((a,b)=>rank(a.id)-rank(b.id));
+    if(!ready.length)break;
+    const last=order.at(-1);
+    const immediate=ready.find(o=>forward.some(r=>r.type==='data'&&r.timing==='immediate'&&r.from===last&&r.to===o.id));
+    const pick=immediate||ready[0];
+    order.push(pick.id);done.add(pick.id);
+  }
+  const conflicts=steps.filter(o=>{
+    const branches=flow.relations.filter(r=>r.to===o.id&&r.branch&&active.has(r.from));
+    if(!branches.length||branches.some(r=>allowed(r,values)))return false;
+    const queue=branches.map(r=>r.from),seen=new Set();
+    while(queue.length){const id=queue.pop();if(id===o.id)return false;if(seen.has(id))continue;seen.add(id);for(const r of forward)if(r.from===id&&active.has(r.to))queue.push(r.to);}
+    return true;
+  }).map(o=>o.id);
+  // Include boundary/resource vertices in cycle detection even though they are not reading steps.
+  const degree=new Map([...active].map(id=>[id,0]));
+  for(const r of forward)if(active.has(r.from)&&active.has(r.to))degree.set(r.to,degree.get(r.to)+1);
+  const queue=[...degree].filter(([,n])=>!n).map(([id])=>id),visited=new Set();
+  while(queue.length){const id=queue.pop();visited.add(id);for(const r of forward)if(r.from===id&&degree.has(r.to)){degree.set(r.to,degree.get(r.to)-1);if(!degree.get(r.to))queue.push(r.to);}}
+  const cyclic=[...active].filter(id=>!visited.has(id));
+  return {order,blocked:[...new Set([...steps.filter(o=>!done.has(o.id)).map(o=>o.id),...cyclic])],active,conflicts};
+}
+function paintReading(){
+  const plan=reading?.plan, done=new Set(reading?plan.order.slice(0,reading.cursor):[]), last=reading?.plan.order[reading.cursor-1];
+  const active=plan?plan.active:activeSet(flow(),choices());
+  for(const [id,record] of currentDiagram?.positions||[]){
+    record.group.classList.toggle('is-selected',selected?.kind!=='relation'&&selected?.object?.id===id);
+    record.group.classList.toggle('is-current',id===last);
+    record.group.classList.toggle('is-done',done.has(id));
+    record.group.classList.toggle('is-dim',!active.has(id));
+  }
+  for(const [id,record] of currentDiagram?.drawn||[]){
+    record.group.classList.toggle('is-selected',selected?.kind==='relation'&&selected.relation.id===id);
+    const inactive=!allowed(record.relation,choices())||!active.has(record.relation.from)||!active.has(record.relation.to);
+    record.line.classList.toggle('is-dim',inactive);
+    record.group.classList.toggle('is-dim',inactive);
+    const focus=selected?.kind==='relation'?null:selected?.object?.id;
+    record.line.classList.toggle('related',selected?.kind==='relation'?selected.relation.id===id:!!focus&&(record.relation.from===focus||record.relation.to===focus));
+  }
+  const completed=reading&&reading.cursor===reading.plan.order.length;
+  $('#read-start').hidden=!!reading;
+  $('#read-next').hidden=!reading||completed;
+  $('#read-next').disabled=!reading||completed;
+  $('#read-reset').hidden=!reading;
+  $('#read-status').textContent=!reading?'选择对象查看说明，或按依赖逐步阅读。':plan.blocked.length?'阅读受阻：'+plan.blocked.join('、'):completed?'本层阅读完成；不是程序执行成功。':`${reading.cursor}/${plan.order.length} · 按作者声明的关系阅读`;
+  if(reading&&plan.conflicts.length)$('#read-status').textContent+=' · 输入可能绕过未选条件：'+plan.conflicts.join('、');
+  syncFlow();
+}
+function renderChoices(){
+  const values=choices();
+  $('#choices').replaceChildren();
+  const owners=flow().objects.filter(o=>o.choices);
+  $('#choices-panel').hidden=!owners.length;
+  for(const object of owners){
+    const label=html('label',object.title), select=html('select');
+    select.dataset.choice=object.id;
+    for(const choice of object.choices){const option=html('option',choice.label);option.value=choice.id;select.append(option);}
+    select.value=values[object.id];
+    select.onchange=()=>{values[object.id]=select.value;reading=null;renderChoices();plot();paintReading();};
+    label.append(select);
+    $('#choices').append(label);
+  }
+}
+function showDetails(target,reveal=true){
+  hidePreview();selected=target;sourceRefs=[];$('#drawer').hidden=true;$('#details-body').hidden=false;
+  let refs=[],title='';$('#selected-symbol').replaceChildren();
+  if(target.kind==='relation'){
+    const relation=target.relation;
+    title=relation.label||objectTitle(relation.from)+' → '+objectTitle(relation.to);
+    $('#selected-role').textContent='关系 · '+relationNames[relation.type];
+    const note=relation.timingNote?`\n判断依据：${relation.timingNote}`:'';
+    $('#selected-text').textContent=objectTitle(relation.from)+' → '+objectTitle(relation.to)+(relation.type==='data'?'\n'+(relation.timing==='immediate'?'即时承接':'保留后用'):'')+note;
+    refs=refsOf(relation.sources);$('#selected-symbol').textContent='→';
+    $('#expand').hidden=true;
+  }else{
+    const object=target.object;
+    title=object.title;
+    $('#selected-role').textContent=objectRole(object);
+    $('#selected-text').textContent=object.text||'';
+    refs=refsOf(object.sources);
+    if(object.type==='resource')$('#selected-symbol').append(LitFluxDrawing.resourceIcon(object.resourceKind));
+    else{
+      const icon=svg('svg',{viewBox:'0 0 24 24',fill:'none',stroke:'currentColor','stroke-width':1.5,'aria-hidden':'true'});
+      const paths={business:'M4 5H20V19H4Z',data:'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18',component:'M6 3H18L23 12L18 21H6L1 12Z',decision:'M12 2L22 12L12 22L2 12Z',boundary:'M7 5H17a7 7 0 0 1 0 14H7a7 7 0 0 1 0-14'};
+      icon.append(svg('path',{d:paths[object.type]||paths.business}));$('#selected-symbol').append(icon);
+    }
+    $('#expand').hidden=!object.detail;
+    $('#expand').onclick=()=>navigate(current+'/'+object.id);
+  }
+  $('#selected-title').textContent=title;
+  $('#no-description').hidden=!!$('#selected-text').textContent;
+  $('#show-source').hidden=!refs.length;$('#show-source').onclick=()=>openSource(refs,title);
+  $('#source-links').replaceChildren();$('#source-links-section').hidden=!refs.length;
+  for(const ref of refs){const button=html('button',sourceLabel(ref));button.dataset.noTranslate='';button.onclick=()=>openSource([ref],title);$('#source-links').append(button);}
+  $('#connections').replaceChildren();const related=new Map();
+  const add=(id,direction)=>{if(!related.has(id))related.set(id,direction);};
+  if(target.kind==='relation'){add(target.relation.from,'来自');add(target.relation.to,'指向');}
+  else for(const r of flow().relations){if(r.to===target.object.id)add(r.from,'来自');if(r.from===target.object.id)add(r.to,'指向');}
+  $('#connections-section').hidden=!related.size;
+  for(const [id,direction] of related){const button=html('button');button.append(html('span',direction),html('strong',objectTitle(id)));button.onclick=()=>select(flow().objects.find(o=>o.id===id));$('#connections').append(button);}
+  relationIndex();
+  if(reveal){const alreadyOpen=!$('#inspector').hidden;setInspector(true);if(alreadyOpen){pendingAnchor=cameraAnchor();schedulePlot();}}
+  businessPlot();paintReading();
+}
+function select(object,enter=false){if(enter&&object.detail){navigate(current+'/'+object.id);return;}showDetails({kind:'object',object});}
+function selectRelation(relation){showDetails({kind:'relation',relation});}
+function relationIndex(){
+  const diagram=flow();
+  const relations=selected?.kind==='relation'?[selected.relation]:selected?.object?diagram.relations.filter(r=>r.from===selected.object.id||r.to===selected.object.id):diagram.relations;
+  $('#relation-index-title').textContent='相关关系 · '+relations.length;$('#relation-index').hidden=!relations.length;
+  $('#relation-list').replaceChildren();
+  for(const relation of relations){
+    const item=html('li'),button=html('button');
+    const pair=html('span',objectTitle(relation.from)+' → '+objectTitle(relation.to));pair.className='pair';
+    const meaning=html('span',relation.label||relationNames[relation.type]);meaning.className='meaning';
+    button.append(pair,meaning);
+    button.dataset.relationEntry=relation.id;
+    button.onclick=()=>selectRelation(relation);
+    item.append(button);
+    $('#relation-list').append(item);
+  }
+}
+function businessPlot(){
+  const host=$('#business'), root=current.split('/')[0];
+  const visible=[...businesses.values()].filter(b=>b.key===root||b.key.startsWith(root+'/'));
+  const children=new Map(visible.map(b=>[b.key,[]]));
+  for(const b of visible)children.get(b.parent)?.push(b);
+  const shown=visible.filter(b=>{for(let p=b.parent;p;p=businesses.get(p)?.parent)if(collapsed.has(p))return false;return true;});
+  const width=Math.max(220,host.clientWidth-20);
+  const maxDepth=Math.max(1,...shown.map(b=>b.key.split('/').length-1));
+  const indent=Math.min(16,(width-170)/maxDepth);
+  const positions=new Map();let cursor=8;
+  for(const b of shown){
+    const depth=b.key.split('/').length-1, left=18+depth*indent, w=width-left-4;
+    const rows=LitFluxDrawing.wrap(b.title,w-44,12), height=Math.max(40,rows.height+20);
+    positions.set(b.key,{left,w,y:cursor+height/2,height,rows});cursor+=height+10;
+  }
+  const out=svg('svg',{width,height:cursor+4,role:'group','aria-label':'业务分解图'});
+  for(const b of shown){
+    const p=positions.get(b.key),a=positions.get(b.parent);
+    if(a){
+      const active=current===b.key||current.startsWith(b.key+'/');
+      out.append(svg('path',{class:'business-connector'+(active?' active':''),d:`M${a.left+8} ${a.y+a.height/2} V${p.y-5} Q${a.left+8} ${p.y} ${a.left+13} ${p.y} H${p.left}`}));
+    }
+  }
+  const activate=(g,action)=>{g.onclick=action;g.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();action();}};};
+  for(const b of shown){
+    const p=positions.get(b.key),count=children.get(b.key).length;
+    const g=svg('g',{class:'business-node'+(b.key===current?' current':'')+(selected?.object===b.owner&&b.owner?' selected':''),transform:`translate(${p.left},${p.y})`,tabindex:0,role:'button','aria-label':b.title,'data-business':b.key});
+    if(b.key===current)g.setAttribute('aria-current','location');
+    g.append(svg('rect',{class:'business-card',x:0,y:-p.height/2,width:p.w,height:p.height,rx:7}));
+    const t=svg('text',{class:'business-label',y:-(p.rows.height-p.rows.lineHeight)/2+4});
+    p.rows.lines.forEach((row,i)=>{const span=svg('tspan',{x:12,dy:i?p.rows.lineHeight:0});span.textContent=row;t.append(span);});
+    g.append(t);
+    if(count){const label=svg('text',{class:'business-count',x:p.w-12,y:4,'text-anchor':'end'});label.textContent=count;g.append(label);}
+    activate(g,()=>navigate(b.key));out.append(g);
+    if(count){
+      const toggle=svg('g',{class:'business-toggle',transform:`translate(${p.left-9},${p.y})`,tabindex:0,role:'button','aria-label':(collapsed.has(b.key)?'展开':'收拢')+b.title,'aria-expanded':String(!collapsed.has(b.key)),'data-toggle':b.key});
+      toggle.append(svg('rect',{class:'toggle-hit',x:-9,y:-10,width:18,height:20,rx:5}),svg('path',{class:'toggle-chevron',d:collapsed.has(b.key)?'M-2 -4 L2 0 L-2 4':'M-4 -2 L0 2 L4 -2'}));
+      activate(toggle,()=>{
+        if(collapsed.has(b.key))collapsed.delete(b.key);else collapsed.add(b.key);
+        businessPlot();
+        [...host.querySelectorAll('[data-toggle]')].find(n=>n.dataset.toggle===b.key)?.focus();
+      });out.append(toggle);
+    }
+  }
+  host.replaceChildren(out);
+}
+function scale(){
+  hidePreview();$('#zoom-value').textContent=Math.round(zoom*100)+'%';
+  if(!currentDiagram?.svg)return;
+  const s=currentDiagram.svg;
+  s.style.width=currentDiagram.width*zoom+'px';
+  s.style.height=currentDiagram.height*zoom+'px';
+  s.style.marginLeft=Math.max(0,($('#canvas').clientWidth-currentDiagram.width*zoom)/2)+'px';
+  s.style.transform=`translate(${pan.x}px,${pan.y}px)`;
+}
+function plot(){
+  hidePreview();
+  const host=$('#canvas');
+  try{
+    const view=flow();
+    const scene=LitFluxDrawing.create(view,host,{onObject:select,onRelation:selectRelation,onPreview:startPreview,onPreviewEnd:endPreview});
+    view.draw(scene,{width:host.clientWidth,height:host.clientHeight});
+    currentDiagram=scene.finish();
+    currentDiagram.error=null;
+    scale();
+  }catch(error){
+    currentDiagram={error:String(error.message||error)};
+    const box=html('p','绘图错误：'+currentDiagram.error);box.className='drawing-error';
+    host.replaceChildren(box);
+  }
+}
+function syncFlow(){
+  const out=currentDiagram?.svg;
+  if(!out)return;
+  out.querySelectorAll('.flow-particles').forEach(n=>n.remove());
+  if(!motionEnabled||reducedMotion.matches)return;
+  const focus=selected?.kind==='relation'?null:selected?.object?.id;
+  if(!focus)return;
+  const active=activeSet(flow(),choices());
+  const layer=svg('g',{class:'flow-particles','aria-hidden':'true'});
+  for(const [id,record] of currentDiagram.drawn){
+    const relation=record.relation;
+    if(relation.type!=='data'||(relation.from!==focus&&relation.to!==focus))continue;
+    if(!allowed(relation,choices())||!active.has(relation.from)||!active.has(relation.to))continue;
+    const path=record.line;
+    path.id='flow-'+id;
+    const duration=Math.max(1.5,Math.min(4,path.getTotalLength()/110));
+    for(let i=0;i<2;i++){
+      const dot=svg('circle',{r:i?2.5:3,class:'flow-dot','data-direction':relation.to===focus?'input':'output'});
+      const motion=svg('animateMotion',{dur:duration+'s',begin:-(i*duration/2)+'s',repeatCount:'indefinite',calcMode:'paced'});
+      motion.append(svg('mpath',{href:'#'+path.id}));
+      dot.append(motion);layer.append(dot);
+    }
+  }
+  out.querySelector('g').append(layer);
+}
+function openSource(refs,title){
+  hidePreview();sourceRefs=refsOf(refs);returnFocus=document.activeElement;setInspector(true);
+  $('#source-title').textContent=title;$('#sources').replaceChildren();
+  for(const ref of sourceRefs){
+    const source=payload.sources[ref];
+    if(!source)continue;
+    const section=html('section'),pre=html('pre');
+    section.className='source';section.dataset.ref=ref;section.dataset.noTranslate='';
+    section.append(html('h3',source.path+':'+source.start+'–'+source.end));
+    source.lines.forEach((value,i)=>{
+      const row=html('span'),ln=html('span',String(source.start+i));
+      row.className='row';ln.className='ln';row.append(ln,html('span',value));pre.append(row);
+    });
+    section.append(pre);$('#sources').append(section);
+  }
+  $('#drawer').hidden=false;$('#details-body').hidden=true;$('#close-source').focus();
+}
+function closeSource(){sourceRefs=[];$('#drawer').hidden=true;$('#details-body').hidden=false;if(returnFocus?.isConnected)returnFocus.focus();}
+function applyTheme(theme,persist=false){
+  document.documentElement.dataset.theme=theme==='dark'?'dark':'light';
+  $('#theme').textContent=theme==='dark'?'浅色主题':'深色主题';
+  $('#theme').setAttribute('aria-pressed',String(theme==='dark'));
+  if(persist)try{localStorage.setItem('litflux.theme',theme);}catch{}
+}
+function updateMotion(){
+  $('#motion').disabled=reducedMotion.matches;
+  $('#motion').textContent=reducedMotion.matches?'已减少动态':'流动：'+(motionEnabled?'开':'关');
+  $('#motion').setAttribute('aria-pressed',String(motionEnabled&&!reducedMotion.matches));
+  syncFlow();
+}
+function render(){
+  const view=businesses.get(current);
+  $('#workflow-select').value=current.slice(9).split('/')[0];
+  const workflow=model.workflows.find(w=>w.id===$('#workflow-select').value);
+  $('#workflow-trigger').textContent=workflow?.entry.trigger||'';$('#workflow-trigger').title=workflow?.entry.trigger||'';
+  $('#flow-title').textContent=view.title;
+  const diagram=flow();
+  document.querySelectorAll('[data-legend]').forEach(el=>{el.hidden=!diagram.relations.some(r=>r.type===el.dataset.legend);});
+  $('#relation-count').textContent=diagram.objects.length+' 对象 · '+diagram.relations.length+' 关系';
+  const chain=[];for(let b=view;b;b=businesses.get(b.parent))chain.unshift(b);
+  $('#crumbs').hidden=chain.length===1;$('#crumbs').replaceChildren();
+  chain.forEach((item,i)=>{
+    if(i)$('#crumbs').append(html('span','/'));
+    const button=html('button',item.title);button.onclick=()=>navigate(item.key);$('#crumbs').append(button);
+  });
+  businessPlot();renderChoices();relationIndex();plot();
+  if(selected?.kind==='relation'&&diagram.relations.includes(selected.relation))showDetails(selected,false);
+  else if(selected?.object&&diagram.objects.includes(selected.object))showDetails(selected,false);
+  else if(diagram.objects.length)showDetails({kind:'object',object:diagram.objects[0]},false);
+  paintReading();
+}
+$('#toggle-business').onclick=()=>preserveCamera(()=>{const open=$('#business-panel').hidden;$('#business-panel').hidden=!open;$('.dual-layout').classList.toggle('sidebar-collapsed',!open);$('#toggle-business').setAttribute('aria-expanded',String(open));});
+$('#toggle-details').onclick=()=>setInspector($('#inspector').hidden);
+$('#close-details').onclick=()=>setInspector(false);
+$('#node-preview').onpointerenter=()=>clearTimeout(previewCloseTimer);
+$('#node-preview').onpointerleave=endPreview;
+$('#canvas').addEventListener('scroll',()=>{
+  const anchor=previewFocused&&previewAnchor===document.activeElement?previewAnchor:null;
+  const object=anchor?flow().objects.find(o=>o.id===anchor.dataset.node):null;
+  hidePreview();
+  if(object)requestAnimationFrame(()=>{if(anchor.isConnected&&document.activeElement===anchor)startPreview(object,anchor,true);});
+});
+$('#collapse-all').onclick=()=>{for(const b of businesses.values())if(b.flow)collapsed.add(b.key);businessPlot();};
+$('#expand-all').onclick=()=>{collapsed.clear();businessPlot();};
+$('#read-start').onclick=()=>{reading={plan:readingPlan(flow(),choices()),cursor:0};paintReading();};
+$('#read-next').onclick=()=>{
+  if(!reading||reading.cursor>=reading.plan.order.length)return;
+  const id=reading.plan.order[reading.cursor++];
+  select(flow().objects.find(o=>o.id===id));
+  const position=currentDiagram?.positions?.get(id);
+  if(position)$('#canvas').scrollTo({left:Math.max(0,position.x*zoom-$('#canvas').clientWidth/2),top:Math.max(0,position.y*zoom-$('#canvas').clientHeight/2)});
+};
+$('#read-reset').onclick=()=>{reading=null;paintReading();};
+$('#theme').onclick=()=>applyTheme(document.documentElement.dataset.theme==='dark'?'light':'dark',true);
+$('#motion').onclick=()=>{motionEnabled=!motionEnabled;updateMotion();};
+reducedMotion.addEventListener('change',updateMotion);
+$('#fit').onclick=()=>{
+  if(!currentDiagram?.svg)return;
+  zoom=Math.min(1,($('#canvas').clientWidth-32)/currentDiagram.width,($('#canvas').clientHeight-32)/currentDiagram.height);
+  pan={x:0,y:0};scale();$('#canvas').scrollTo(0,0);
+};
+$('#reset-view').onclick=()=>{zoom=1;pan={x:0,y:0};scale();$('#canvas').scrollTo(0,0);};
+$('#zoom-in').onclick=()=>{zoom=Math.min(2,zoom+.1);scale();};
+$('#zoom-out').onclick=()=>{zoom=Math.max(.3,zoom-.1);scale();};
+let drag=null;
+$('#canvas').addEventListener('pointerdown',event=>{
+  if(event.button!==0||event.target.closest('.node,.relation-note,.edge-hit,button'))return;
+  hidePreview();
+  drag={x:event.clientX,y:event.clientY,px:pan.x,py:pan.y};
+  $('#canvas').setPointerCapture(event.pointerId);$('#canvas').classList.add('grabbing');
+});
+$('#canvas').addEventListener('pointermove',event=>{if(drag){pan={x:drag.px+event.clientX-drag.x,y:drag.py+event.clientY-drag.y};scale();}});
+for(const name of ['pointerup','pointercancel','lostpointercapture'])$('#canvas').addEventListener(name,()=>{drag=null;$('#canvas').classList.remove('grabbing');});
+document.addEventListener('keydown',event=>{
+  if(event.key==='Escape'){
+    if(!$('#node-preview').hidden)hidePreview();
+    else if(!$('#drawer').hidden)closeSource();
+    else if($('#choices-panel').open)$('#choices-panel').open=false;
+    else if(!$('#inspector').hidden)setInspector(false);
+  }
+});
+$('#workflow-select').onchange=()=>navigate('workflow:'+$('#workflow-select').value);
+$('#close-source').onclick=closeSource;
+$('#delivery-badge').textContent={'draft':'草稿','checked':'已检查','reviewed':'已复核'}[payload.status]||'草稿';
+$('#title').textContent=$('#project-title').textContent=model.title;
+$('#summary').textContent=model.summary;$('#scope').textContent=model.scope;
+document.title=model.title+' · LitFlux';
+for(const workflow of model.workflows){const option=html('option',workflow.title);option.value=workflow.id;$('#workflow-select').append(option);}
+window.litfluxState=()=>({current,selected:selected?(selected.kind==='relation'?selected.relation.id:selected.object.id):null,
+  sourceRefs:[...sourceRefs],objects:flow().objects.length,relations:flow().relations.length,
+  geometry:currentDiagram?.geometry||null,error:currentDiagram?.error||null,
+  reading:reading?{cursor:reading.cursor,order:reading.plan.order,blocked:reading.plan.blocked}:null,
+  theme:document.documentElement.dataset.theme,inspectorOpen:!$('#inspector').hidden,zoom,pan:{...pan}});
+let treeWidth=0;
+new ResizeObserver(()=>{const width=$('#business').clientWidth;if(width&&width!==treeWidth){treeWidth=width;businessPlot();}}).observe($('#business'));
+let frame=0,lastViewport='';
+new ResizeObserver(()=>{
+  const size=$('#canvas').clientWidth+'x'+$('#canvas').clientHeight;
+  if(size===lastViewport)return;lastViewport=size;
+  if(!pendingAnchor)pendingAnchor=cameraAnchor();
+  schedulePlot();
+}).observe($('#canvas'));
+applyTheme('dark');
+render();updateMotion();
+requestAnimationFrame(()=>{select(flow().objects.find(o=>o.id==='normalize')||flow().objects[0]);});
+</script>
+<script>// Declaration checks plus objective geometry checks. Nothing here judges meaning or taste.
+(() => {
+  const round = (value) => Math.round(value * 10) / 10;
+  const boxOverlap = (a, b) => {
+    const w = Math.min(a.x + a.width / 2, b.x + b.width / 2) - Math.max(a.x - a.width / 2, b.x - b.width / 2);
+    const h = Math.min(a.y + a.height / 2, b.y + b.height / 2) - Math.max(a.y - a.height / 2, b.y - b.height / 2);
+    return w > 0 && h > 0 ? Math.min(w, h) : 0;
+  };
+  const insideBox = (point, box, pad = 0) => Math.abs(point[0] - box.x) < box.width / 2 - pad && Math.abs(point[1] - box.y) < box.height / 2 - pad;
+  function segmentHitsBox(a, b, box, pad = 2) {
+    const steps = Math.max(2, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / 4));
+    for (let i = 0; i <= steps; i++) {
+      const t = i / steps;
+      if (insideBox([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t], box, pad)) return true;
+    }
+    return false;
+  }
+  function pointToSegment(point, a, b) {
+    const dx = b[0] - a[0], dy = b[1] - a[1];
+    const length = dx * dx + dy * dy;
+    const t = length ? Math.max(0, Math.min(1, ((point[0] - a[0]) * dx + (point[1] - a[1]) * dy) / length)) : 0;
+    return Math.hypot(point[0] - (a[0] + dx * t), point[1] - (a[1] + dy * t));
+  }
+  function pointToPolyline(point, points) {
+    let best = Infinity;
+    for (let i = 1; i < points.length; i++) best = Math.min(best, pointToSegment(point, points[i - 1], points[i]));
+    return best;
+  }
+
+  function geometryWarnings(diagram, flow) {
+    if (!diagram?.geometry) return [{ code: 'G0', ids: [], detail: '没有几何数据：drawing 可能未完成' }];
+    const warnings = [];
+    const { nodes, notes, edges, width, height } = diagram.geometry;
+    for (let i = 0; i < nodes.length; i++) {
+      for (let j = i + 1; j < nodes.length; j++) {
+        const overlap = boxOverlap(nodes[i], nodes[j]);
+        if (overlap > 0) warnings.push({ code: 'G1', ids: [nodes[i].id, nodes[j].id], detail: `节点重叠 ${round(overlap)}px` });
+      }
+    }
+    for (const box of nodes) {
+      if (box.x - box.width / 2 < 8 || box.y - box.height / 2 < 8 || box.x + box.width / 2 > width - 8 || box.y + box.height / 2 > height - 8) {
+        warnings.push({ code: 'G2', ids: [box.id], detail: '节点越出画布' });
+      }
+    }
+    for (const note of notes) {
+      if (note.x - note.width / 2 < 8 || note.y - note.height / 2 < 8 || note.x + note.width / 2 > width - 8 || note.y + note.height / 2 > height - 8) {
+        warnings.push({ code: 'G2', ids: [note.id], detail: '边注越出画布' });
+      }
+      for (const box of nodes) {
+        if (boxOverlap(note, box) > 0) warnings.push({ code: 'G3', ids: [note.id, box.id], detail: '边注压在节点上' });
+      }
+      for (const other of notes) {
+        if (other.id !== note.id && boxOverlap(note, other) > 0) warnings.push({ code: 'G4', ids: [note.id, other.id], detail: '边注互相重叠' });
+      }
+    }
+    for (const edge of edges) {
+      const note = notes.find((item) => item.id === edge.id);
+      if (note) {
+        const distance = pointToPolyline([note.x, note.y], edge.points);
+        if (distance > 40) warnings.push({ code: 'G5', ids: [edge.id], detail: `边注离所属边 ${Math.round(distance)}px` });
+      }
+      const source = flow.relations.find((relation) => relation.id === edge.id);
+      for (const box of nodes) {
+        if (box.id === source?.from || box.id === source?.to) continue;
+        for (let i = 1; i < edge.points.length; i++) {
+          if (segmentHitsBox(edge.points[i - 1], edge.points[i], box, 2)) {
+            warnings.push({ code: 'G6', ids: [edge.id, box.id], detail: '连线穿过其他对象' });
+            break;
+          }
+        }
+      }
+    }
+    // Fitting depends on the reviewer's window, so it is reported, never scored.
+    const host = document.querySelector('#canvas');
+    if (host) {
+      const fit = Math.min(1, (host.clientWidth - 32) / width, (host.clientHeight - 32) / height);
+      warnings.push({ code: 'I1', ids: [], detail: `全图适配约 ${Math.round(fit * 100)}%，正文按 100% 阅读`, info: true });
+    }
+    const ratio = width / Math.max(1, height);
+    if (ratio > 4 || ratio < 0.25) warnings.push({ code: 'G8', ids: [], detail: `画布纵横比 ${round(ratio)}:1；可按阅读需要考虑折返`, info:true });
+    for (const box of nodes) {
+      const inside=(x,y)=>{
+        const w=box.width/2-2,h=box.height/2-2;
+        if(box.outline!=='rect'&&box.role==='data')return x*x+y*y<=w*w;
+        if(box.outline!=='rect'&&box.role==='decision')return Math.abs(x)/w+Math.abs(y)/h<=1;
+        return Math.abs(x)<=w&&Math.abs(y)<=h;
+      };
+      if ((box.textBoxes||[]).some(r=>[[r.x,r.y],[r.x+r.width,r.y],[r.x,r.y+r.height],[r.x+r.width,r.y+r.height]].some(([x,y])=>!inside(x,y)))) {
+        warnings.push({ code: 'G9', ids: [box.id], detail: '文字超出形状' });
+      }
+      if(box.iconBox){
+        const icon=box.iconBox;
+        if(!inside(icon.x,icon.y)||!inside(icon.x+icon.width,icon.y+icon.height))warnings.push({code:'G9',ids:[box.id],detail:'资源图标超出形状'});
+        if((box.textBoxes||[]).some(t=>t.x<icon.x+icon.width+4&&t.x+t.width>icon.x&&t.y<icon.y+icon.height&&t.y+t.height>icon.y))warnings.push({code:'G9',ids:[box.id],detail:'文字与资源图标重叠'});
+      }
+    }
+    const offset=diagram.geometry.offset||{x:0,y:0};
+    for(const warning of warnings){
+      warning.coordinateSpace='author';
+      warning.boxes=[...nodes,...notes].filter(b=>warning.ids.includes(b.id)).map(b=>({...b,x:b.x-offset.x,y:b.y-offset.y}));
+      const note=notes.find(n=>n.id===warning.ids[0]),edge=edges.find(e=>e.id===note?.id);
+      if(!note||!edge||!['G2','G3','G4','G5'].includes(warning.code))continue;
+      const candidates=edge.points.map(([x,y])=>({x,y,width:note.width,height:note.height})).filter(b=>
+        b.x-b.width/2>=8&&b.y-b.height/2>=8&&b.x+b.width/2<=width-8&&b.y+b.height/2<=height-8&&
+        !nodes.some(n=>boxOverlap(b,n)>0)&&!notes.some(n=>n.id!==note.id&&boxOverlap(b,n)>0));
+      candidates.sort((a,b)=>Math.hypot(a.x-note.x,a.y-note.y)-Math.hypot(b.x-note.x,b.y-note.y));
+      warning.suggestion=candidates.length?{noteAt:[round(candidates[0].x-offset.x),round(candidates[0].y-offset.y)],reason:'同一实际路径上的局部可放位置；供作者选择'}:{noteAt:null,reason:'当前路径未找到足够空间，可调整走线、位置或 noteWidth'};
+      const nearest=[...edge.points].sort((a,b)=>Math.hypot(a[0]-note.x,a[1]-note.y)-Math.hypot(b[0]-note.x,b[1]-note.y))[0];
+      warning.nearestPathPoint=nearest.map((v,i)=>round(v-(i?offset.y:offset.x)));
+    }
+    const seen = new Set();
+    return warnings.filter((warning) => {
+      const key = warning.code + warning.ids.join(',');
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+
+  function declarationFailures(flow) {
+    const failures = [];
+    const objects = [...document.querySelectorAll('#canvas [data-node]')];
+    const relations = [...document.querySelectorAll('#canvas [data-relation]')];
+    if (objects.length !== flow.objects.length) failures.push(`对象数量不符：绘制 ${objects.length}，声明 ${flow.objects.length}`);
+    if (relations.length !== flow.relations.length) failures.push(`关系数量不符：绘制 ${relations.length}，声明 ${flow.relations.length}`);
+    for (const object of flow.objects) {
+      const node = objects.find((item) => item.dataset.node === object.id);
+      if (!node) { failures.push(`缺少对象 ${object.id}`); continue; }
+      if (node.dataset.role !== object.type) failures.push(`对象 ${object.id} 的角色与声明不符`);
+      if(object.type==='resource'&&node.dataset.resourceKind!==LitFluxDrawing.resourceKind(object.resourceKind))failures.push(`资源 ${object.id} 的图标与声明不符`);
+    }
+    for (const relation of flow.relations) {
+      const drawn = currentDiagram?.drawn.get(relation.id);
+      if (!drawn) { failures.push(`缺少关系 ${relation.id}`); continue; }
+      const text = drawn.group.querySelector('.note-title')?.textContent.replace(/\s/g, '') || '';
+      if (text !== (relation.label || '').replace(/\s/g, '')) failures.push(`关系 ${relation.id} 的边注被截断或改写`);
+      const classes = drawn.line.classList;
+      if (relation.type === 'data') {
+        const expected = relation.timing;
+        if (!classes.contains(expected)) failures.push(`关系 ${relation.id} 的线型与声明 ${expected} 不一致`);
+        if (classes.contains(expected === 'immediate' ? 'deferred' : 'immediate')) failures.push(`关系 ${relation.id} 同时带有两种线型`);
+      } else if (classes.contains('immediate') || classes.contains('deferred')) {
+        failures.push(`关系 ${relation.id} 是非数据关系，却带了实虚语义`);
+      }
+    }
+    return failures;
+  }
+
+  let job = null;
+  const pause = async () => { await document.fonts.ready; await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))); };
+
+  function scenarios(flow,limit=32){
+    const owners=flow.objects.filter(o=>o.choices),total=owners.reduce((n,o)=>n*o.choices.length,1),values=[];
+    function visit(i,state){if(values.length>=limit)return;if(i===owners.length){values.push(state);return;}for(const c of owners[i].choices)visit(i+1,{...state,[owners[i].id]:c.id});}
+    visit(0,{});return {values,total,complete:values.length===total};
+  }
+
+  async function run({geometryOnly=false}={}) {
+    const clock=performance.now();
+    const result = { status: 'running', mode:geometryOnly?'geometry-only':'full', revision: payload.revision, views: [], failures: [], geometry: { warnings: [], diagnostics:[] }, checks: {navigation:'not-run',reading:'not-run',sources:'not-run'}, timingsMs:{} };
+    const started = current;
+    const seenFlows = new Set();
+    for (const [key, view] of businesses) {
+      if (!view.flow || seenFlows.has(view.flow)) continue;
+      seenFlows.add(view.flow);
+      navigate(key);
+      await pause();
+      if (currentDiagram?.error) { result.failures.push(`${view.title}：绘图错误 ${currentDiagram.error}`); continue; }
+      const failures = declarationFailures(view.flow);
+      const all = geometryWarnings(currentDiagram, view.flow);
+      const warnings = all.filter((warning) => !warning.info);
+      result.views.push({ key, title: view.title, failures, warnings, info: all.filter((warning) => warning.info) });
+      result.failures.push(...failures.map((message) => `${view.title}：${message}`));
+      result.geometry.warnings.push(...warnings.map((warning) => `${view.title}：${warning.code} ${warning.detail} ${warning.ids.join('/')}`));
+      result.geometry.diagnostics.push(...all.map(w=>({view:key,...w})));
+      result.geometry.info = (result.geometry.info || []).concat(
+        all.filter((warning) => warning.info).map((warning) => `${view.title}：${warning.detail}`));
+    }
+    result.timingsMs.geometry=round(performance.now()-clock);
+    result.viewport={width:document.querySelector('#canvas').clientWidth,height:document.querySelector('#canvas').clientHeight};
+    if(geometryOnly){navigate(started);result.status=result.failures.length?'failed':'passed';result.geometry.status=result.geometry.warnings.length?'warnings':'passed';return result;}
+    // Navigation: enter a nested business and come back.
+    const nested = [...businesses.values()].find((view) => view.flow
+      && [...businesses.values()].some((child) => child.parent === view.key && child.flow));
+    if (nested) {
+      navigate(nested.key);
+      const before = current;
+      const child = [...businesses.values()].find((view) => view.parent === before && view.flow);
+      navigate(child.key);
+      const entered = current === child.key;
+      navigate(before);
+      result.checks.navigation = { entered, returned: current === before, from: before, child: child?.key };
+      if (!(entered && current === before)) result.failures.push('进入子业务后无法返回');
+    } else {
+      result.checks.navigation = 'not-applicable';
+    }
+    result.checks.reading=[];result.checks.sources=[];
+    for(const checked of result.views){
+      const view=businesses.get(checked.key);navigate(checked.key);await pause();
+      const cases=scenarios(view.flow),failures=[],advisories=[];
+      for(const values of cases.values){
+        const plan=readingPlan(view.flow,values);
+        if(plan.blocked.length)failures.push({values,blocked:plan.blocked,conflicts:plan.conflicts});
+        if(plan.conflicts.length)advisories.push({values,objects:plan.conflicts,detail:'输入可能绕过未选条件；核对是否是独立入口或需要 when，不自动改写'});
+      }
+      result.checks.reading.push({view:checked.key,checked:cases.values.length,total:cases.total,complete:cases.complete,failures,advisories});
+      for(const failure of failures)result.failures.push(`${view.title}：阅读依赖受阻 ${JSON.stringify(failure)}`);
+      let tested=0;
+      for(const [kind,items] of [['object',view.flow.objects],['relation',view.flow.relations]])for(const item of items){
+        if(!item.sources)continue;
+        if(kind==='object')select(item);else selectRelation(item);
+        document.querySelector('#show-source').click();
+        const expected=[...new Set([item.sources].flat())];
+        const found=[...document.querySelectorAll('#sources [data-ref]')].map(n=>n.dataset.ref);
+        const passed=!document.querySelector('#drawer').hidden&&expected.every(ref=>found.includes(ref));
+        if(!passed)result.failures.push(`${view.title}/${item.id}：源码点击未显示声明引用`);
+        closeSource();tested++;
+      }
+      result.checks.sources.push({view:checked.key,tested,status:tested?'tested':'no-declared-source'});
+      await pause();
+      const panelWarnings=geometryWarnings(currentDiagram,view.flow).filter(w=>!w.info);
+      result.geometry.diagnostics.push(...panelWarnings.map(w=>({view:checked.key,context:'details-open',...w})));
+      result.geometry.warnings.push(...panelWarnings.map(w=>`${view.title}（详情打开）：${w.code} ${w.detail} ${w.ids.join('/')}`));
+    }
+    navigate(started);
+    result.timingsMs.interactions=round(performance.now()-clock-result.timingsMs.geometry);
+    result.status = result.failures.length ? 'failed' : 'passed';
+    result.geometry.status = result.geometry.warnings.length ? 'warnings' : 'passed';
+    return result;
+  }
+
+  window.litflux = {
+    startEntryAudit(options={}) {
+      if (job?.status==='running') return 'running';
+      job = { status: 'running' };
+      run(options).then(
+        (result) => { job = result; },
+        (error) => { job = { status: 'failed', failures: [String(error.message || error)], geometry: { warnings: [] } }; },
+      );
+      return 'running';
+    },
+    entryAuditStatus() {
+      return JSON.stringify({ status: job ? job.status : 'idle' });
+    },
+    entryAuditResult() {
+      return JSON.stringify(job || { status: 'idle' });
+    },
+    geometry() {
+      return JSON.stringify(currentDiagram?.geometry || null);
+    },
+  };
+})();
+</script>
+<script>const semanticLocalizer=((root, state, messages) => {
+  const source = new WeakMap();
+  const attributes = ['title', 'label', 'aria-label', 'aria-valuetext', 'placeholder', 'data-tooltip', 'data-description'];
+  let scheduled = false;
+  const dictionary = {...messages};
+  const parts = Object.keys(dictionary).filter(key => key.length > 1 && /[\u3400-\u9fff]/.test(key)).sort((a,b) => b.length-a.length);
+  const pattern = new RegExp(parts.map(key => key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'), 'g');
+  function text(value) {
+    const raw = String(value ?? '');
+    if (state.language !== 'en') return raw;
+    if (Object.hasOwn(dictionary, raw)) return dictionary[raw];
+    if (!/[\u3400-\u9fff，；。、「」：]/.test(raw)) return raw;
+    // Match reviewed phrases only. Source identifiers, paths and code are never translated.
+    const translated = raw.replace(pattern, match => dictionary[match]);
+    return /[\u3400-\u9fff]/.test(translated) ? raw : translated.replace(/[，；。、「」：]/g, mark => ({'，':', ','；':'; ','。':'.','、':', ','「':'"','」':'"','：':': '}[mark]));
+  }
+  function update(node, key, value, write) {
+    let record = source.get(node);
+    if (!record) { record = {}; source.set(node, record); }
+    const old = record[key];
+    const raw = old && old.output === value ? old.raw : value;
+    const output = text(raw);
+    record[key] = {raw, output};
+    if (output !== value) write(output);
+  }
+  function apply() {
+    observer.disconnect();
+    try {
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, {
+        acceptNode(node) {
+          const el = node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement;
+          return el.closest('script,style,pre,code,[data-no-translate],.sf-signature') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
+        }
+      });
+      while (walker.nextNode()) {
+        const node = walker.currentNode;
+        if (node.nodeType === Node.TEXT_NODE) update(node, 'text', node.nodeValue, value => {node.nodeValue = value;});
+        else for (const name of attributes) if (node.hasAttribute(name)) update(node, name, node.getAttribute(name), value => node.setAttribute(name, value));
+      }
+      root.lang = state.language === 'zh' ? 'zh-CN' : 'en';
+      document.documentElement.lang = root.lang;
+    } finally { observer.observe(root, {subtree:true, childList:true, characterData:true, attributes:true, attributeFilter:attributes}); }
+  }
+  const observer = new MutationObserver(() => {
+    if (scheduled) return;
+    scheduled = true;
+    queueMicrotask(() => {scheduled = false; apply();});
+  });
+  return {text, apply};
+}
+)(document.body,{language:model.language||'zh'},{
+  "草稿": "Draft",
+  "已检查": "Checked",
+  "已复核": "Reviewed",
+  "显示": "Display",
+  "切换夜间": "Dark mode",
+  "切换白天": "Light mode",
+  "流动：开": "Motion: on",
+  "流动：关": "Motion: off",
+  "已减少动态": "Motion reduced",
+  "放大视野": "Zoom in",
+  "缩小视野": "Zoom out",
+  "业务分解图": "Business map",
+  "收拢": "Collapse",
+  "展开": "Expand",
+  "项目信息": "Project",
+  "开始阅读": "Start reading",
+  "下一步": "Next",
+  "退出阅读": "Exit reading",
+  "分支情景": "Scenarios",
+  "只选择阅读情景，不执行源码条件。": "Chooses a reading scenario only; source conditions are never evaluated.",
+  "内部流程图": "Internal flow",
+  "全图": "Fit",
+  "原始大小": "Actual size",
+  "数据实线：即时承接": "Solid data: immediate handover",
+  "数据虚线：保留后用": "Dashed data: kept for later",
+  "◇ 控制与条件": "◇ Control and conditions",
+  "╌ 失败路径": "╌ Failure path",
+  "↺ 循环回指": "↺ Loop back",
+  "→ 资源作用": "→ Resource effect",
+  "⋯ 组件能力": "⋯ Component capability",
+  "沿箭头阅读，拖拽平移。": "Follow the arrows; drag to pan.",
+  "展开说明": "Show details",
+  "收起说明": "Hide details",
+  "进入内部": "Open inside",
+  "查看源码": "View source",
+  "本层全部关系": "All relations in this layer",
+  "源码": "Source",
+  "关闭": "Close",
+  "选择对象查看说明，或按依赖逐步阅读。": "Pick an object for details, or read step by step along the declared relations.",
+  "本层阅读完成；不是程序执行成功。": "This layer is read; it is not a successful program run.",
+  "业务": "Business",
+  "数据": "Data",
+  "资源": "Resource",
+  "组件": "Component",
+  "判断": "Decision",
+  "边界": "Boundary",
+  "关系": "Relation",
+  "组成与层级 · 点击业务进入": "Composition & hierarchy · Select a business",
+  "工作流": "Workflow",
+  "节点详情": "Node details",
+  "浅色主题": "Light theme",
+  "深色主题": "Dark theme",
+  "适应全图": "Fit diagram",
+  "缩放": "Zoom",
+  "缩小": "Zoom out",
+  "放大": "Zoom in",
+  "当前比例": "Current zoom",
+  "从业务流程读懂代码": "Explore code through its flows",
+  "悬浮预览 · 点击查看详情 · 拖拽平移": "Hover to preview · Select for details · Drag to pan",
+  "关闭详情": "Close details",
+  "此节点尚未提供补充说明。": "No additional description is provided for this node.",
+  "源码位置": "Source locations",
+  "关联对象": "Connected objects",
+  "相关关系": "Related relations",
+  "源码摘录": "Source excerpts",
+  "← 返回节点说明": "← Back to node details",
+  "点击或按 Enter 查看完整详情": "Select or press Enter for full details",
+  "来自": "From",
+  "指向": "To",
+  "数据库": "Database",
+  "运行配置": "Configuration",
+  "目录": "Directory",
+  "文件": "File",
+  "共享状态": "Shared state",
+  "通用资源": "Resource",
+  "数据依赖": "Data dependency",
+  "控制与条件": "Control and conditions",
+  "失败路径": "Failure path",
+  "循环回指": "Loop back",
+  "资源作用": "Resource effect",
+  "组件能力": "Component capability",
+  "即时承接": "Immediate handover",
+  "保留后用": "Kept for later",
+  "判断依据": "Rationale",
+  "对象 · ": "objects · ",
+  " 关系": " relations",
+  "按作者声明的关系阅读": "read along authored relations",
+  "阅读受阻": "Reading blocked"
+}
+);semanticLocalizer.apply();</script></body></html>

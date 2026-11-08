@@ -42,3 +42,5 @@ litflux-deepseek-isolated-20261025/
 simulation_test/
 
 tests/
+
+.litflux/
