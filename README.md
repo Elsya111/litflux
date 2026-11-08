@@ -1,151 +1,152 @@
 <div align="center">
   <h1>LitFlux</h1>
-  <p><strong>AI 写的代码看不懂，项目太大看不完？先看业务，再翻源码。</strong></p>
-  <p>编码 Agent 读真实源码，把项目画成能逐层点开的业务图与流程图，每个解释都标着它在代码里的位置。</p>
+  <p><strong>AI-written code you can't read. A repo too big to finish. Read the flow first, then the source.</strong></p>
+  <p>A coding agent reads the real source and draws the project as clickable business and flow maps, with every explanation pointing back to a file and line.</p>
   <p>
-    <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache--2.0-blue" alt="Apache-2.0 许可证"></a>
-    <img src="https://img.shields.io/badge/Python-3.11%2B-3776ab" alt="Python 3.11 及以上">
-    <img src="https://img.shields.io/badge/Node.js-18%2B-339933" alt="Node.js 18 及以上">
-    <img src="https://img.shields.io/badge/形态-Agent%20Skill-8b5cf6" alt="形态为 Agent Skill">
+    <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache--2.0-blue" alt="Apache-2.0 license"></a>
+    <img src="https://img.shields.io/badge/Python-3.11%2B-3776ab" alt="Python 3.11+">
+    <img src="https://img.shields.io/badge/Node.js-18%2B-339933" alt="Node.js 18+">
+    <img src="https://img.shields.io/badge/form-Agent%20Skill-8b5cf6" alt="Distributed as an agent skill">
   </p>
   <p>
-    <strong>简体中文</strong> · <a href="README.en.md">English</a>
+    <a href="README.md">简体中文</a> · <strong>English</strong>
   </p>
   <p>
-    <a href="#problems">痛点</a> ◆
-    <a href="#solution">LitFlux 怎么解决</a> ◆
-    <a href="#case">案例</a> ◆
-    <a href="#quick-start">快速开始</a> ◆
-    <a href="#installation">安装</a> ◆
-    <a href="#how-it-works">工作原理</a>
+    <a href="#problems">The problem</a> ◆
+    <a href="#solution">How LitFlux fixes it</a> ◆
+    <a href="#case">Case</a> ◆
+    <a href="#quick-start">Quick start</a> ◆
+    <a href="#installation">Installation</a> ◆
+    <a href="#how-it-works">How it works</a>
   </p>
 </div>
 
 <a id="problems"></a>
 
-## 这几件事，大概每次都会撞上
+## The same four things keep happening
 
-- **AI 写的代码看不懂。** Agent 几分钟就交回一个能跑的项目，可你 review 时只能一行行往下读：它为什么这样分层、边界画在哪、删掉这段会牵连什么，代码本身不会说。
-- **项目太大看不完。** 接手一个陌生仓库，README 停在两年前，目录几十个，从入口往里跳三次就不知道自己站在哪一层。硬读完，一下午就没了。
-- **看得懂函数，看不懂全局。** 单个函数读得明白，但它在业务里排第几、被谁调用、改它会影响哪条链路，得顺着调用链翻十几个文件。
-- **让 AI 讲一遍，你没法核对。** 它给出的架构总结读起来都很合理，可惜没有一句能对上具体文件和行号。
+- **You can't read AI-written code.** The agent hands back a working module in minutes. Reviewing it means reading line by line: why it is layered this way, where the boundaries sit, what breaks if you delete that block. The code itself will not say.
+- **The repo is too big to finish.** You open a repository you have never seen. The README was last touched two years ago, there are dozens of directories, and three hops from the entry point you no longer know which layer you are standing in.
+- **You understand functions, not the whole.** One function reads fine, but where it ranks in the business, who calls it, and what a change breaks means walking a call chain across a dozen files.
+- **An AI summary you cannot check.** The architecture write-up sounds reasonable, and not one sentence maps to a file and a line.
 
 <a id="solution"></a>
 
-## LitFlux 怎么解决
+## How LitFlux fixes it
 
-LitFlux 是一个给编码 Agent 用的技能（Skill）。Agent 只读源码、不运行目标程序，把项目整理成一页可交互的图；你从业务入口往下读，需要细节时再翻到对应代码。不用从第一行读到第一万行：先花几分钟看清这个项目有哪些业务，再挑和你的问题相关的那条链路往下钻。
+LitFlux is a skill for coding agents. The agent only reads source — it never runs the target program — and turns the project into one interactive page. You read down from a business entry and open the code when you need detail. No reading from line one to line ten thousand: spend a few minutes seeing which businesses exist, then follow the one chain your question is about.
 
-它给的不是一段无法核对的总结，而是三样东西：
+What you get is not a summary you have to trust. It is three things:
 
-1. **业务分解图**：这个项目由哪些业务组成，谁属于谁。
-2. **内部流程图**：选中一个业务，看清这一层的输入、处理、判断和结果，条件分叉与循环都在图上。
-3. **每个节点的出处**：文件与行号，点开就是源码摘录。
+1. **A business map**: which businesses make up the project, and which one contains which.
+2. **An internal flow**: pick a business and see how input, processing, decisions and results connect in that layer, branches and loops included.
+3. **A source location for every node**: file and line, one click away from the excerpt.
 
-读起来是这样的：
+Reading it looks like this:
 
-- 悬浮或聚焦节点先看一句短介绍，点击看完整说明、关联对象和源码位置。
-- 选中一个对象，当前层的关系一起高亮，上下文不会被切走。
-- 判断和循环用显式关系表达：空文本走拒绝、批量逐条提交，都能按情景看。
-- 深度由你决定。默认展开到影响结果的关键机制，想深入就补一句「把检索流程讲细一点」。
+- Hover or focus a node for a one-line description; click for the full explanation, connected objects and source location.
+- Selecting an object highlights the relations in the current layer, so context never jumps away.
+- Decisions and loops are explicit relations: empty text taking the reject path, a batch submitting one item at a time, switchable by scenario.
+- Depth is yours. By default it expands to the mechanisms that change the outcome; ask for `go deeper on the search flow` and that part gets more detail.
 
-最后落成一个文件：单个 HTML，双击就能打开，不用启动目标服务，也不用把代码传到任何地方。
+The result is a single file: one HTML page that opens on a double-click. No service to start, and no code uploaded anywhere.
 
 <a id="case"></a>
 
-## 案例：一份真实产物长什么样
+## Case: what a real build looks like
 
-下面是一份真实构建产物。被解释的源码是一个小型「文本保存」程序（归一化 → 判空 → 写入），LitFlux 把它拆成 3 个工作流、51 个对象、45 条关系。
+Below is a real build. The source it explains is a small "text saving" program (normalize → emptiness check → write). LitFlux broke it into 3 workflows, 51 objects and 45 relations, with the build state `checked` — the "Checked" badge next to the page title.
 
-<a href="docs/case/litflux-case.html"><img src="docs/case/litflux-case-overview.png" width="100%" alt="LitFlux 案例：左侧业务分解图，中间内部流程图，右侧节点详情与源码位置"></a>
+<a href="docs/case/litflux-case-en.html"><img src="docs/case/litflux-case-en-overview.png" width="100%" alt="LitFlux case: business map on the left, internal flow in the middle, node details and source locations on the right"></a>
 
-左栏是业务分解，中间是当前层的内部流程，右栏是被选中节点的说明和它在 `app.py` 里的位置。
+Left column is the business map, middle is the internal flow of the current layer, right is the selected node's explanation and where it lives in `app.py`.
 
-**[打开完整案例 →](docs/case/litflux-case.html)**
+**[Open the full case →](docs/case/litflux-case-en.html)**
 
-文件自包含、可离线打开。在 GitHub 上点开会先看到源码页，点右上角 Download 下载后双击即可。页面标题里的「枪灰与琥珀」是这份构建采用的主题名。案例的构建记录和说明见 [docs/case](docs/case/README.md)。
+The file is self-contained and works offline. On GitHub you land on the raw file first: use Download in the top-right corner, then double-click it. "Gunmetal & Amber" in the page title is the theme this build was drawn with. Build notes are in [docs/case](docs/case/README.en.md).
 
-页面里可以试这几步：
+Things to try in the page:
 
-1. 用右上角的工作流下拉，在「提交并保存文本」「批量提交文本」「资源类别与源码对应」之间切换。
-2. 进入「保存文本」子业务，看完再返回上一级。
-3. 打开「分支情景」，在「非空：保存」和「空：拒绝」之间切换，看哪条分支亮起来。
-4. 点击「规范化文本」，页面给出 `app.py:5-6` 的源码摘录。
+1. Switch between "Submit and save text", "Batch submit texts" and "Resource types and source mapping" in the workflow picker.
+2. Open the "Save text" sub-business, read it, then step back up.
+3. Open "Scenarios" and switch between "not empty: save" and "empty: reject" — watch which branch lights up.
+4. Select "Normalize text" and the page shows the excerpt at `app.py:5-6`.
 
 <div align="center">
-  <img src="docs/case/litflux-case-source.png" width="300" alt="节点详情中的说明、源码位置与源码摘录">
+  <img src="docs/case/litflux-case-en-source.png" width="300" alt="Node details showing the explanation, source location and source excerpt">
   <br>
-  <sub>第 4 步的样子：说明、文件行号、原文一起给。讲得对不对，翻到那一行自己看。</sub>
+  <sub>Step 4 in practice: explanation, file and line, and the code itself. Whether it is right, check that line yourself.</sub>
 </div>
 
 <details>
-<summary>想自己跑一遍构建</summary>
+<summary>Build one yourself</summary>
 
-仓库附带一段小型[文本保存源码](skills/litflux/examples/semantic-source/app.py)及对应的[项目模块](skills/litflux/examples/project-example.js)：文本规范化后判断是否为空，非空时通过写入器保存；批量入口逐条提交并累计结果。
+The repository ships a small [text-saving source](skills/litflux/examples/semantic-source/app.py) and its [project module](skills/litflux/examples/project-example.js): text is normalized, checked for emptiness, and saved through a writer; the batch entry submits items one at a time and accumulates results.
 
-在仓库根目录执行：
+From the repository root:
 
 ```sh
 python skills/litflux/scripts/build_graph.py skills/litflux/examples/project-example.js .litflux/example --source-root skills/litflux/examples/semantic-source --no-browser
 ```
 
-Windows 如没有 `python` 命令，将它替换为 `py -3`。
+On Windows without a `python` command, use `py -3`.
 
-随后用浏览器打开 `.litflux/example/litflux_文本保存 · 项目脉络.html`。这条命令跳过自动浏览器检查，结果保持 `draft`，用来先体验页面；装好 `agent-browser` 后去掉 `--no-browser` 可运行完整构建检查，实际状态以构建报告为准。生成时间取决于项目规模、讲解范围和检查修正轮次。
+Then open `.litflux/example/litflux_文本保存 · 项目脉络.html` in a browser. This command skips the browser check, so the result stays `draft` — enough to look around. Drop `--no-browser` once `agent-browser` is installed to run the full check; the build report is the source of truth for the actual state.
 
 </details>
 
 <a id="quick-start"></a>
 
-## 快速开始
+## Quick start
 
-准备一个能读取本地文件、运行 Python 和 Node.js 的编码 Agent，以及本仓库的本地副本。首次使用可以直接指定技能文件，不必先安装。
+You need a coding agent that can read local files and run Python and Node.js, plus a local copy of this repository. For a first try you can point the agent at the skill file directly; no installation needed.
 
-**1. 在 Agent 中打开你要理解的项目。**
+**1. Open the project you want to understand in the agent.**
 
-**2. 把下面请求里的路径换成本仓库 `skills/litflux/SKILL.md` 的绝对路径，然后发送：**
-
-```text
-请读取 <LitFlux 仓库绝对路径>/skills/litflux/SKILL.md，并按该技能理解当前项目。
-为第一次接触项目的读者生成中文项目导览和项目脉络图，重点讲清主要入口、
-关键处理、条件分支和结果。只读取目标源码，不修改源码、不运行目标业务程序。
-结果保存到 .litflux/output/，交付 HTML 链接、建议阅读入口、检查结果和未完成项。
-```
-
-**3. 打开 Agent 交付的 HTML，从感兴趣的工作流开始读。**
-
-已安装技能时，可以直接说：
+**2. Replace the path below with the absolute path to this repository's `skills/litflux/SKILL.md`, then send it:**
 
 ```text
-使用 $litflux 帮我理解当前项目。我要修改检索算法，请把检索流程讲细一些，
-其他部分按默认深度展开，并指出还不能从源码确认的行为。
+Read <absolute path to LitFlux>/skills/litflux/SKILL.md and use that skill to understand this project.
+Write an English tour and project map for a reader who has just opened the repository: cover the main
+entry points, key processing, branches and results. Read the target source only, do not modify it,
+and do not run the target application. Save the result under .litflux/output/ and report the HTML
+link, where to start reading, the check results and anything still unfinished.
 ```
 
-运行环境见[安装](#installation)。
+**3. Open the delivered HTML and start from the workflow you care about.**
+
+With the skill installed, you can just say:
+
+```text
+Use $litflux to explain this project. I'm changing the search algorithm — go deeper on the search
+flow, keep the rest at the default depth, and call out anything you cannot confirm from the source.
+```
+
+Environment details are in [Installation](#installation).
 
 <a id="installation"></a>
 
-## 安装
+## Installation
 
-### 运行环境
+### Requirements
 
-| 环境 | 用途 |
+| What | Used for |
 | --- | --- |
-| 编码 Agent | 阅读源码、组织解释、编写项目模块与布局、检查并修正产物 |
-| Python 3.11+ | 运行构建脚本；Python 部分只使用标准库 |
-| Node.js 18+ | 求值 Agent 编写的项目 JS 模块 |
-| 桌面浏览器 | 打开离线 HTML；页面主要面向 PC 阅读 |
-| `agent-browser` | 自动检查页面声明、几何和部分交互；需预先安装，LitFlux 不会自动安装 |
+| Coding agent | Reading source, organizing explanations, writing the project module and layout, checking and fixing output |
+| Python 3.11+ | Running the build scripts; the Python side uses only the standard library |
+| Node.js 18+ | Evaluating the project JS module the agent writes |
+| Desktop browser | Opening the offline HTML; the page is designed for desktop reading |
+| `agent-browser` | Automated checks of declarations, geometry and some interactions; must be installed in advance, LitFlux never installs it |
 
-缺少 `agent-browser` 时仍可生成页面，但拿不到 `checked` 状态。阅读已生成的 HTML 不需要 Python、Node.js 或 Agent。
+Without `agent-browser` you still get a page, but not the `checked` state. Reading an already built HTML needs none of Python, Node.js or an agent.
 
-### 直接使用本地技能
+### Use the local skill directly
 
-把本仓库 `skills/litflux/SKILL.md` 的绝对路径交给 Agent，即可使用[快速开始](#quick-start)里的请求。脚本、资源和参考文档需要与该文件保持原有目录关系。
+Hand the agent the absolute path to `skills/litflux/SKILL.md` and use the prompt from [Quick start](#quick-start). Scripts, assets and reference documents must keep their directory relationship with that file.
 
-### 安装为 Codex 个人技能
+### Install as a Codex personal skill
 
-将 `skills/litflux/` 中以下内容复制到 `~/.agents/skills/litflux/`；Windows 对应 `%USERPROFILE%\.agents\skills\litflux\`：
+Copy the following from `skills/litflux/` into `~/.agents/skills/litflux/` (on Windows: `%USERPROFILE%\.agents\skills\litflux\`):
 
 ```text
 litflux/
@@ -159,89 +160,89 @@ litflux/
 └── scripts/
 ```
 
-无需复制本地生成的 `.litflux/`、缓存或历史产物。安装目录已有同名技能时，先保留旧副本，再更新上述内容。技能发现与调用方式参见 [Codex 官方技能文档](https://developers.openai.com/codex/skills/)。
+No need to copy locally generated `.litflux/` directories, caches or old output. If a skill with the same name already exists, keep the old copy before updating. See the [Codex skills documentation](https://developers.openai.com/codex/skills/) for discovery and invocation.
 
-仓库根目录的 `plugin.json` 保存包元数据；本地技能可直接使用，插件市场分发状态需另行确认。
+`plugin.json` at the repository root carries the package metadata; the local skill works as-is, and marketplace distribution is a separate question.
 
 <a id="how-it-works"></a>
 
-## 工作原理
+## How it works
 
 ```mermaid
 flowchart LR
-    A[目标项目源码] --> B[Agent 追踪入口与关键行为]
-    B --> C[编写解释、来源引用与布局]
-    C --> D[项目 JS 模块]
-    D --> E[声明与来源检查]
-    E --> F[离线 HTML]
-    F --> G[浏览器检查与作者复查]
-    G --> H[交付页面与构建报告]
-    G -->|发现问题后修正| C
+    A[Target source] --> B[Agent traces entries and key behavior]
+    B --> C[Writes explanations, source refs and layout]
+    C --> D[Project JS module]
+    D --> E[Declaration and source checks]
+    E --> F[Offline HTML]
+    F --> G[Browser checks and author review]
+    G --> H[Page plus build report]
+    G -->|Fix what breaks| C
 ```
 
-Agent 负责解释源码、划分业务层级、判断关系并安排坐标。工具按声明绘制页面，检查来源范围、结构、几何和已实现的交互项。整个流程静态读取目标源码，不导入或执行目标应用。
+The agent explains the source, splits the business layers, decides relations and places coordinates. The tool draws what was declared and checks source ranges, structure, geometry and the interactions it implements. The whole pipeline reads the target source statically; it never imports or runs the target application.
 
-### 两张图，回答两个问题
+### Two maps, two questions
 
-| 图 | 回答的问题 | 阅读方式 |
+| Map | Question it answers | How you read it |
 | --- | --- | --- |
-| 业务分解图 | 这个业务由哪些子业务组成？ | 展开层级、选择业务、进入与返回 |
-| 内部流程图 | 输入如何经过处理和条件形成结果？ | 查看当前层全部关系、切换情景、逐步阅读、查看源码 |
+| Business map | Which sub-businesses make up this business? | Expand levels, pick a business, enter and go back |
+| Internal flow | How do inputs become a result through processing and conditions? | All relations in the layer, scenarios, step-by-step reading, source |
 
-内部流程图区分业务、数据、资源与组件；判断和循环表达控制结构。数据边的实线表示即时承接，虚线表示保留后用，线型由 Agent 根据源码声明。完整规则见[图的含义](skills/litflux/references/mechanism.md)。
+The internal flow separates business, data, resources and components; decisions and loops express control structure. Solid data edges mean immediate handover, dashed ones mean kept for later — the agent declares the timing from the source, the tool does not derive it. Full rules are in [what the map means](skills/litflux/references/mechanism.md).
 
-### 产物与工作目录
+### Artifacts and working directory
 
-默认工作材料放在 `.litflux/work/`，交付放在 `.litflux/output/`；用户指定目录时以指定路径为准。
+Working material goes to `.litflux/work/`, deliverables to `.litflux/output/`; a user-specified path wins.
 
-| 产物 | 内容 |
+| Artifact | Contents |
 | --- | --- |
-| `litflux_<项目标题>.html` | 离线阅读页面、交互图和引用源码 |
-| `litflux.graph.json` | 求值后的项目模型、源码摘录与修订标识 |
-| `litflux.build-report.json` | 检查结果、几何告警、复核结果与交付状态 |
+| `litflux_<title>.html` | Offline reading page, interactive maps and quoted source |
+| `litflux.graph.json` | Evaluated project model, source excerpts and revision id |
+| `litflux.build-report.json` | Check results, geometry warnings, review result and delivery state |
 
-图文支持中文和英文，按用户要求、否则按请求语言编写。源码、标识符与路径保留原样；技能说明和过程记录使用中文。
+Pages can be written in Chinese or English, following the user's request or else the language of the request. Source, identifiers and paths keep their original form.
 
-## 怎么判断交付能不能用
+## Is a build good enough to use?
 
-构建报告会区分三种状态：
+The build report separates three states:
 
-| 状态 | 表示什么 |
+| State | What it means |
 | --- | --- |
-| `draft` | 已生成页面，但浏览器或几何检查尚未通过或尚未运行 |
-| `checked` | 声明校验通过、浏览器报告通过且几何无阻断缺陷 |
-| `reviewed` | 达到 `checked`，且针对当前修订的独立复核材料通过检查 |
+| `draft` | A page exists, but browser or geometry checks have not passed or have not run |
+| `checked` | Declaration checks passed, the browser report passed, and geometry has no blocking defect |
+| `reviewed` | Reaches `checked`, and an independent review of this revision has passed its checks |
 
-可用 `--geometry-only` 缩短几何迭代（仍需浏览器，状态为 draft）；完整构建后再交付。
+`--geometry-only` shortens geometry iteration (still needs the browser, state stays `draft`); run the full build before delivering.
 
-`checked` 的交互覆盖有限，不能替代逐工作流操作、关键情景检查和实际截图查看。来源存在也不等于解释正确；工具无法证明独立复核者身份或证据内容。交付时应同时查看 Agent 报告的语义自查、视觉与交互检查，以及剩余未知项。
+`checked` covers a limited set of interactions and does not replace walking each workflow, checking key scenarios or looking at real screenshots. A source location existing does not make an explanation correct; the tool cannot prove who the independent reviewer is or what the evidence contains. When delivering, read the agent's semantic self-check, the visual and interaction notes, and the remaining unknowns together.
 
-当前尚未实现跨视图共享实例合并和精确形参／返回端口映射。必要行为无法忠实表达时，应明确记录缺口。源码更新后，需要重新核对解释与引用并构建页面。
+Cross-view merging of shared instances and exact parameter/return port mapping are not implemented yet. When a needed behavior cannot be expressed faithfully, record the gap. After the source changes, re-check explanations and references before rebuilding.
 
-## 开发与贡献
+## Contributing
 
-欢迎改进源码解释示例、图的可读性、交互体验和检查覆盖。提交问题时，请附复现步骤、构建报告，以及能说明问题的最小源码或截图。
+Improvements to the explanation examples, map readability, interaction and check coverage are welcome. For issues, include reproduction steps, the build report, and the smallest source sample or screenshot that shows the problem.
 
-| 想了解什么 | 从哪里开始 |
+| Looking for | Start here |
 | --- | --- |
-| Agent 的完整工作流程 | [技能入口](skills/litflux/SKILL.md) |
-| 对象、关系、分解尺度与读图规则 | [机制说明](skills/litflux/references/mechanism.md) |
-| 模块字段、绘图原语、命令与复核格式 | [作者方式](skills/litflux/references/semantic-authoring.md) |
-| 一个可运行的项目模块 | [教学例](skills/litflux/examples/project-example.js) |
-| 当前产品约束 | [项目规范](SPEC.md) |
-| 节点说明与资源符号 | [作者方式](skills/litflux/references/semantic-authoring.md#节点介绍参考)、[资源示例](skills/litflux/examples/resource-examples.js) |
-| 排版思路与尺寸测量 | [布局参考](skills/litflux/references/layout-guidance.md)，供作者自行取舍 |
-| 完整案例与构建记录 | [案例说明](docs/case/README.md) |
-| 界面方向对比 | [UI Lab](ui-lab/README.md)，含虚构数据的界面演示，不代表真实项目结论 |
+| The agent's full workflow | [Skill entry](skills/litflux/SKILL.md) |
+| Objects, relations, decomposition scale and reading rules | [Mechanism](skills/litflux/references/mechanism.md) |
+| Module fields, drawing primitives, commands and review format | [Authoring guide](skills/litflux/references/semantic-authoring.md) |
+| A runnable project module | [Teaching example](skills/litflux/examples/project-example.js) |
+| Current product constraints | [Spec](SPEC.md) |
+| Node descriptions and resource symbols | [Authoring guide](skills/litflux/references/semantic-authoring.md#节点介绍参考), [resource examples](skills/litflux/examples/resource-examples.js) |
+| Layout thinking and size measurement | [Layout guidance](skills/litflux/references/layout-guidance.md), for authors to take or leave |
+| The full case and its build notes | [Case notes](docs/case/README.en.md) |
+| UI directions | [UI Lab](ui-lab/README.md), interface demos with fictional data — not findings about a real project |
 
-在仓库根目录预检教学模块：
+Preflight the teaching module from the repository root:
 
 ```sh
 python skills/litflux/scripts/build_graph.py skills/litflux/examples/project-example.js --source-root skills/litflux/examples/semantic-source --preflight
 ```
 
-预检检查声明与来源，不执行 `draw()`，不能替代浏览器验收。更改模块、绘图或引擎后，应重新构建并检查实际页面；不要只凭命令退出成功判断交付状态。
+Preflight checks declarations and sources, does not run `draw()`, and cannot replace browser acceptance. After changing the module, the drawing code or the engine, rebuild and look at the actual page; do not treat a zero exit code as delivery quality.
 
-## 许可证
+## License
 
-LitFlux 的原创代码和文档采用 [Apache License 2.0](LICENSE)。技能包的许可说明见 [NOTICE](skills/litflux/NOTICE)。页面中引用的目标项目源码仍遵循其原有许可证。
+LitFlux's original code and documentation are under the [Apache License 2.0](LICENSE). License notes for the skill package are in [NOTICE](skills/litflux/NOTICE). Source code of target projects quoted in a page keeps its own license.
