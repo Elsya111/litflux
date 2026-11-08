@@ -78,6 +78,16 @@ LitFlux 是一个给编码 Agent 用的技能（Skill）。Agent 只读源码、
   <sub>第 4 步的样子：说明、文件行号、原文一起给。讲得对不对，翻到那一行自己看。</sub>
 </div>
 
+### 第二个案例：一个真实仓库
+
+教学例是有意做小的。第二个构建跑在真实仓库上：Flask 的请求生命周期，从 `app(environ, start_response)` 到 `ctx.pop(error)`——12 个对象、13 条关系，同样是 `checked`。
+
+<a href="docs/case/flask-request.html"><img src="docs/case/flask-request-overview.png" width="100%" alt="Flask 案例：WSGI 入口经过 URL 匹配、before_request、视图分发、响应生成与上下文清理"></a>
+
+它追的是 `src/flask/app.py` 里的 `wsgi_app`、`full_dispatch_request`、`preprocess_request`、`dispatch_request`、`finalize_request`、`process_response`，加上 `ctx.py` 的 `push` 与 `match_request`。摘录来自 [pallets/flask](https://github.com/pallets/flask)（BSD-3-Clause），作者模块也[随页面一起提供](docs/case/flask-request.module.js)。
+
+**[打开 Flask 案例 →](docs/case/flask-request.html)**
+
 <details>
 <summary>想自己跑一遍构建</summary>
 

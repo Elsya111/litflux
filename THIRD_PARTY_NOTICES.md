@@ -9,3 +9,9 @@ redistributed in the skill archive. Historical test references to Dagre do not
 describe the current package.
 
 Target-project source shown in generated maps remains subject to its original license. Local development benchmarks and design drafts are not included in the LitFlux distribution.
+
+The case at `docs/case/flask-request.html` quotes short excerpts from
+[pallets/flask](https://github.com/pallets/flask), copyright the Pallets
+project, licensed under BSD-3-Clause. The excerpts are used to explain the
+cited functions and are reproduced with attribution; LitFlux does not
+redistribute Flask as a component.

@@ -1,0 +1,9 @@
+# Demo and case pages are generated artifacts; keep language stats meaningful.
+docs/case/*.html linguist-generated=true
+ui-lab/*.html linguist-generated=true
+tests/fixtures/* linguist-vendored
+
+# Binary assets
+*.png binary
+*.jpg binary
+*.zip binary

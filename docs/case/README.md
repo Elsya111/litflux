@@ -32,6 +32,21 @@
 
 `checked` 覆盖的是声明、几何和已实现的交互；它不证明每条解释都与源码相符，也不等于视觉可读性已经有人看过。这两件事需要读者自己核对，或另做独立复核。
 
+## 第二个案例：Flask 的请求生命周期
+
+[flask-request.html](flask-request.html) 跑在真实仓库 [pallets/flask](https://github.com/pallets/flask) 上：从 `app(environ, start_response)` 进入，经 URL 匹配、before_request、视图分发、响应生成，最后在 `finally` 里 `ctx.pop(error)`。12 个对象、13 条关系，构建状态 `checked`。
+
+范围是 `src/flask/app.py` 的 `wsgi_app`、`full_dispatch_request`、`preprocess_request`、`dispatch_request`、`finalize_request`、`process_response`，以及 `ctx.py` 的 `push` 与 `match_request`；不覆盖蓝图内部、模板渲染和 CLI。
+
+作者模块随页面提供：[flask-request.module.js](flask-request.module.js)。复现：
+
+```sh
+git clone --depth 1 https://github.com/pallets/flask .litflux/work/flask
+python skills/litflux/scripts/build_graph.py docs/case/flask-request.module.js .litflux/flask-case --source-root .litflux/work/flask
+```
+
+页面内摘录来自 Flask，版权归 Pallets 项目，BSD-3-Clause 许可；摘录只用于解释被引用的函数。
+
 ## 说明
 
 - 页面标题里的「枪灰与琥珀」是这份构建采用的主题名（圆角节点、图标底座、胶囊数据）。发布包中的查看器与它共用同一套布局、交互和读图规则，主题细节不完全相同。

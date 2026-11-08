@@ -78,6 +78,16 @@ Things to try in the page:
   <sub>Step 4 in practice: explanation, file and line, and the code itself. Whether it is right, check that line yourself.</sub>
 </div>
 
+### Second case: a real repository
+
+The teaching sample is small on purpose. A second build runs on a real one: Flask's request lifecycle, from `app(environ, start_response)` to `ctx.pop(error)` — 12 objects and 13 relations, also `checked`.
+
+<a href="docs/case/flask-request.html"><img src="docs/case/flask-request-overview.png" width="100%" alt="Flask case: WSGI entry through URL matching, before_request, view dispatch, response finalization and context teardown"></a>
+
+It follows `wsgi_app`, `full_dispatch_request`, `preprocess_request`, `dispatch_request`, `finalize_request` and `process_response` in `src/flask/app.py`, plus `push` and `match_request` in `ctx.py`. Excerpts come from [pallets/flask](https://github.com/pallets/flask) (BSD-3-Clause); the authored module is [published next to the page](docs/case/flask-request.module.js).
+
+**[Open the Flask case →](docs/case/flask-request.html)**
+
 <details>
 <summary>Build one yourself</summary>
 
