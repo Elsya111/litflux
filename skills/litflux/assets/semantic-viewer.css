@@ -12,6 +12,8 @@ button:focus-visible,select:focus-visible,summary:focus-visible,[tabindex]:focus
 .workflow-picker{margin-left:auto;display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:10px;align-items:center;width:390px;min-width:200px;max-width:40%}
 .workflow-picker label{font-size:12px;color:var(--muted)}
 select{border:1px solid var(--line);border-radius:7px;background:var(--surface);padding:7px 10px;max-width:100%;min-width:0}
+/* The native popup paints its own light list; without this the dark-theme options stay near-invisible. */
+select option{background-color:var(--surface);color:var(--ink)}
 .workflow-picker select{width:100%;font-size:14px;font-weight:500;background:var(--soft)}
 .workflow-trigger{grid-column:2;margin:3px 0 0;font:11px/1.4 Consolas,monospace;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .toolbar-button,.panel-toggle{border:1px solid var(--line);border-radius:6px;padding:6px 10px;font-size:12px;white-space:nowrap;min-height:34px;background:var(--surface)}
