@@ -9,7 +9,7 @@
     <img src="https://img.shields.io/badge/形态-Agent%20Skill-8b5cf6" alt="形态为 Agent Skill">
   </p>
   <p>
-    <strong>简体中文</strong> · <a href="README.en.md">English</a>
+    <strong>简体中文</strong> · <a href="README.md">English</a>
   </p>
   <p>
     <a href="#problems">痛点</a> ◆

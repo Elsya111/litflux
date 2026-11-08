@@ -11,7 +11,7 @@ manifest=json.loads((ROOT/'plugin.json').read_text(encoding='utf-8'))
 version=manifest['version'];name=manifest['name']
 archive=ROOT/'dist'/f'{name}-{version}.zip'
 archive.parent.mkdir(parents=True,exist_ok=True)
-files=[ROOT/p for p in ('plugin.json','SPEC.md','README.md','LICENSE','THIRD_PARTY_NOTICES.md')]+[p for p in (ROOT/'skills'/name).rglob('*')
+files=[ROOT/p for p in ('plugin.json','SPEC.md','README.md','README.zh.md','LICENSE','THIRD_PARTY_NOTICES.md')]+[p for p in (ROOT/'skills'/name).rglob('*')
     if p.is_file() and '__pycache__' not in p.parts and p.suffix!='.pyc']
 with zipfile.ZipFile(archive,'w',zipfile.ZIP_DEFLATED) as package:
     for p in sorted(files):package.write(p,p.relative_to(ROOT).as_posix())

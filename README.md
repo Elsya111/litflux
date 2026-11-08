@@ -9,7 +9,7 @@
     <img src="https://img.shields.io/badge/form-Agent%20Skill-8b5cf6" alt="Distributed as an agent skill">
   </p>
   <p>
-    <a href="README.md">简体中文</a> · <strong>English</strong>
+    <a href="README.zh.md">简体中文</a> · <strong>English</strong>
   </p>
   <p>
     <a href="#problems">The problem</a> ◆
