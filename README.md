@@ -12,6 +12,7 @@
     <a href="README.zh.md">简体中文</a> · <strong>English</strong>
   </p>
   <p>
+    <a href="https://elsya111.github.io/litflux/">Live demo</a> ◆
     <a href="#problems">The problem</a> ◆
     <a href="#solution">How LitFlux fixes it</a> ◆
     <a href="#case">Case</a> ◆
@@ -57,13 +58,13 @@ The result is a single file: one HTML page that opens on a double-click. No serv
 
 Below is a real build. The source it explains is a small "text saving" program (normalize → emptiness check → write). LitFlux broke it into 3 workflows, 51 objects and 45 relations, with the build state `checked` — the "Checked" badge next to the page title.
 
-<a href="docs/case/litflux-case-en.html"><img src="docs/case/litflux-case-en-overview.png" width="100%" alt="LitFlux case: business map on the left, internal flow in the middle, node details and source locations on the right"></a>
+<a href="https://elsya111.github.io/litflux/case/litflux-case-en.html"><img src="docs/case/litflux-case-en-overview.png" width="100%" alt="LitFlux case: business map on the left, internal flow in the middle, node details and source locations on the right"></a>
 
 Left column is the business map, middle is the internal flow of the current layer, right is the selected node's explanation and where it lives in `app.py`.
 
-**[Open the full case →](docs/case/litflux-case-en.html)**
+**[Open the case in your browser →](https://elsya111.github.io/litflux/case/litflux-case-en.html)**
 
-The file is self-contained and works offline. On GitHub you land on the raw file first: use Download in the top-right corner, then double-click it. "Gunmetal & Amber" in the page title is the theme this build was drawn with. Build notes are in [docs/case](docs/case/README.en.md).
+The same page is committed at `docs/case/litflux-case-en.html` and opens offline — no install needed either way. "Gunmetal & Amber" in the page title is the theme this build was drawn with. Build notes are in [docs/case](docs/case/README.en.md).
 
 Things to try in the page:
 
@@ -82,11 +83,11 @@ Things to try in the page:
 
 The teaching sample is small on purpose. A second build runs on a real one: Flask's request lifecycle, from `app(environ, start_response)` to `ctx.pop(error)` — 12 objects and 13 relations, also `checked`.
 
-<a href="docs/case/flask-request.html"><img src="docs/case/flask-request-overview.png" width="100%" alt="Flask case: WSGI entry through URL matching, before_request, view dispatch, response finalization and context teardown"></a>
+<a href="https://elsya111.github.io/litflux/case/flask-request.html"><img src="docs/case/flask-request-overview.png" width="100%" alt="Flask case: WSGI entry through URL matching, before_request, view dispatch, response finalization and context teardown"></a>
 
 It follows `wsgi_app`, `full_dispatch_request`, `preprocess_request`, `dispatch_request`, `finalize_request` and `process_response` in `src/flask/app.py`, plus `push` and `match_request` in `ctx.py`. Excerpts come from [pallets/flask](https://github.com/pallets/flask) (BSD-3-Clause); the authored module is [published next to the page](docs/case/flask-request.module.js).
 
-**[Open the Flask case →](docs/case/flask-request.html)**
+**[Open the Flask case →](https://elsya111.github.io/litflux/case/flask-request.html)**
 
 <details>
 <summary>Build one yourself</summary>

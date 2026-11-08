@@ -12,6 +12,7 @@
     <strong>简体中文</strong> · <a href="README.md">English</a>
   </p>
   <p>
+    <a href="https://elsya111.github.io/litflux/">在线案例</a> ◆
     <a href="#problems">痛点</a> ◆
     <a href="#solution">LitFlux 怎么解决</a> ◆
     <a href="#case">案例</a> ◆
@@ -57,13 +58,13 @@ LitFlux 是一个给编码 Agent 用的技能（Skill）。Agent 只读源码、
 
 下面是一份真实构建产物。被解释的源码是一个小型「文本保存」程序（归一化 → 判空 → 写入），LitFlux 把它拆成 3 个工作流、51 个对象、45 条关系。
 
-<a href="docs/case/litflux-case.html"><img src="docs/case/litflux-case-overview.png" width="100%" alt="LitFlux 案例：左侧业务分解图，中间内部流程图，右侧节点详情与源码位置"></a>
+<a href="https://elsya111.github.io/litflux/case/litflux-case.html"><img src="docs/case/litflux-case-overview.png" width="100%" alt="LitFlux 案例：左侧业务分解图，中间内部流程图，右侧节点详情与源码位置"></a>
 
 左栏是业务分解，中间是当前层的内部流程，右栏是被选中节点的说明和它在 `app.py` 里的位置。
 
-**[打开完整案例 →](docs/case/litflux-case.html)**
+**[在浏览器里打开案例 →](https://elsya111.github.io/litflux/case/litflux-case.html)**
 
-文件自包含、可离线打开。在 GitHub 上点开会先看到源码页，点右上角 Download 下载后双击即可。页面标题里的「枪灰与琥珀」是这份构建采用的主题名。案例的构建记录和说明见 [docs/case](docs/case/README.md)。
+同一份页面也提交在仓库的 `docs/case/litflux-case.html`，可离线打开。页面标题里的「枪灰与琥珀」是这份构建采用的主题名。案例的构建记录和说明见 [docs/case](docs/case/README.md)。
 
 页面里可以试这几步：
 
@@ -82,11 +83,11 @@ LitFlux 是一个给编码 Agent 用的技能（Skill）。Agent 只读源码、
 
 教学例是有意做小的。第二个构建跑在真实仓库上：Flask 的请求生命周期，从 `app(environ, start_response)` 到 `ctx.pop(error)`——12 个对象、13 条关系，同样是 `checked`。
 
-<a href="docs/case/flask-request.html"><img src="docs/case/flask-request-overview.png" width="100%" alt="Flask 案例：WSGI 入口经过 URL 匹配、before_request、视图分发、响应生成与上下文清理"></a>
+<a href="https://elsya111.github.io/litflux/case/flask-request.html"><img src="docs/case/flask-request-overview.png" width="100%" alt="Flask 案例：WSGI 入口经过 URL 匹配、before_request、视图分发、响应生成与上下文清理"></a>
 
 它追的是 `src/flask/app.py` 里的 `wsgi_app`、`full_dispatch_request`、`preprocess_request`、`dispatch_request`、`finalize_request`、`process_response`，加上 `ctx.py` 的 `push` 与 `match_request`。摘录来自 [pallets/flask](https://github.com/pallets/flask)（BSD-3-Clause），作者模块也[随页面一起提供](docs/case/flask-request.module.js)。
 
-**[打开 Flask 案例 →](docs/case/flask-request.html)**
+**[打开 Flask 案例 →](https://elsya111.github.io/litflux/case/flask-request.html)**
 
 <details>
 <summary>想自己跑一遍构建</summary>

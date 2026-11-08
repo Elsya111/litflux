@@ -4,9 +4,8 @@
 
 ## 打开方式
 
-- 下载仓库后双击 `litflux-case.html`。
-- 在 GitHub 上打开时看到的是源码页，点右上角 **Download** 下载后再双击。
-- 文件自包含：图、节点说明和源码摘录都内联，不需要 Python、Node.js，也不需要目标项目在场。
+- 直接在浏览器打开：<https://elsya111.github.io/litflux/case/litflux-case.html>
+- 也可以下载仓库后双击 `litflux-case.html`；文件自包含，图、节点说明和源码摘录都内联，不需要 Python、Node.js，也不需要目标项目在场。
 
 ## 这份产物讲了什么
 
@@ -34,7 +33,7 @@
 
 ## 第二个案例：Flask 的请求生命周期
 
-[flask-request.html](flask-request.html) 跑在真实仓库 [pallets/flask](https://github.com/pallets/flask) 上：从 `app(environ, start_response)` 进入，经 URL 匹配、before_request、视图分发、响应生成，最后在 `finally` 里 `ctx.pop(error)`。12 个对象、13 条关系，构建状态 `checked`。
+[flask-request.html](flask-request.html) 跑在真实仓库 [pallets/flask](https://github.com/pallets/flask) 上：从 `app(environ, start_response)` 进入，经 URL 匹配、before_request、视图分发、响应生成，最后在 `finally` 里 `ctx.pop(error)`。12 个对象、13 条关系，构建状态 `checked`。在线地址：<https://elsya111.github.io/litflux/case/flask-request.html>
 
 范围是 `src/flask/app.py` 的 `wsgi_app`、`full_dispatch_request`、`preprocess_request`、`dispatch_request`、`finalize_request`、`process_response`，以及 `ctx.py` 的 `push` 与 `match_request`；不覆盖蓝图内部、模板渲染和 CLI。
 

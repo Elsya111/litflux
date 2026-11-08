@@ -4,9 +4,8 @@
 
 ## Opening it
 
-- Download the repository and double-click `litflux-case-en.html`.
-- On GitHub you get the raw source view first: use **Download** in the top-right corner, then open the file.
-- The file is self-contained: maps, node descriptions and source excerpts are all inline. No Python, no Node.js, no target project needed.
+- Open it in a browser: <https://elsya111.github.io/litflux/case/litflux-case-en.html>
+- Or download the repository and double-click `litflux-case-en.html`. The file is self-contained: maps, node descriptions and source excerpts are all inline. No Python, no Node.js, no target project needed.
 
 ## What it explains
 
@@ -34,7 +33,7 @@ The build report records `checked` for this build:
 
 ## Second case: Flask's request lifecycle
 
-[flask-request.html](flask-request.html) runs on a real repository, [pallets/flask](https://github.com/pallets/flask): entry through `app(environ, start_response)`, then URL matching, `before_request`, view dispatch, response finalization, and `ctx.pop(error)` in `finally`. 12 objects, 13 relations, build state `checked`.
+[flask-request.html](flask-request.html) runs on a real repository, [pallets/flask](https://github.com/pallets/flask): entry through `app(environ, start_response)`, then URL matching, `before_request`, view dispatch, response finalization, and `ctx.pop(error)` in `finally`. 12 objects, 13 relations, build state `checked`. Live: <https://elsya111.github.io/litflux/case/flask-request.html>
 
 Scope is `wsgi_app`, `full_dispatch_request`, `preprocess_request`, `dispatch_request`, `finalize_request` and `process_response` in `src/flask/app.py`, plus `push` and `match_request` in `ctx.py`. It does not cover blueprint internals, template rendering or the CLI.
 
