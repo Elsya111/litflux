@@ -1,4 +1,4 @@
-<!doctype html><html lang="zh-CN" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LitFlux</title><style>:root{color-scheme:light;--page:#f3f5f2;--surface:#fffefa;--soft:#eef2ed;--ink:#263b34;--muted:#607168;--line:#dce3dc;--accent:#32674e;--focus:#e5efe6;--process:#edf4ea;--data:#edf4f8;--resource:#e8f1e9;--provider:#eeeaf5;--decision:#f3edf7;--control:#896e32;--failure:#a45d65;--loop:#7f6ca1;--resource-line:#558c7a;--provider-line:#6d86a9;--input:#3e719b;--output:#9a6746;--tree-line:#bac9c1;--shadow:0 12px 36px #172b1f20}
+<!doctype html><html lang="zh-CN" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LitFlux</title><style>:root{color-scheme:light;--page:#f3f5f2;--surface:#fffefa;--soft:#eef2ed;--ink:#263b34;--muted:#607168;--line:#dce3dc;--accent:#32674e;--focus:#e5efe6;--process:#edf4ea;--data:#edf4f8;--resource:#e8f1e9;--provider:#eeeaf5;--decision:#f3edf7;--control:#896e32;--failure:#a45d65;--loop:#7f6ca1;--resource-line:#558c7a;--provider-line:#6d86a9;--input:#3e719b;--output:#9a6746;--tree-line:#bac9c1;--shadow:0 12px 36px #172b1f20}
 html[data-theme=dark]{color-scheme:dark;--page:#171d23;--surface:#1e282f;--soft:#26333b;--ink:#e2eced;--muted:#adbec4;--line:#3a4a54;--accent:#a7d1bc;--focus:#304d43;--process:#293d3a;--data:#294453;--resource:#2b443a;--provider:#3c354e;--decision:#40384e;--control:#caba87;--failure:#dfa3ac;--loop:#c4ade7;--resource-line:#a6cfb4;--provider-line:#a9c4e6;--input:#a8c8e6;--output:#e0b393;--tree-line:#52666e;--shadow:0 12px 36px #0005}
 *{box-sizing:border-box}body{margin:0;background:var(--page);color:var(--ink);font:14px/1.6 "Segoe UI","PingFang SC","Microsoft YaHei UI",system-ui,sans-serif}
 button,select{font:inherit;color:inherit}button{cursor:pointer;background:transparent;border:0}button:disabled{opacity:.45;cursor:default}
@@ -12,6 +12,8 @@ button:focus-visible,select:focus-visible,summary:focus-visible,[tabindex]:focus
 .workflow-picker{margin-left:auto;display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:10px;align-items:center;width:390px;min-width:200px;max-width:40%}
 .workflow-picker label{font-size:12px;color:var(--muted)}
 select{border:1px solid var(--line);border-radius:7px;background:var(--surface);padding:7px 10px;max-width:100%;min-width:0}
+/* The native popup paints its own light list; without this the dark-theme options stay near-invisible. */
+select option{background-color:var(--surface);color:var(--ink)}
 .workflow-picker select{width:100%;font-size:14px;font-weight:500;background:var(--soft)}
 .workflow-trigger{grid-column:2;margin:3px 0 0;font:11px/1.4 Consolas,monospace;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .toolbar-button,.panel-toggle{border:1px solid var(--line);border-radius:6px;padding:6px 10px;font-size:12px;white-space:nowrap;min-height:34px;background:var(--surface)}
@@ -91,45 +93,121 @@ html[data-theme=dark]{--page:#25282a;--surface:#282c2e;--soft:#32373a;--ink:#f0f
 .node.role-data .shape{fill:var(--data)!important}.node.role-resource .shape{fill:var(--resource)!important}.node.is-selected .shape,.node.is-current .shape{stroke:var(--accent)!important;stroke-width:1.6!important;filter:drop-shadow(0 0 5px #e9b56316)}
 .node{outline:none!important}.node:focus-visible{outline:none}.node:focus-visible .shape{stroke:var(--accent)!important;stroke-width:2!important}
 .node .icon-tile{fill:#24292d;stroke:#ffffff05;stroke-width:1}.node .role-glyph{stroke:var(--accent);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}.node .data-dot{fill:var(--accent)}
-#canvas .edge{stroke:#8e9798;stroke-width:1.4}#canvas .edge.role-control{stroke:var(--control)}#canvas .edge.role-effect{stroke:var(--resource-line)}#canvas .edge.role-capability{stroke:var(--provider-line)}#canvas .edge.role-loop{stroke:var(--loop)}#canvas .edge.related{stroke:var(--accent);stroke-width:1.8}.relation-note .note-hit{rx:10;fill:var(--surface)}.relation-note .note-title{font-size:13px;fill:var(--muted)}.edge-port{fill:#e5e6e0;stroke:var(--page);stroke-width:1.8;pointer-events:none}
+#canvas .edge{stroke:#8e9798;stroke-width:1.4}#canvas .edge.role-control{stroke:var(--control)}#canvas .edge.role-effect{stroke:var(--resource-line)}#canvas .edge.role-capability{stroke:var(--provider-line)}#canvas .edge.role-loop{stroke:var(--loop)}#canvas .edge.related{stroke:var(--accent);stroke-width:1.8}.relation-note .note-hit{rx:10;fill:var(--surface)}.relation-note .note-title{font-size:14px;fill:var(--muted)}.edge-port{fill:#e5e6e0;stroke:var(--page);stroke-width:1.8;pointer-events:none}
 @media(max-width:1250px){.dual-layout.inspector-open{grid-template-columns:224px minmax(0,1fr)}.dual-layout.sidebar-collapsed.inspector-open{grid-template-columns:minmax(0,1fr)}.inspector{width:320px;top:88px;right:12px;bottom:12px;border:1px solid var(--line);border-radius:10px}.workspace{padding-left:14px;padding-right:14px}}
 @media(max-width:900px){.dual-layout.inspector-open{grid-template-columns:minmax(0,1fr)}.business-panel,.inspector{top:140px}.business-panel{border:1px solid var(--line);border-radius:8px}}
-select option{background-color:var(--surface);color:var(--ink)}</style></head>
+
+:root{--node-border:#b7b7af;--icon-tile:#e5e4dc;--edge-neutral:#7c817e;--port:#505a55;--accent:#946523;--focus:#eee3cf}
+html[data-theme=dark]{--node-border:#51585d;--icon-tile:#24292d;--edge-neutral:#8e9798;--port:#e5e6e0;--accent:#e9b563;--focus:#433d31}
+#canvas .node .shape{stroke:var(--node-border)!important}
+#canvas .node.is-selected .shape,#canvas .node.is-current .shape,#canvas .node:focus-visible .shape{stroke:var(--accent)!important}
+.node .icon-tile,.selected-symbol{background:var(--icon-tile);fill:var(--icon-tile)}
+#canvas .edge{stroke:var(--edge-neutral)}#canvas .edge.role-control{stroke:var(--control)}#canvas .edge.role-failure{stroke:var(--failure)}#canvas .edge.role-loop{stroke:var(--loop)}#canvas .edge.role-effect{stroke:var(--resource-line)}#canvas .edge.role-capability{stroke:var(--provider-line)}#canvas .edge.related{stroke:var(--accent)}
+.edge-port{fill:var(--port)}
+
+/* --- Collapsible chrome: header, business map, node details -------------- */
+.app{position:relative}
+.icon-button{border:1px solid var(--line);border-radius:6px;min-height:34px;min-width:36px;padding:0 8px;font-size:13px;line-height:1;background:var(--surface);color:var(--muted)}
+.icon-button:hover:not(:disabled){color:var(--ink);background:var(--soft)}
+.app.header-collapsed .app-header{display:none}
+.edge-hint{position:absolute;z-index:35;display:flex;align-items:center;justify-content:center}
+.edge-hint[hidden]{display:none}
+.edge-hint>button{opacity:0;pointer-events:none;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-size:12px;box-shadow:0 10px 26px #0003;transition:opacity .16s ease,transform .16s ease,color .16s ease}
+.edge-hint:hover>button,.edge-hint:focus-within>button{opacity:1;pointer-events:auto;color:var(--ink)}
+.edge-top{top:0;left:0;right:0;height:14px}
+.edge-top>button{border-radius:0 0 9px 9px;border-top:0;padding:5px 14px;transform:translateY(-5px)}
+.edge-top:hover>button,.edge-top:focus-within>button{transform:none}
+.edge-left,.edge-right{top:50%;width:18px;height:136px;transform:translateY(-50%)}
+.edge-left{left:0}.edge-right{right:0}
+.edge-left>button{writing-mode:vertical-rl;border-left:0;border-radius:0 9px 9px 0;padding:14px 4px;transform:translateX(-6px)}
+.edge-right>button{writing-mode:vertical-rl;border-right:0;border-radius:9px 0 0 9px;padding:14px 4px;transform:translateX(6px)}
+.edge-left:hover>button,.edge-left:focus-within>button,.edge-right:hover>button,.edge-right:focus-within>button{transform:none}
+
+/* --- Branch chips in node details --------------------------------------- */
+.branch-choices{display:flex;flex-wrap:wrap;gap:6px}
+.branch-chip{border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-size:12px;background:var(--surface);color:var(--muted)}
+.branch-chip[aria-pressed=true]{background:var(--focus);border-color:var(--tree-line);color:var(--accent)}
+.branch-hint{margin:9px 0 0;font-size:11px;color:var(--muted)}
+.selected-symbol{color:var(--accent)}
+.selected-symbol .role-icon,.selected-symbol .resource-icon{width:24px;height:24px}
+
+/* --- Compact workspace bar: one row instead of heading + context + toolbar */
+.workspace-bar{display:flex;align-items:center;gap:14px;margin:2px 2px 8px;min-height:40px}
+.workspace-bar h1{font-size:20px;font-weight:600;letter-spacing:.3px;margin:0;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.flow-count{font-size:11.5px;color:var(--muted);white-space:nowrap}
+.bar-actions{display:flex;align-items:center;gap:8px;margin-left:auto;flex-wrap:wrap;justify-content:flex-end}
+.bar-actions .primary{min-height:32px}
+.read-status{padding:0 2px 8px}
+
+/* Collapsing the top hides the app header, breadcrumbs and the bar together. */
+.app.header-collapsed .app-header,
+.app.header-collapsed .workspace-bar,
+.app.header-collapsed .crumbs,
+.app.header-collapsed .read-status{display:none}
+
+/* --- Vertical collapse tabs, centred on each panel edge ------------------ */
+:where(.business-panel,.inspector){position:relative}
+.edge-toggle{position:absolute;top:50%;transform:translateY(-50%);z-index:6;width:16px;height:62px;display:flex;align-items:center;justify-content:center;padding:0;font-size:12px;line-height:1;border:1px solid var(--line);background:var(--surface);color:var(--muted);opacity:.6;transition:opacity .15s ease,color .15s ease,background .15s ease}
+.edge-toggle:hover,.edge-toggle:focus-visible{opacity:1;color:var(--ink);background:var(--soft)}
+.edge-toggle-right{right:0;border-right:0;border-radius:8px 0 0 8px}
+.edge-toggle-left{left:0;border-left:0;border-radius:0 8px 8px 0}
+.node .role-glyph-dot{fill:var(--accent);stroke:none}
+.selected-symbol .role-glyph-dot{fill:currentColor;stroke:none}
+
+/* --- Back to parent level ------------------------------------------------ */
+.back-level{flex:none;white-space:nowrap}
+
+/* --- Fullscreen source drawer -------------------------------------------- */
+#toggle-source-full{margin-left:8px}
+.drawer.source-full{position:fixed;inset:18px;z-index:90;flex:none;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 0 0 100vmax rgba(0,0,0,.55),0 26px 70px #0009}
+.drawer.source-full .drawer-head{padding:14px 22px}
+.drawer.source-full .drawer-head h2{margin-top:14px}
+.drawer.source-full .drawer-body{width:100%;max-width:1080px;margin:0 auto;padding:0 22px 32px}
+</style></head>
 <body id="litflux-canvas-app">
 <div class="app">
-  <header class="app-header">
+  <header class="app-header" id="app-header">
     <div class="identity"><div class="brand">LitFlux</div><div class="project-heading"><div><span id="title" class="project-name"></span><span id="delivery-badge" class="badge">草稿</span></div><div class="project-kicker">从业务流程读懂代码</div></div></div>
     <div class="workflow-picker"><label for="workflow-select">工作流</label><select id="workflow-select" aria-describedby="workflow-trigger"></select><p id="workflow-trigger" class="workflow-trigger" data-no-translate></p></div>
     <button id="theme" class="toolbar-button">深色主题</button>
+    <button id="collapse-header" class="icon-button" aria-label="收起顶栏" title="收起顶栏" aria-expanded="true" aria-controls="app-header">⌃</button>
   </header>
-  <div class="dual-layout">
-    <aside id="business-panel" class="business-panel"><div class="panel-head"><h2>业务分解图</h2><div class="branch-tools"><button id="collapse-all">收拢</button><button id="expand-all">展开</button></div></div><p class="business-caption">组成与层级 · 点击业务进入</p><div id="business" class="business-canvas" aria-label="业务分解图"></div><details class="project-info"><summary>项目信息</summary><h2 id="project-title"></h2><p id="summary"></p><p id="scope"></p></details></aside>
+  <div class="dual-layout inspector-open">
+    <aside id="business-panel" class="business-panel"><div class="panel-head"><h2>业务分解图</h2><div class="branch-tools"><button id="collapse-all">收拢</button><button id="expand-all">展开</button></div></div><p class="business-caption">组成与层级 · 点击业务进入</p><div id="business" class="business-canvas" aria-label="业务分解图"></div><details class="project-info"><summary>项目信息</summary><h2 id="project-title"></h2><p id="summary"></p><p id="scope"></p></details><button id="collapse-business" class="edge-toggle edge-toggle-right" aria-label="收起业务分解图" aria-controls="business-panel">‹</button></aside>
     <main class="workspace">
       <nav id="crumbs" class="crumbs" aria-label="当前业务路径"></nav>
-      <div class="page-heading"><h1 id="flow-title"></h1><div class="read-actions"><button id="toggle-business" class="panel-toggle" aria-expanded="true" aria-controls="business-panel">业务分解图</button><button id="read-start" class="primary">开始阅读</button><button id="read-next" class="primary" hidden disabled>下一步</button><button id="read-reset" hidden>退出阅读</button></div></div>
-      <div class="context-bar"><p id="read-status" class="read-status"></p><details class="menu choices-menu" id="choices-panel"><summary>分支情景</summary><div class="menu-body"><div id="choices" class="choices"></div><p>只选择阅读情景，不执行源码条件。</p></div></details></div>
-      <section class="graph-panel">
-        <div class="graph-top"><div class="graph-caption"><strong>内部流程图</strong><span id="relation-count"></span></div><div class="graph-actions">
+      <div class="workspace-bar">
+        <button id="back-level" class="toolbar-button back-level" hidden aria-label="返回上一层">← 返回上层</button>
+        <h1 id="flow-title"></h1><span id="relation-count" class="flow-count"></span>
+        <div class="bar-actions"><button id="read-start" class="primary">开始阅读</button><button id="read-next" class="primary" hidden disabled>下一步</button><button id="read-reset" hidden>退出阅读</button>
           <div class="zoom-tools" role="group" aria-label="缩放"><button id="zoom-out" aria-label="缩小">−</button><output id="zoom-value" aria-label="当前比例">100%</output><button id="zoom-in" aria-label="放大">+</button></div>
-          <button id="fit" class="toolbar-button">适应全图</button><button id="reset-view" class="toolbar-button">原始大小</button><button id="motion" class="toolbar-button" aria-pressed="true">流动：开</button><button id="toggle-details" class="panel-toggle" aria-expanded="false" aria-controls="inspector">节点详情</button>
-        </div></div>
+          <button id="fit" class="toolbar-button">适应全图</button><button id="reset-view" class="toolbar-button">原始大小</button><button id="toggle-details" class="panel-toggle" aria-expanded="true" aria-controls="inspector">节点详情</button>
+        </div>
+      </div>
+      <p id="read-status" class="read-status" hidden></p>
+      <section class="graph-panel">
         <div id="canvas" class="scene" aria-label="当前业务的完整内部流程图"></div>
         <div class="graph-note"><span class="key" data-legend="data">数据实线：即时承接</span><span class="key later" data-legend="data">数据虚线：保留后用</span><span class="key control" data-legend="control">◇ 控制与条件</span><span data-legend="failure">╌ 失败路径</span><span data-legend="loop">↺ 循环回指</span><span data-legend="effect">→ 资源作用</span><span data-legend="capability">⋯ 组件能力</span><span>悬浮预览 · 点击查看详情 · 拖拽平移</span></div>
       </section>
     </main>
-    <aside id="inspector" class="inspector" aria-label="节点详情" hidden>
-      <div class="panel-head"><h2>节点详情</h2><button id="close-details" class="close-button" aria-label="关闭详情">关闭</button></div>
+    <aside id="inspector" class="inspector" aria-label="节点详情">
+      <div class="panel-head"><h2>节点详情</h2></div>
       <div id="details-body" class="details-body">
         <div class="selection-heading"><div id="selected-symbol" class="selected-symbol" aria-hidden="true"></div><div><span id="selected-role" class="role"></span><h2 id="selected-title"></h2></div></div>
         <p id="selected-text"></p><p id="no-description" class="empty-note" hidden>此节点尚未提供补充说明。</p>
         <div class="details-actions"><button id="expand" class="primary" hidden>进入内部</button><button id="show-source" class="toolbar-button" hidden>查看源码</button></div>
+        <section id="branch-section" class="detail-section" hidden><h3>分支</h3><div id="branch-choices" class="branch-choices"></div><p class="branch-hint">点击图上的判断节点可切换到下一个分支。</p></section>
         <section id="source-links-section" class="detail-section" hidden><h3>源码位置</h3><div id="source-links" class="source-links"></div></section>
         <section id="connections-section" class="detail-section" hidden><h3>关联对象</h3><div id="connections" class="connected-list"></div></section>
         <details class="relation-index detail-section" id="relation-index"><summary id="relation-index-title">相关关系</summary><ul id="relation-list"></ul></details>
       </div>
-      <section id="drawer" class="drawer" aria-label="源码摘录" hidden><div class="drawer-head"><button id="close-source">← 返回节点说明</button><h2 id="source-title"></h2></div><div id="sources" class="drawer-body"></div></section>
+      <section id="drawer" class="drawer" aria-label="源码摘录" hidden><div class="drawer-head"><button id="close-source">← 返回节点说明</button><button id="toggle-source-full" class="toolbar-button" aria-pressed="false">全屏</button><h2 id="source-title"></h2></div><div id="sources" class="drawer-body"></div></section>
+      <button id="close-details" class="edge-toggle edge-toggle-left" aria-label="收起节点详情" aria-controls="inspector">›</button>
     </aside>
   </div>
+  <div class="edge-hint edge-top" id="edge-top" hidden><button id="expand-header" aria-label="展开顶栏">⌄ 顶栏</button></div>
+  <div class="edge-hint edge-left" id="edge-left" hidden><button id="expand-business" aria-label="展开业务分解图">业务分解图 ›</button></div>
+  <div class="edge-hint edge-right" id="edge-right" hidden><button id="expand-details" aria-label="展开节点详情">‹ 节点详情</button></div>
 </div>
 <div id="node-preview" class="node-preview" role="tooltip" hidden></div>
 <script>// LitFlux drawing primitives: place, measure, draw. This file never decides layout,
@@ -157,6 +235,24 @@ const LitFluxDrawing = (() => {
       const points=Array.from({length:32},(_,i)=>{const angle=i*Math.PI/16-Math.PI/2,r=i%4<2?10:8;return `${12+r*Math.cos(angle)},${12+r*Math.sin(angle)}`;});
       icon.append(el('polygon',{points:points.join(' ')}),el('circle',{cx:12,cy:12,r:3}));
     }else icon.append(el('path',{d:paths[kind]}));
+    return icon;
+  }
+
+  const roleGlyphs = {
+    business: 'M5 6.5 11 12l-6 5.5 M13 6.5 19 12l-6 5.5',
+    decision: 'M8.4 9.6a3.6 3.6 0 1 1 6.1 2.7c-1.3 1-2 1.6-2 3.1',
+    component: 'M7.5 7.5h9v9h-9Z M10 3v4.5 M14 3v4.5 M10 16.5V21 M14 16.5V21 M3 10h4.5 M3 14h4.5 M16.5 10H21 M16.5 14H21',
+    boundary: 'M4 4.5h16v15H4Z M8 12h7 M12.5 9l3 3-3 3',
+  };
+  function roleIcon(type) {
+    const shape = Object.hasOwn(roleGlyphs, type) ? type : 'business';
+    const icon = el('svg', {
+      viewBox: '0 0 24 24', width: 24, height: 24, fill: 'none', stroke: 'currentColor',
+      'stroke-width': 1.5, 'stroke-linecap': 'round', 'stroke-linejoin': 'round',
+      'aria-hidden': 'true', class: 'role-icon', 'data-role-icon': shape,
+    });
+    icon.append(el('path', { class: 'role-glyph', d: roleGlyphs[shape] }));
+    if (shape === 'decision') icon.append(el('circle', { class: 'role-glyph-dot', cx: 12.4, cy: 18.9, r: 1.3, fill: 'currentColor' }));
     return icon;
   }
 
@@ -354,8 +450,7 @@ const LitFluxDrawing = (() => {
             group.dataset.resourceKind=resourceKind(object.resourceKind);
             const icon=resourceIcon(object.resourceKind);icon.setAttribute('x',-w+19);icon.setAttribute('y',-12);group.append(icon);
           }else{
-            const paths={business:'M5 6H19 M5 12H15 M5 18H11 M17 14L21 18 M21 14L17 18',decision:'M4 7L6 9L9 5 M12 7H20 M4 16L6 18L9 14 M12 16H20',component:'M7 3H17L23 12L17 21H7L1 12Z',boundary:'M4 12H20 M14 6L20 12L14 18'};
-            group.append(el('path',{class:'role-glyph',transform:`translate(${-w+19} -12)`,d:paths[object.type]||paths.business}));
+            const icon=roleIcon(object.type);icon.setAttribute('x',-w+19);icon.setAttribute('y',-12);group.append(icon);
           }
         }
         if(object.detail){
@@ -533,7 +628,7 @@ const LitFluxDrawing = (() => {
     };
     return scene;
   }
-  return { create, measure, wrap, el, resourceKinds, resourceKind, resourceIcon };
+  return { create, measure, wrap, el, resourceKinds, resourceKind, resourceIcon, roleIcon };
 })();
 </script>
 <script id="module" type="text/plain">const teaching=(()=>{const module={exports:{}};
@@ -705,7 +800,7 @@ return module.exports;})();
 const visited=new Set();function adapt(flow){if(visited.has(flow))return;visited.add(flow);const draw=flow.draw;flow.draw=function(s,viewport){let proxy;proxy={...s,node(id,x,y,opts){s.node(id,x*1.30,y*1.16,opts);return proxy;},edge(id,opts){const adjusted={...opts,via:opts.via?.map(([x,y])=>[x*1.30,y*1.16]),noteAt:opts.noteAt?.map((n,i)=>n*(i?1.16:1.30))};const r=flow.relations.find(r=>r.id===id),a=s.nodeBox(r.from),b=s.nodeBox(r.to);if(!opts.via&&opts.sides.every(side=>['left','right'].includes(side))&&Math.abs(a.y-b.y)<1){const ax=opts.sides[0]==='left'?a.left:a.right,bx=opts.sides[1]==='left'?b.left:b.right;adjusted.noteAt=[(ax+bx)/2,a.y];adjusted.noteWidth=opts.noteWidth??Math.max(56,Math.abs(bx-ax)-24);}s.edge(id,adjusted);return proxy;}};draw(proxy,viewport);};for(const o of flow.objects)if(o.detail)adapt(o.detail);}
 teaching.workflows.forEach(w=>adapt(w.flow));module.exports={...teaching,language:'en',title:'LitFlux · Gunmetal & Amber',summary:'A complete walkthrough in industrial-instrument styling with soft, rounded nodes: text saving, batch submission and resource categories.',files:{...teaching.files,...resources.files},workflows:[...teaching.workflows,...resources.workflows]};
 </script>
-<script id="payload" type="application/json">{"revision": "af427ea08163592a", "sources": {"app:14-19": {"path": "app.py", "start": 14, "end": 19, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["def submit(text, path, writer=write_text):", "    cleaned = normalize(text)", "    if not cleaned:", "        return {\"saved\": False, \"location\": None}", "    location = writer(path, cleaned)", "    return {\"saved\": True, \"location\": location}"]}, "app:14-15": {"path": "app.py", "start": 14, "end": 15, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["def submit(text, path, writer=write_text):", "    cleaned = normalize(text)"]}, "app:5-6": {"path": "app.py", "start": 5, "end": 6, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["def normalize(text):", "    return text.strip()"]}, "app:15": {"path": "app.py", "start": 15, "end": 15, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["    cleaned = normalize(text)"]}, "app:15-18": {"path": "app.py", "start": 15, "end": 18, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["    cleaned = normalize(text)", "    if not cleaned:", "        return {\"saved\": False, \"location\": None}", "    location = writer(path, cleaned)"]}, "app:16-18": {"path": "app.py", "start": 16, "end": 18, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["    if not cleaned:", "        return {\"saved\": False, \"location\": None}", "    location = writer(path, cleaned)"]}, "app:14-18": {"path": "app.py", "start": 14, "end": 18, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["def submit(text, path, writer=write_text):", "    cleaned = normalize(text)", "    if not cleaned:", "        return {\"saved\": False, \"location\": None}", "    location = writer(path, cleaned)"]}, "app:9-11": {"path": "app.py", "start": 9, "end": 11, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["def write_text(path, text):", "    Path(path).write_text(text, encoding=\"utf-8\")", "    return str(path)"]}, "app:18": {"path": "app.py", "start": 18, "end": 18, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["    location = writer(path, cleaned)"]}, "app:11": {"path": "app.py", "start": 11, "end": 11, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["    return str(path)"]}, "app:14": {"path": "app.py", "start": 14, "end": 14, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["def submit(text, path, writer=write_text):"]}, "app:10": {"path": "app.py", "start": 10, "end": 10, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["    Path(path).write_text(text, encoding=\"utf-8\")"]}, "app:17": {"path": "app.py", "start": 17, "end": 17, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["        return {\"saved\": False, \"location\": None}"]}, "app:22-26": {"path": "app.py", "start": 22, "end": 26, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["def submit_many(texts, path, writer=write_text):", "    results = []", "    for text in texts:", "        results.append(submit(text, path, writer))", "    return results"]}, "app:25": {"path": "app.py", "start": 25, "end": 25, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["        results.append(submit(text, path, writer))"]}, "app:23-26": {"path": "app.py", "start": 23, "end": 26, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["    results = []", "    for text in texts:", "        results.append(submit(text, path, writer))", "    return results"]}, "app:26": {"path": "app.py", "start": 26, "end": 26, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["    return results"]}, "source:5-14": {"path": "resources.py", "start": 5, "end": 14, "sha256": "849de92dc074b21063926da33b0eca0faf8226fc17327abdeaac9e6086203a72", "lines": ["def save_report(directory, config, connection, storage, text):", "    folder = Path(directory)", "    folder.mkdir(parents=True, exist_ok=True)", "    report_file = folder / \"report.txt\"", "    report_file.write_text(text, encoding=config.get(\"encoding\", \"utf-8\"))", "    connection.execute(\"INSERT INTO reports(body) VALUES (?)\", (text,))", "    recent = []", "    recent.append(str(report_file))", "    storage.save(recent)", "    return recent"]}, "source:10": {"path": "resources.py", "start": 10, "end": 10, "sha256": "849de92dc074b21063926da33b0eca0faf8226fc17327abdeaac9e6086203a72", "lines": ["    connection.execute(\"INSERT INTO reports(body) VALUES (?)\", (text,))"]}, "source:5": {"path": "resources.py", "start": 5, "end": 5, "sha256": "849de92dc074b21063926da33b0eca0faf8226fc17327abdeaac9e6086203a72", "lines": ["def save_report(directory, config, connection, storage, text):"]}, "source:9": {"path": "resources.py", "start": 9, "end": 9, "sha256": "849de92dc074b21063926da33b0eca0faf8226fc17327abdeaac9e6086203a72", "lines": ["    report_file.write_text(text, encoding=config.get(\"encoding\", \"utf-8\"))"]}, "source:6-8": {"path": "resources.py", "start": 6, "end": 8, "sha256": "849de92dc074b21063926da33b0eca0faf8226fc17327abdeaac9e6086203a72", "lines": ["    folder = Path(directory)", "    folder.mkdir(parents=True, exist_ok=True)", "    report_file = folder / \"report.txt\""]}, "source:8-9": {"path": "resources.py", "start": 8, "end": 9, "sha256": "849de92dc074b21063926da33b0eca0faf8226fc17327abdeaac9e6086203a72", "lines": ["    report_file = folder / \"report.txt\"", "    report_file.write_text(text, encoding=config.get(\"encoding\", \"utf-8\"))"]}, "source:11-14": {"path": "resources.py", "start": 11, "end": 14, "sha256": "849de92dc074b21063926da33b0eca0faf8226fc17327abdeaac9e6086203a72", "lines": ["    recent = []", "    recent.append(str(report_file))", "    storage.save(recent)", "    return recent"]}, "source:13": {"path": "resources.py", "start": 13, "end": 13, "sha256": "849de92dc074b21063926da33b0eca0faf8226fc17327abdeaac9e6086203a72", "lines": ["    storage.save(recent)"]}}, "status": "checked", "timingNotes": ["workflows[0]/flow/retained", "workflows[1]/flow/submit/detail/retained"]}</script>
+<script id="payload" type="application/json">{"revision": "6e5d823809d1565b", "sources": {"app:14-19": {"path": "app.py", "start": 14, "end": 19, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["def submit(text, path, writer=write_text):", "    cleaned = normalize(text)", "    if not cleaned:", "        return {\"saved\": False, \"location\": None}", "    location = writer(path, cleaned)", "    return {\"saved\": True, \"location\": location}"]}, "app:14-15": {"path": "app.py", "start": 14, "end": 15, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["def submit(text, path, writer=write_text):", "    cleaned = normalize(text)"]}, "app:5-6": {"path": "app.py", "start": 5, "end": 6, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["def normalize(text):", "    return text.strip()"]}, "app:15": {"path": "app.py", "start": 15, "end": 15, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["    cleaned = normalize(text)"]}, "app:15-18": {"path": "app.py", "start": 15, "end": 18, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["    cleaned = normalize(text)", "    if not cleaned:", "        return {\"saved\": False, \"location\": None}", "    location = writer(path, cleaned)"]}, "app:16-18": {"path": "app.py", "start": 16, "end": 18, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["    if not cleaned:", "        return {\"saved\": False, \"location\": None}", "    location = writer(path, cleaned)"]}, "app:14-18": {"path": "app.py", "start": 14, "end": 18, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["def submit(text, path, writer=write_text):", "    cleaned = normalize(text)", "    if not cleaned:", "        return {\"saved\": False, \"location\": None}", "    location = writer(path, cleaned)"]}, "app:9-11": {"path": "app.py", "start": 9, "end": 11, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["def write_text(path, text):", "    Path(path).write_text(text, encoding=\"utf-8\")", "    return str(path)"]}, "app:18": {"path": "app.py", "start": 18, "end": 18, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["    location = writer(path, cleaned)"]}, "app:11": {"path": "app.py", "start": 11, "end": 11, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["    return str(path)"]}, "app:14": {"path": "app.py", "start": 14, "end": 14, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["def submit(text, path, writer=write_text):"]}, "app:10": {"path": "app.py", "start": 10, "end": 10, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["    Path(path).write_text(text, encoding=\"utf-8\")"]}, "app:17": {"path": "app.py", "start": 17, "end": 17, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["        return {\"saved\": False, \"location\": None}"]}, "app:22-26": {"path": "app.py", "start": 22, "end": 26, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["def submit_many(texts, path, writer=write_text):", "    results = []", "    for text in texts:", "        results.append(submit(text, path, writer))", "    return results"]}, "app:25": {"path": "app.py", "start": 25, "end": 25, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["        results.append(submit(text, path, writer))"]}, "app:23-26": {"path": "app.py", "start": 23, "end": 26, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["    results = []", "    for text in texts:", "        results.append(submit(text, path, writer))", "    return results"]}, "app:26": {"path": "app.py", "start": 26, "end": 26, "sha256": "359859b362d7492f24d57532f9f99330d51943dfc8b2b32b563788f3d28cf2d6", "lines": ["    return results"]}, "source:5-14": {"path": "resources.py", "start": 5, "end": 14, "sha256": "849de92dc074b21063926da33b0eca0faf8226fc17327abdeaac9e6086203a72", "lines": ["def save_report(directory, config, connection, storage, text):", "    folder = Path(directory)", "    folder.mkdir(parents=True, exist_ok=True)", "    report_file = folder / \"report.txt\"", "    report_file.write_text(text, encoding=config.get(\"encoding\", \"utf-8\"))", "    connection.execute(\"INSERT INTO reports(body) VALUES (?)\", (text,))", "    recent = []", "    recent.append(str(report_file))", "    storage.save(recent)", "    return recent"]}, "source:10": {"path": "resources.py", "start": 10, "end": 10, "sha256": "849de92dc074b21063926da33b0eca0faf8226fc17327abdeaac9e6086203a72", "lines": ["    connection.execute(\"INSERT INTO reports(body) VALUES (?)\", (text,))"]}, "source:5": {"path": "resources.py", "start": 5, "end": 5, "sha256": "849de92dc074b21063926da33b0eca0faf8226fc17327abdeaac9e6086203a72", "lines": ["def save_report(directory, config, connection, storage, text):"]}, "source:9": {"path": "resources.py", "start": 9, "end": 9, "sha256": "849de92dc074b21063926da33b0eca0faf8226fc17327abdeaac9e6086203a72", "lines": ["    report_file.write_text(text, encoding=config.get(\"encoding\", \"utf-8\"))"]}, "source:6-8": {"path": "resources.py", "start": 6, "end": 8, "sha256": "849de92dc074b21063926da33b0eca0faf8226fc17327abdeaac9e6086203a72", "lines": ["    folder = Path(directory)", "    folder.mkdir(parents=True, exist_ok=True)", "    report_file = folder / \"report.txt\""]}, "source:8-9": {"path": "resources.py", "start": 8, "end": 9, "sha256": "849de92dc074b21063926da33b0eca0faf8226fc17327abdeaac9e6086203a72", "lines": ["    report_file = folder / \"report.txt\"", "    report_file.write_text(text, encoding=config.get(\"encoding\", \"utf-8\"))"]}, "source:11-14": {"path": "resources.py", "start": 11, "end": 14, "sha256": "849de92dc074b21063926da33b0eca0faf8226fc17327abdeaac9e6086203a72", "lines": ["    recent = []", "    recent.append(str(report_file))", "    storage.save(recent)", "    return recent"]}, "source:13": {"path": "resources.py", "start": 13, "end": 13, "sha256": "849de92dc074b21063926da33b0eca0faf8226fc17327abdeaac9e6086203a72", "lines": ["    storage.save(recent)"]}}, "status": "checked", "timingNotes": ["workflows[0]/flow/retained", "workflows[1]/flow/submit/detail/retained"]}</script>
 <script>
 const payload=JSON.parse(document.querySelector('#payload').textContent);
 const moduleRecord={exports:{}};
@@ -763,9 +858,42 @@ function restoreCamera(){
 function setInspector(open){
   if($('#inspector').hidden===!open)return;
   if(open)inspectorReturnFocus=document.activeElement;
-  preserveCamera(()=>{$('#inspector').hidden=!open;$('.dual-layout').classList.toggle('inspector-open',open);$('#toggle-details').setAttribute('aria-expanded',String(open));});
-  if(!open){sourceRefs=[];$('#drawer').hidden=true;$('#details-body').hidden=false;
+  preserveCamera(()=>{$('#inspector').hidden=!open;$('.dual-layout').classList.toggle('inspector-open',open);$('#toggle-details').setAttribute('aria-expanded',String(open));syncChrome();});
+  if(!open){setSourceFull(false);sourceRefs=[];$('#drawer').hidden=true;$('#details-body').hidden=false;
     const target=inspectorReturnFocus?.isConnected&&!$('#inspector').contains(inspectorReturnFocus)?inspectorReturnFocus:$('#toggle-details');target.focus();}
+}
+function setHeader(open){
+  const app=$('.app');
+  if(!app||app.classList.contains('header-collapsed')===!open)return;
+  preserveCamera(()=>{app.classList.toggle('header-collapsed',!open);$('#collapse-header').setAttribute('aria-expanded',String(open));syncChrome();});
+  if(!open)$('#expand-header').focus({preventScroll:true});
+}
+function setBusiness(open){
+  if($('#business-panel').hidden===!open)return;
+  preserveCamera(()=>{$('#business-panel').hidden=!open;$('.dual-layout').classList.toggle('sidebar-collapsed',!open);$('#collapse-business').setAttribute('aria-expanded',String(open));syncChrome();});
+  if(!open)$('#expand-business').focus({preventScroll:true});
+}
+function syncChrome(){
+  $('#edge-top').hidden=!$('.app').classList.contains('header-collapsed');
+  $('#edge-left').hidden=!$('.dual-layout').classList.contains('sidebar-collapsed');
+  $('#edge-right').hidden=!$('#inspector').hidden;
+}
+function chooseBranch(object,choiceId){
+  const values=choices();
+  if(!Object.hasOwn(values,object.id)||values[object.id]===choiceId)return;
+  values[object.id]=choiceId;reading=null;renderChoices();plot();paintReading();
+}
+function cycleBranch(object){
+  const values=choices();
+  if(!Object.hasOwn(values,object.id))return false;
+  const list=object.choices,i=Math.max(0,list.findIndex(c=>c.id===values[object.id]));
+  values[object.id]=list[(i+1)%list.length].id;reading=null;renderChoices();plot();paintReading();
+  return true;
+}
+function handleObject(object,enter=false){
+  if(enter&&object.detail){navigate(current+'/'+object.id);return;}
+  cycleBranch(object);
+  showDetails({kind:'object',object});
 }
 function previewText(text){
   const paragraph=String(text||'').trim().split(/\n\s*\n|\n/)[0];
@@ -799,7 +927,7 @@ const flow=()=>businesses.get(current).flow;
 function navigate(key){
   const target=businesses.get(key);
   if(!target)return;
-  hidePreview();pendingAnchor=null;sourceRefs=[];$('#drawer').hidden=true;$('#details-body').hidden=false;
+  hidePreview();pendingAnchor=null;setSourceFull(false);sourceRefs=[];$('#drawer').hidden=true;$('#details-body').hidden=false;
   for(let b=target;b.parent;b=businesses.get(b.parent))collapsed.delete(b.parent);
   if(!target.flow){if(current!==target.parent)navigate(target.parent);select(target.owner);return;}
   if(current===key){businessPlot();return;}
@@ -897,15 +1025,17 @@ function paintReading(){
   $('#read-next').hidden=!reading||completed;
   $('#read-next').disabled=!reading||completed;
   $('#read-reset').hidden=!reading;
-  $('#read-status').textContent=!reading?'选择对象查看说明，或按依赖逐步阅读。':plan.blocked.length?'阅读受阻：'+plan.blocked.join('、'):completed?'本层阅读完成；不是程序执行成功。':`${reading.cursor}/${plan.order.length} · 按作者声明的关系阅读`;
+  $('#read-status').hidden=!reading;
+  $('#read-status').textContent=!reading?'':plan.blocked.length?'阅读受阻：'+plan.blocked.join('、'):completed?'本层阅读完成；不是程序执行成功。':`${reading.cursor}/${plan.order.length} · 按作者声明的关系阅读`;
   if(reading&&plan.conflicts.length)$('#read-status').textContent+=' · 输入可能绕过未选条件：'+plan.conflicts.join('、');
   syncFlow();
 }
 function renderChoices(){
   const values=choices();
-  $('#choices').replaceChildren();
+  const host=$('#choices');
+  if(!host)return;
+  host.replaceChildren();
   const owners=flow().objects.filter(o=>o.choices);
-  $('#choices-panel').hidden=!owners.length;
   for(const object of owners){
     const label=html('label',object.title), select=html('select');
     select.dataset.choice=object.id;
@@ -913,12 +1043,13 @@ function renderChoices(){
     select.value=values[object.id];
     select.onchange=()=>{values[object.id]=select.value;reading=null;renderChoices();plot();paintReading();};
     label.append(select);
-    $('#choices').append(label);
+    host.append(label);
   }
 }
 function showDetails(target,reveal=true){
   hidePreview();selected=target;sourceRefs=[];$('#drawer').hidden=true;$('#details-body').hidden=false;
   let refs=[],title='';$('#selected-symbol').replaceChildren();
+  $('#branch-section').hidden=true;
   if(target.kind==='relation'){
     const relation=target.relation;
     title=relation.label||objectTitle(relation.from)+' → '+objectTitle(relation.to);
@@ -934,10 +1065,18 @@ function showDetails(target,reveal=true){
     $('#selected-text').textContent=object.text||'';
     refs=refsOf(object.sources);
     if(object.type==='resource')$('#selected-symbol').append(LitFluxDrawing.resourceIcon(object.resourceKind));
-    else{
-      const icon=svg('svg',{viewBox:'0 0 24 24',fill:'none',stroke:'currentColor','stroke-width':1.5,'aria-hidden':'true'});
-      const paths={business:'M4 5H20V19H4Z',data:'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18',component:'M6 3H18L23 12L18 21H6L1 12Z',decision:'M12 2L22 12L12 22L2 12Z',boundary:'M7 5H17a7 7 0 0 1 0 14H7a7 7 0 0 1 0-14'};
-      icon.append(svg('path',{d:paths[object.type]||paths.business}));$('#selected-symbol').append(icon);
+    else $('#selected-symbol').append(LitFluxDrawing.roleIcon(object.type));
+    if(object.choices){
+      const values=choices();
+      $('#branch-section').hidden=false;
+      $('#branch-choices').replaceChildren();
+      for(const choice of object.choices){
+        const button=html('button',choice.label);
+        button.className='branch-chip';
+        button.setAttribute('aria-pressed',String(values[object.id]===choice.id));
+        button.onclick=()=>{chooseBranch(object,choice.id);showDetails(target);};
+        $('#branch-choices').append(button);
+      }
     }
     $('#expand').hidden=!object.detail;
     $('#expand').onclick=()=>navigate(current+'/'+object.id);
@@ -1035,7 +1174,7 @@ function plot(){
   const host=$('#canvas');
   try{
     const view=flow();
-    const scene=LitFluxDrawing.create(view,host,{onObject:select,onRelation:selectRelation,onPreview:startPreview,onPreviewEnd:endPreview});
+    const scene=LitFluxDrawing.create(view,host,{onObject:handleObject,onRelation:selectRelation,onPreview:startPreview,onPreviewEnd:endPreview});
     view.draw(scene,{width:host.clientWidth,height:host.clientHeight});
     currentDiagram=scene.finish();
     currentDiagram.error=null;
@@ -1086,20 +1225,19 @@ function openSource(refs,title){
     });
     section.append(pre);$('#sources').append(section);
   }
-  $('#drawer').hidden=false;$('#details-body').hidden=true;$('#close-source').focus();
+  $('#drawer').hidden=false;$('#details-body').hidden=true;setSourceFull(false);$('#close-source').focus();
 }
-function closeSource(){sourceRefs=[];$('#drawer').hidden=true;$('#details-body').hidden=false;if(returnFocus?.isConnected)returnFocus.focus();}
+function setSourceFull(on){
+  $('#drawer').classList.toggle('source-full',on);
+  $('#toggle-source-full').textContent=on?'退出全屏':'全屏';
+  $('#toggle-source-full').setAttribute('aria-pressed',String(on));
+}
+function closeSource(){setSourceFull(false);sourceRefs=[];$('#drawer').hidden=true;$('#details-body').hidden=false;if(returnFocus?.isConnected)returnFocus.focus();}
 function applyTheme(theme,persist=false){
   document.documentElement.dataset.theme=theme==='dark'?'dark':'light';
   $('#theme').textContent=theme==='dark'?'浅色主题':'深色主题';
   $('#theme').setAttribute('aria-pressed',String(theme==='dark'));
   if(persist)try{localStorage.setItem('litflux.theme',theme);}catch{}
-}
-function updateMotion(){
-  $('#motion').disabled=reducedMotion.matches;
-  $('#motion').textContent=reducedMotion.matches?'已减少动态':'流动：'+(motionEnabled?'开':'关');
-  $('#motion').setAttribute('aria-pressed',String(motionEnabled&&!reducedMotion.matches));
-  syncFlow();
 }
 function render(){
   const view=businesses.get(current);
@@ -1111,6 +1249,9 @@ function render(){
   document.querySelectorAll('[data-legend]').forEach(el=>{el.hidden=!diagram.relations.some(r=>r.type===el.dataset.legend);});
   $('#relation-count').textContent=diagram.objects.length+' 对象 · '+diagram.relations.length+' 关系';
   const chain=[];for(let b=view;b;b=businesses.get(b.parent))chain.unshift(b);
+  const parent=view.parent?businesses.get(view.parent):null;
+  $('#back-level').hidden=!parent;
+  if(parent)$('#back-level').onclick=()=>navigate(parent.key);
   $('#crumbs').hidden=chain.length===1;$('#crumbs').replaceChildren();
   chain.forEach((item,i)=>{
     if(i)$('#crumbs').append(html('span','/'));
@@ -1122,9 +1263,13 @@ function render(){
   else if(diagram.objects.length)showDetails({kind:'object',object:diagram.objects[0]},false);
   paintReading();
 }
-$('#toggle-business').onclick=()=>preserveCamera(()=>{const open=$('#business-panel').hidden;$('#business-panel').hidden=!open;$('.dual-layout').classList.toggle('sidebar-collapsed',!open);$('#toggle-business').setAttribute('aria-expanded',String(open));});
+$('#collapse-business').onclick=()=>setBusiness(false);
 $('#toggle-details').onclick=()=>setInspector($('#inspector').hidden);
 $('#close-details').onclick=()=>setInspector(false);
+$('#collapse-header').onclick=()=>setHeader(false);
+$('#expand-header').onclick=()=>setHeader(true);
+$('#expand-business').onclick=()=>setBusiness(true);
+$('#expand-details').onclick=()=>setInspector(true);
 $('#node-preview').onpointerenter=()=>clearTimeout(previewCloseTimer);
 $('#node-preview').onpointerleave=endPreview;
 $('#canvas').addEventListener('scroll',()=>{
@@ -1145,8 +1290,6 @@ $('#read-next').onclick=()=>{
 };
 $('#read-reset').onclick=()=>{reading=null;paintReading();};
 $('#theme').onclick=()=>applyTheme(document.documentElement.dataset.theme==='dark'?'light':'dark',true);
-$('#motion').onclick=()=>{motionEnabled=!motionEnabled;updateMotion();};
-reducedMotion.addEventListener('change',updateMotion);
 $('#fit').onclick=()=>{
   if(!currentDiagram?.svg)return;
   zoom=Math.min(1,($('#canvas').clientWidth-32)/currentDiagram.width,($('#canvas').clientHeight-32)/currentDiagram.height);
@@ -1167,13 +1310,15 @@ for(const name of ['pointerup','pointercancel','lostpointercapture'])$('#canvas'
 document.addEventListener('keydown',event=>{
   if(event.key==='Escape'){
     if(!$('#node-preview').hidden)hidePreview();
+    else if(!$('#drawer').hidden&&$('#drawer').classList.contains('source-full'))setSourceFull(false);
     else if(!$('#drawer').hidden)closeSource();
-    else if($('#choices-panel').open)$('#choices-panel').open=false;
+    else if($('.app').classList.contains('header-collapsed'))setHeader(true);
     else if(!$('#inspector').hidden)setInspector(false);
   }
 });
 $('#workflow-select').onchange=()=>navigate('workflow:'+$('#workflow-select').value);
 $('#close-source').onclick=closeSource;
+$('#toggle-source-full').onclick=()=>setSourceFull(!$('#drawer').classList.contains('source-full'));
 $('#delivery-badge').textContent={'draft':'草稿','checked':'已检查','reviewed':'已复核'}[payload.status]||'草稿';
 $('#title').textContent=$('#project-title').textContent=model.title;
 $('#summary').textContent=model.summary;$('#scope').textContent=model.scope;
@@ -1193,9 +1338,9 @@ new ResizeObserver(()=>{
   if(!pendingAnchor)pendingAnchor=cameraAnchor();
   schedulePlot();
 }).observe($('#canvas'));
-applyTheme('dark');
-render();updateMotion();
-requestAnimationFrame(()=>{select(flow().objects.find(o=>o.id==='normalize')||flow().objects[0]);});
+let theme='dark';try{theme=localStorage.getItem('litflux.theme')||'dark';}catch{}applyTheme(theme);
+render();syncChrome();
+requestAnimationFrame(()=>{const first=flow().objects.find(o=>o.type==='business')||flow().objects[0];if(first)select(first);});
 </script>
 <script>// Declaration checks plus objective geometry checks. Nothing here judges meaning or taste.
 (() => {
@@ -1280,8 +1425,6 @@ requestAnimationFrame(()=>{select(flow().objects.find(o=>o.id==='normalize')||fl
     for (const box of nodes) {
       const inside=(x,y)=>{
         const w=box.width/2-2,h=box.height/2-2;
-        if(box.outline!=='rect'&&box.role==='data')return x*x+y*y<=w*w;
-        if(box.outline!=='rect'&&box.role==='decision')return Math.abs(x)/w+Math.abs(y)/h<=1;
         return Math.abs(x)<=w&&Math.abs(y)<=h;
       };
       if ((box.textBoxes||[]).some(r=>[[r.x,r.y],[r.x+r.width,r.y],[r.x,r.y+r.height],[r.x+r.width,r.y+r.height]].some(([x,y])=>!inside(x,y)))) {
@@ -1504,6 +1647,20 @@ requestAnimationFrame(()=>{select(flow().objects.find(o=>o.id==='normalize')||fl
   "草稿": "Draft",
   "已检查": "Checked",
   "已复核": "Reviewed",
+  "收起顶栏": "Collapse header",
+  "收起业务分解图": "Collapse business map",
+  "收起节点详情": "Collapse node details",
+  "← 返回上层": "← Back",
+  "全屏": "Full screen",
+  "退出全屏": "Exit full screen",
+  "展开顶栏": "Show header",
+  "⌄ 顶栏": "⌄ Header",
+  "展开业务分解图": "Show business map",
+  "业务分解图 ›": "Business map ›",
+  "展开节点详情": "Show node details",
+  "‹ 节点详情": "‹ Node details",
+  "分支": "Branch",
+  "点击图上的判断节点可切换到下一个分支。": "Select a decision node to switch to the next branch.",
   "显示": "Display",
   "切换夜间": "Dark mode",
   "切换白天": "Light mode",

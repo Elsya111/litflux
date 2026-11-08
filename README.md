@@ -70,7 +70,7 @@ Things to try in the page:
 
 1. Switch between "Submit and save text", "Batch submit texts" and "Resource types and source mapping" in the workflow picker.
 2. Open the "Save text" sub-business, read it, then step back up.
-3. Open "Scenarios" and switch between "not empty: save" and "empty: reject" — watch which branch lights up.
+3. Click the "Text empty?" decision node to switch between "not empty: save" and "empty: reject" — watch which branch lights up.
 4. Select "Normalize text" and the page shows the excerpt at `app.py:5-6`.
 
 <div align="center">

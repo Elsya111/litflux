@@ -1,39 +1,48 @@
 <!doctype html><html lang="zh-CN" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LitFlux</title><style>__VIEWER_CSS__</style></head>
 <body id="litflux-canvas-app">
 <div class="app">
-  <header class="app-header">
+  <header class="app-header" id="app-header">
     <div class="identity"><div class="brand">LitFlux</div><div class="project-heading"><div><span id="title" class="project-name"></span><span id="delivery-badge" class="badge">草稿</span></div><div class="project-kicker">从业务流程读懂代码</div></div></div>
     <div class="workflow-picker"><label for="workflow-select">工作流</label><select id="workflow-select" aria-describedby="workflow-trigger"></select><p id="workflow-trigger" class="workflow-trigger" data-no-translate></p></div>
     <button id="theme" class="toolbar-button">深色主题</button>
+    <button id="collapse-header" class="icon-button" aria-label="收起顶栏" title="收起顶栏" aria-expanded="true" aria-controls="app-header">⌃</button>
   </header>
-  <div class="dual-layout">
-    <aside id="business-panel" class="business-panel"><div class="panel-head"><h2>业务分解图</h2><div class="branch-tools"><button id="collapse-all">收拢</button><button id="expand-all">展开</button></div></div><p class="business-caption">组成与层级 · 点击业务进入</p><div id="business" class="business-canvas" aria-label="业务分解图"></div><details class="project-info"><summary>项目信息</summary><h2 id="project-title"></h2><p id="summary"></p><p id="scope"></p></details></aside>
+  <div class="dual-layout inspector-open">
+    <aside id="business-panel" class="business-panel"><div class="panel-head"><h2>业务分解图</h2><div class="branch-tools"><button id="collapse-all">收拢</button><button id="expand-all">展开</button></div></div><p class="business-caption">组成与层级 · 点击业务进入</p><div id="business" class="business-canvas" aria-label="业务分解图"></div><details class="project-info"><summary>项目信息</summary><h2 id="project-title"></h2><p id="summary"></p><p id="scope"></p></details><button id="collapse-business" class="edge-toggle edge-toggle-right" aria-label="收起业务分解图" aria-controls="business-panel">‹</button></aside>
     <main class="workspace">
       <nav id="crumbs" class="crumbs" aria-label="当前业务路径"></nav>
-      <div class="page-heading"><h1 id="flow-title"></h1><div class="read-actions"><button id="toggle-business" class="panel-toggle" aria-expanded="true" aria-controls="business-panel">业务分解图</button><button id="read-start" class="primary">开始阅读</button><button id="read-next" class="primary" hidden disabled>下一步</button><button id="read-reset" hidden>退出阅读</button></div></div>
-      <div class="context-bar"><p id="read-status" class="read-status"></p><details class="menu choices-menu" id="choices-panel"><summary>分支情景</summary><div class="menu-body"><div id="choices" class="choices"></div><p>只选择阅读情景，不执行源码条件。</p></div></details></div>
-      <section class="graph-panel">
-        <div class="graph-top"><div class="graph-caption"><strong>内部流程图</strong><span id="relation-count"></span></div><div class="graph-actions">
+      <div class="workspace-bar">
+        <button id="back-level" class="toolbar-button back-level" hidden aria-label="返回上一层">← 返回上层</button>
+        <h1 id="flow-title"></h1><span id="relation-count" class="flow-count"></span>
+        <div class="bar-actions"><button id="read-start" class="primary">开始阅读</button><button id="read-next" class="primary" hidden disabled>下一步</button><button id="read-reset" hidden>退出阅读</button>
           <div class="zoom-tools" role="group" aria-label="缩放"><button id="zoom-out" aria-label="缩小">−</button><output id="zoom-value" aria-label="当前比例">100%</output><button id="zoom-in" aria-label="放大">+</button></div>
-          <button id="fit" class="toolbar-button">适应全图</button><button id="reset-view" class="toolbar-button">原始大小</button><button id="motion" class="toolbar-button" aria-pressed="true">流动：开</button><button id="toggle-details" class="panel-toggle" aria-expanded="false" aria-controls="inspector">节点详情</button>
-        </div></div>
+          <button id="fit" class="toolbar-button">适应全图</button><button id="reset-view" class="toolbar-button">原始大小</button><button id="toggle-details" class="panel-toggle" aria-expanded="true" aria-controls="inspector">节点详情</button>
+        </div>
+      </div>
+      <p id="read-status" class="read-status" hidden></p>
+      <section class="graph-panel">
         <div id="canvas" class="scene" aria-label="当前业务的完整内部流程图"></div>
         <div class="graph-note"><span class="key" data-legend="data">数据实线：即时承接</span><span class="key later" data-legend="data">数据虚线：保留后用</span><span class="key control" data-legend="control">◇ 控制与条件</span><span data-legend="failure">╌ 失败路径</span><span data-legend="loop">↺ 循环回指</span><span data-legend="effect">→ 资源作用</span><span data-legend="capability">⋯ 组件能力</span><span>悬浮预览 · 点击查看详情 · 拖拽平移</span></div>
       </section>
     </main>
-    <aside id="inspector" class="inspector" aria-label="节点详情" hidden>
-      <div class="panel-head"><h2>节点详情</h2><button id="close-details" class="close-button" aria-label="关闭详情">关闭</button></div>
+    <aside id="inspector" class="inspector" aria-label="节点详情">
+      <div class="panel-head"><h2>节点详情</h2></div>
       <div id="details-body" class="details-body">
         <div class="selection-heading"><div id="selected-symbol" class="selected-symbol" aria-hidden="true"></div><div><span id="selected-role" class="role"></span><h2 id="selected-title"></h2></div></div>
         <p id="selected-text"></p><p id="no-description" class="empty-note" hidden>此节点尚未提供补充说明。</p>
         <div class="details-actions"><button id="expand" class="primary" hidden>进入内部</button><button id="show-source" class="toolbar-button" hidden>查看源码</button></div>
+        <section id="branch-section" class="detail-section" hidden><h3>分支</h3><div id="branch-choices" class="branch-choices"></div><p class="branch-hint">点击图上的判断节点可切换到下一个分支。</p></section>
         <section id="source-links-section" class="detail-section" hidden><h3>源码位置</h3><div id="source-links" class="source-links"></div></section>
         <section id="connections-section" class="detail-section" hidden><h3>关联对象</h3><div id="connections" class="connected-list"></div></section>
         <details class="relation-index detail-section" id="relation-index"><summary id="relation-index-title">相关关系</summary><ul id="relation-list"></ul></details>
       </div>
-      <section id="drawer" class="drawer" aria-label="源码摘录" hidden><div class="drawer-head"><button id="close-source">← 返回节点说明</button><h2 id="source-title"></h2></div><div id="sources" class="drawer-body"></div></section>
+      <section id="drawer" class="drawer" aria-label="源码摘录" hidden><div class="drawer-head"><button id="close-source">← 返回节点说明</button><button id="toggle-source-full" class="toolbar-button" aria-pressed="false">全屏</button><h2 id="source-title"></h2></div><div id="sources" class="drawer-body"></div></section>
+      <button id="close-details" class="edge-toggle edge-toggle-left" aria-label="收起节点详情" aria-controls="inspector">›</button>
     </aside>
   </div>
+  <div class="edge-hint edge-top" id="edge-top" hidden><button id="expand-header" aria-label="展开顶栏">⌄ 顶栏</button></div>
+  <div class="edge-hint edge-left" id="edge-left" hidden><button id="expand-business" aria-label="展开业务分解图">业务分解图 ›</button></div>
+  <div class="edge-hint edge-right" id="edge-right" hidden><button id="expand-details" aria-label="展开节点详情">‹ 节点详情</button></div>
 </div>
 <div id="node-preview" class="node-preview" role="tooltip" hidden></div>
 <script>__DRAWING__</script>
@@ -96,9 +105,42 @@ function restoreCamera(){
 function setInspector(open){
   if($('#inspector').hidden===!open)return;
   if(open)inspectorReturnFocus=document.activeElement;
-  preserveCamera(()=>{$('#inspector').hidden=!open;$('.dual-layout').classList.toggle('inspector-open',open);$('#toggle-details').setAttribute('aria-expanded',String(open));});
-  if(!open){sourceRefs=[];$('#drawer').hidden=true;$('#details-body').hidden=false;
+  preserveCamera(()=>{$('#inspector').hidden=!open;$('.dual-layout').classList.toggle('inspector-open',open);$('#toggle-details').setAttribute('aria-expanded',String(open));syncChrome();});
+  if(!open){setSourceFull(false);sourceRefs=[];$('#drawer').hidden=true;$('#details-body').hidden=false;
     const target=inspectorReturnFocus?.isConnected&&!$('#inspector').contains(inspectorReturnFocus)?inspectorReturnFocus:$('#toggle-details');target.focus();}
+}
+function setHeader(open){
+  const app=$('.app');
+  if(!app||app.classList.contains('header-collapsed')===!open)return;
+  preserveCamera(()=>{app.classList.toggle('header-collapsed',!open);$('#collapse-header').setAttribute('aria-expanded',String(open));syncChrome();});
+  if(!open)$('#expand-header').focus({preventScroll:true});
+}
+function setBusiness(open){
+  if($('#business-panel').hidden===!open)return;
+  preserveCamera(()=>{$('#business-panel').hidden=!open;$('.dual-layout').classList.toggle('sidebar-collapsed',!open);$('#collapse-business').setAttribute('aria-expanded',String(open));syncChrome();});
+  if(!open)$('#expand-business').focus({preventScroll:true});
+}
+function syncChrome(){
+  $('#edge-top').hidden=!$('.app').classList.contains('header-collapsed');
+  $('#edge-left').hidden=!$('.dual-layout').classList.contains('sidebar-collapsed');
+  $('#edge-right').hidden=!$('#inspector').hidden;
+}
+function chooseBranch(object,choiceId){
+  const values=choices();
+  if(!Object.hasOwn(values,object.id)||values[object.id]===choiceId)return;
+  values[object.id]=choiceId;reading=null;renderChoices();plot();paintReading();
+}
+function cycleBranch(object){
+  const values=choices();
+  if(!Object.hasOwn(values,object.id))return false;
+  const list=object.choices,i=Math.max(0,list.findIndex(c=>c.id===values[object.id]));
+  values[object.id]=list[(i+1)%list.length].id;reading=null;renderChoices();plot();paintReading();
+  return true;
+}
+function handleObject(object,enter=false){
+  if(enter&&object.detail){navigate(current+'/'+object.id);return;}
+  cycleBranch(object);
+  showDetails({kind:'object',object});
 }
 function previewText(text){
   const paragraph=String(text||'').trim().split(/\n\s*\n|\n/)[0];
@@ -132,7 +174,7 @@ const flow=()=>businesses.get(current).flow;
 function navigate(key){
   const target=businesses.get(key);
   if(!target)return;
-  hidePreview();pendingAnchor=null;sourceRefs=[];$('#drawer').hidden=true;$('#details-body').hidden=false;
+  hidePreview();pendingAnchor=null;setSourceFull(false);sourceRefs=[];$('#drawer').hidden=true;$('#details-body').hidden=false;
   for(let b=target;b.parent;b=businesses.get(b.parent))collapsed.delete(b.parent);
   if(!target.flow){if(current!==target.parent)navigate(target.parent);select(target.owner);return;}
   if(current===key){businessPlot();return;}
@@ -230,15 +272,17 @@ function paintReading(){
   $('#read-next').hidden=!reading||completed;
   $('#read-next').disabled=!reading||completed;
   $('#read-reset').hidden=!reading;
-  $('#read-status').textContent=!reading?'选择对象查看说明，或按依赖逐步阅读。':plan.blocked.length?'阅读受阻：'+plan.blocked.join('、'):completed?'本层阅读完成；不是程序执行成功。':`${reading.cursor}/${plan.order.length} · 按作者声明的关系阅读`;
+  $('#read-status').hidden=!reading;
+  $('#read-status').textContent=!reading?'':plan.blocked.length?'阅读受阻：'+plan.blocked.join('、'):completed?'本层阅读完成；不是程序执行成功。':`${reading.cursor}/${plan.order.length} · 按作者声明的关系阅读`;
   if(reading&&plan.conflicts.length)$('#read-status').textContent+=' · 输入可能绕过未选条件：'+plan.conflicts.join('、');
   syncFlow();
 }
 function renderChoices(){
   const values=choices();
-  $('#choices').replaceChildren();
+  const host=$('#choices');
+  if(!host)return;
+  host.replaceChildren();
   const owners=flow().objects.filter(o=>o.choices);
-  $('#choices-panel').hidden=!owners.length;
   for(const object of owners){
     const label=html('label',object.title), select=html('select');
     select.dataset.choice=object.id;
@@ -246,12 +290,13 @@ function renderChoices(){
     select.value=values[object.id];
     select.onchange=()=>{values[object.id]=select.value;reading=null;renderChoices();plot();paintReading();};
     label.append(select);
-    $('#choices').append(label);
+    host.append(label);
   }
 }
 function showDetails(target,reveal=true){
   hidePreview();selected=target;sourceRefs=[];$('#drawer').hidden=true;$('#details-body').hidden=false;
   let refs=[],title='';$('#selected-symbol').replaceChildren();
+  $('#branch-section').hidden=true;
   if(target.kind==='relation'){
     const relation=target.relation;
     title=relation.label||objectTitle(relation.from)+' → '+objectTitle(relation.to);
@@ -267,10 +312,18 @@ function showDetails(target,reveal=true){
     $('#selected-text').textContent=object.text||'';
     refs=refsOf(object.sources);
     if(object.type==='resource')$('#selected-symbol').append(LitFluxDrawing.resourceIcon(object.resourceKind));
-    else{
-      const icon=svg('svg',{viewBox:'0 0 24 24',fill:'none',stroke:'currentColor','stroke-width':1.5,'aria-hidden':'true'});
-      const paths={business:'M4 5H20V19H4Z',data:'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18',component:'M6 3H18L23 12L18 21H6L1 12Z',decision:'M12 2L22 12L12 22L2 12Z',boundary:'M7 5H17a7 7 0 0 1 0 14H7a7 7 0 0 1 0-14'};
-      icon.append(svg('path',{d:paths[object.type]||paths.business}));$('#selected-symbol').append(icon);
+    else $('#selected-symbol').append(LitFluxDrawing.roleIcon(object.type));
+    if(object.choices){
+      const values=choices();
+      $('#branch-section').hidden=false;
+      $('#branch-choices').replaceChildren();
+      for(const choice of object.choices){
+        const button=html('button',choice.label);
+        button.className='branch-chip';
+        button.setAttribute('aria-pressed',String(values[object.id]===choice.id));
+        button.onclick=()=>{chooseBranch(object,choice.id);showDetails(target);};
+        $('#branch-choices').append(button);
+      }
     }
     $('#expand').hidden=!object.detail;
     $('#expand').onclick=()=>navigate(current+'/'+object.id);
@@ -368,7 +421,7 @@ function plot(){
   const host=$('#canvas');
   try{
     const view=flow();
-    const scene=LitFluxDrawing.create(view,host,{onObject:select,onRelation:selectRelation,onPreview:startPreview,onPreviewEnd:endPreview});
+    const scene=LitFluxDrawing.create(view,host,{onObject:handleObject,onRelation:selectRelation,onPreview:startPreview,onPreviewEnd:endPreview});
     view.draw(scene,{width:host.clientWidth,height:host.clientHeight});
     currentDiagram=scene.finish();
     currentDiagram.error=null;
@@ -419,20 +472,19 @@ function openSource(refs,title){
     });
     section.append(pre);$('#sources').append(section);
   }
-  $('#drawer').hidden=false;$('#details-body').hidden=true;$('#close-source').focus();
+  $('#drawer').hidden=false;$('#details-body').hidden=true;setSourceFull(false);$('#close-source').focus();
 }
-function closeSource(){sourceRefs=[];$('#drawer').hidden=true;$('#details-body').hidden=false;if(returnFocus?.isConnected)returnFocus.focus();}
+function setSourceFull(on){
+  $('#drawer').classList.toggle('source-full',on);
+  $('#toggle-source-full').textContent=on?'退出全屏':'全屏';
+  $('#toggle-source-full').setAttribute('aria-pressed',String(on));
+}
+function closeSource(){setSourceFull(false);sourceRefs=[];$('#drawer').hidden=true;$('#details-body').hidden=false;if(returnFocus?.isConnected)returnFocus.focus();}
 function applyTheme(theme,persist=false){
   document.documentElement.dataset.theme=theme==='dark'?'dark':'light';
   $('#theme').textContent=theme==='dark'?'浅色主题':'深色主题';
   $('#theme').setAttribute('aria-pressed',String(theme==='dark'));
   if(persist)try{localStorage.setItem('litflux.theme',theme);}catch{}
-}
-function updateMotion(){
-  $('#motion').disabled=reducedMotion.matches;
-  $('#motion').textContent=reducedMotion.matches?'已减少动态':'流动：'+(motionEnabled?'开':'关');
-  $('#motion').setAttribute('aria-pressed',String(motionEnabled&&!reducedMotion.matches));
-  syncFlow();
 }
 function render(){
   const view=businesses.get(current);
@@ -444,6 +496,9 @@ function render(){
   document.querySelectorAll('[data-legend]').forEach(el=>{el.hidden=!diagram.relations.some(r=>r.type===el.dataset.legend);});
   $('#relation-count').textContent=diagram.objects.length+' 对象 · '+diagram.relations.length+' 关系';
   const chain=[];for(let b=view;b;b=businesses.get(b.parent))chain.unshift(b);
+  const parent=view.parent?businesses.get(view.parent):null;
+  $('#back-level').hidden=!parent;
+  if(parent)$('#back-level').onclick=()=>navigate(parent.key);
   $('#crumbs').hidden=chain.length===1;$('#crumbs').replaceChildren();
   chain.forEach((item,i)=>{
     if(i)$('#crumbs').append(html('span','/'));
@@ -455,9 +510,13 @@ function render(){
   else if(diagram.objects.length)showDetails({kind:'object',object:diagram.objects[0]},false);
   paintReading();
 }
-$('#toggle-business').onclick=()=>preserveCamera(()=>{const open=$('#business-panel').hidden;$('#business-panel').hidden=!open;$('.dual-layout').classList.toggle('sidebar-collapsed',!open);$('#toggle-business').setAttribute('aria-expanded',String(open));});
+$('#collapse-business').onclick=()=>setBusiness(false);
 $('#toggle-details').onclick=()=>setInspector($('#inspector').hidden);
 $('#close-details').onclick=()=>setInspector(false);
+$('#collapse-header').onclick=()=>setHeader(false);
+$('#expand-header').onclick=()=>setHeader(true);
+$('#expand-business').onclick=()=>setBusiness(true);
+$('#expand-details').onclick=()=>setInspector(true);
 $('#node-preview').onpointerenter=()=>clearTimeout(previewCloseTimer);
 $('#node-preview').onpointerleave=endPreview;
 $('#canvas').addEventListener('scroll',()=>{
@@ -478,8 +537,6 @@ $('#read-next').onclick=()=>{
 };
 $('#read-reset').onclick=()=>{reading=null;paintReading();};
 $('#theme').onclick=()=>applyTheme(document.documentElement.dataset.theme==='dark'?'light':'dark',true);
-$('#motion').onclick=()=>{motionEnabled=!motionEnabled;updateMotion();};
-reducedMotion.addEventListener('change',updateMotion);
 $('#fit').onclick=()=>{
   if(!currentDiagram?.svg)return;
   zoom=Math.min(1,($('#canvas').clientWidth-32)/currentDiagram.width,($('#canvas').clientHeight-32)/currentDiagram.height);
@@ -500,13 +557,15 @@ for(const name of ['pointerup','pointercancel','lostpointercapture'])$('#canvas'
 document.addEventListener('keydown',event=>{
   if(event.key==='Escape'){
     if(!$('#node-preview').hidden)hidePreview();
+    else if(!$('#drawer').hidden&&$('#drawer').classList.contains('source-full'))setSourceFull(false);
     else if(!$('#drawer').hidden)closeSource();
-    else if($('#choices-panel').open)$('#choices-panel').open=false;
+    else if($('.app').classList.contains('header-collapsed'))setHeader(true);
     else if(!$('#inspector').hidden)setInspector(false);
   }
 });
 $('#workflow-select').onchange=()=>navigate('workflow:'+$('#workflow-select').value);
 $('#close-source').onclick=closeSource;
+$('#toggle-source-full').onclick=()=>setSourceFull(!$('#drawer').classList.contains('source-full'));
 $('#delivery-badge').textContent={'draft':'草稿','checked':'已检查','reviewed':'已复核'}[payload.status]||'草稿';
 $('#title').textContent=$('#project-title').textContent=model.title;
 $('#summary').textContent=model.summary;$('#scope').textContent=model.scope;
@@ -527,7 +586,7 @@ new ResizeObserver(()=>{
   schedulePlot();
 }).observe($('#canvas'));
 let theme='dark';try{theme=localStorage.getItem('litflux.theme')||'dark';}catch{}applyTheme(theme);
-render();updateMotion();
+render();syncChrome();
 requestAnimationFrame(()=>{const first=flow().objects.find(o=>o.type==='business')||flow().objects[0];if(first)select(first);});
 </script>
 <script>__AUDIT__</script>

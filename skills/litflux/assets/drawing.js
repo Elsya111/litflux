@@ -26,6 +26,24 @@ const LitFluxDrawing = (() => {
     return icon;
   }
 
+  const roleGlyphs = {
+    business: 'M5 6.5 11 12l-6 5.5 M13 6.5 19 12l-6 5.5',
+    decision: 'M8.4 9.6a3.6 3.6 0 1 1 6.1 2.7c-1.3 1-2 1.6-2 3.1',
+    component: 'M7.5 7.5h9v9h-9Z M10 3v4.5 M14 3v4.5 M10 16.5V21 M14 16.5V21 M3 10h4.5 M3 14h4.5 M16.5 10H21 M16.5 14H21',
+    boundary: 'M4 4.5h16v15H4Z M8 12h7 M12.5 9l3 3-3 3',
+  };
+  function roleIcon(type) {
+    const shape = Object.hasOwn(roleGlyphs, type) ? type : 'business';
+    const icon = el('svg', {
+      viewBox: '0 0 24 24', width: 24, height: 24, fill: 'none', stroke: 'currentColor',
+      'stroke-width': 1.5, 'stroke-linecap': 'round', 'stroke-linejoin': 'round',
+      'aria-hidden': 'true', class: 'role-icon', 'data-role-icon': shape,
+    });
+    icon.append(el('path', { class: 'role-glyph', d: roleGlyphs[shape] }));
+    if (shape === 'decision') icon.append(el('circle', { class: 'role-glyph-dot', cx: 12.4, cy: 18.9, r: 1.3, fill: 'currentColor' }));
+    return icon;
+  }
+
   function el(tag, attrs = {}) {
     const node = document.createElementNS(NS, tag);
     for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, value);
@@ -220,8 +238,7 @@ const LitFluxDrawing = (() => {
             group.dataset.resourceKind=resourceKind(object.resourceKind);
             const icon=resourceIcon(object.resourceKind);icon.setAttribute('x',-w+19);icon.setAttribute('y',-12);group.append(icon);
           }else{
-            const paths={business:'M5 6H19 M5 12H15 M5 18H11 M17 14L21 18 M21 14L17 18',decision:'M4 7L6 9L9 5 M12 7H20 M4 16L6 18L9 14 M12 16H20',component:'M7 3H17L23 12L17 21H7L1 12Z',boundary:'M4 12H20 M14 6L20 12L14 18'};
-            group.append(el('path',{class:'role-glyph',transform:`translate(${-w+19} -12)`,d:paths[object.type]||paths.business}));
+            const icon=roleIcon(object.type);icon.setAttribute('x',-w+19);icon.setAttribute('y',-12);group.append(icon);
           }
         }
         if(object.detail){
@@ -399,5 +416,5 @@ const LitFluxDrawing = (() => {
     };
     return scene;
   }
-  return { create, measure, wrap, el, resourceKinds, resourceKind, resourceIcon };
+  return { create, measure, wrap, el, resourceKinds, resourceKind, resourceIcon, roleIcon };
 })();

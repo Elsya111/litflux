@@ -62,7 +62,7 @@ draw(s, {width, height}) {
 }
 ```
 
-- `s.node(id, x, y, {width, height})`：中心点。尺寸省略时按文字实测给出；business、decision、component、resource 使用圆角卡片与角色图标，data 使用带圆点的胶囊；component 保留六边形图标，decision 使用判断图标，boundary 保留边界标识。资源表示稳定载体或共享状态；类别由作者根据源码说明，工具映射图标，不根据标题猜测。
+- `s.node(id, x, y, {width, height})`：中心点。尺寸省略时按文字实测给出；business、decision、component、resource 使用圆角卡片与角色图标，data 使用带圆点的胶囊；business 用组织层级图标，decision 用问号，component 用芯片，boundary 用边框加箭头，资源图标按 `resourceKind` 选择。资源表示稳定载体或共享状态；类别由作者根据源码说明，工具映射图标，不根据标题猜测。
 - `s.edge(id, {sides, via, noteAt, noteWidth, path})`：`sides` 是两端锚点边（left/right/top/bottom，必填）；`via` 是折点数组；`noteAt` 是可见边注中心（有 label 时填写）；`path` 可直接给 SVG 路径。
 - `s.nodeBox(id)`：放置节点后返回只读 `{x,y,width,height,left,right,top,bottom}`，使用 draw 的作者坐标；连线按 sides 连接外框的左/右/上/下中点。`s.node()` 返回 scene，支持链式调用。
 - `s.measure(text, {fontSize, maxWidth})`：返回 `{lines,width,height,lineHeight,boxWidth,boxHeight}`；最后两个字段含边注背景留白，与渲染使用同一套换行。`maxWidth` 是文本宽度。

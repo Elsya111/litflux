@@ -104,42 +104,110 @@ html[data-theme=dark]{--node-border:#51585d;--icon-tile:#24292d;--edge-neutral:#
 .node .icon-tile,.selected-symbol{background:var(--icon-tile);fill:var(--icon-tile)}
 #canvas .edge{stroke:var(--edge-neutral)}#canvas .edge.role-control{stroke:var(--control)}#canvas .edge.role-failure{stroke:var(--failure)}#canvas .edge.role-loop{stroke:var(--loop)}#canvas .edge.role-effect{stroke:var(--resource-line)}#canvas .edge.role-capability{stroke:var(--provider-line)}#canvas .edge.related{stroke:var(--accent)}
 .edge-port{fill:var(--port)}
+
+/* --- Collapsible chrome: header, business map, node details -------------- */
+.app{position:relative}
+.icon-button{border:1px solid var(--line);border-radius:6px;min-height:34px;min-width:36px;padding:0 8px;font-size:13px;line-height:1;background:var(--surface);color:var(--muted)}
+.icon-button:hover:not(:disabled){color:var(--ink);background:var(--soft)}
+.app.header-collapsed .app-header{display:none}
+.edge-hint{position:absolute;z-index:35;display:flex;align-items:center;justify-content:center}
+.edge-hint[hidden]{display:none}
+.edge-hint>button{opacity:0;pointer-events:none;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-size:12px;box-shadow:0 10px 26px #0003;transition:opacity .16s ease,transform .16s ease,color .16s ease}
+.edge-hint:hover>button,.edge-hint:focus-within>button{opacity:1;pointer-events:auto;color:var(--ink)}
+.edge-top{top:0;left:0;right:0;height:14px}
+.edge-top>button{border-radius:0 0 9px 9px;border-top:0;padding:5px 14px;transform:translateY(-5px)}
+.edge-top:hover>button,.edge-top:focus-within>button{transform:none}
+.edge-left,.edge-right{top:50%;width:18px;height:136px;transform:translateY(-50%)}
+.edge-left{left:0}.edge-right{right:0}
+.edge-left>button{writing-mode:vertical-rl;border-left:0;border-radius:0 9px 9px 0;padding:14px 4px;transform:translateX(-6px)}
+.edge-right>button{writing-mode:vertical-rl;border-right:0;border-radius:9px 0 0 9px;padding:14px 4px;transform:translateX(6px)}
+.edge-left:hover>button,.edge-left:focus-within>button,.edge-right:hover>button,.edge-right:focus-within>button{transform:none}
+
+/* --- Branch chips in node details --------------------------------------- */
+.branch-choices{display:flex;flex-wrap:wrap;gap:6px}
+.branch-chip{border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-size:12px;background:var(--surface);color:var(--muted)}
+.branch-chip[aria-pressed=true]{background:var(--focus);border-color:var(--tree-line);color:var(--accent)}
+.branch-hint{margin:9px 0 0;font-size:11px;color:var(--muted)}
+.selected-symbol{color:var(--accent)}
+.selected-symbol .role-icon,.selected-symbol .resource-icon{width:24px;height:24px}
+
+/* --- Compact workspace bar: one row instead of heading + context + toolbar */
+.workspace-bar{display:flex;align-items:center;gap:14px;margin:2px 2px 8px;min-height:40px}
+.workspace-bar h1{font-size:20px;font-weight:600;letter-spacing:.3px;margin:0;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.flow-count{font-size:11.5px;color:var(--muted);white-space:nowrap}
+.bar-actions{display:flex;align-items:center;gap:8px;margin-left:auto;flex-wrap:wrap;justify-content:flex-end}
+.bar-actions .primary{min-height:32px}
+.read-status{padding:0 2px 8px}
+
+/* Collapsing the top hides the app header, breadcrumbs and the bar together. */
+.app.header-collapsed .app-header,
+.app.header-collapsed .workspace-bar,
+.app.header-collapsed .crumbs,
+.app.header-collapsed .read-status{display:none}
+
+/* --- Vertical collapse tabs, centred on each panel edge ------------------ */
+:where(.business-panel,.inspector){position:relative}
+.edge-toggle{position:absolute;top:50%;transform:translateY(-50%);z-index:6;width:16px;height:62px;display:flex;align-items:center;justify-content:center;padding:0;font-size:12px;line-height:1;border:1px solid var(--line);background:var(--surface);color:var(--muted);opacity:.6;transition:opacity .15s ease,color .15s ease,background .15s ease}
+.edge-toggle:hover,.edge-toggle:focus-visible{opacity:1;color:var(--ink);background:var(--soft)}
+.edge-toggle-right{right:0;border-right:0;border-radius:8px 0 0 8px}
+.edge-toggle-left{left:0;border-left:0;border-radius:0 8px 8px 0}
+.node .role-glyph-dot{fill:var(--accent);stroke:none}
+.selected-symbol .role-glyph-dot{fill:currentColor;stroke:none}
+
+/* --- Back to parent level ------------------------------------------------ */
+.back-level{flex:none;white-space:nowrap}
+
+/* --- Fullscreen source drawer -------------------------------------------- */
+#toggle-source-full{margin-left:8px}
+.drawer.source-full{position:fixed;inset:18px;z-index:90;flex:none;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 0 0 100vmax rgba(0,0,0,.55),0 26px 70px #0009}
+.drawer.source-full .drawer-head{padding:14px 22px}
+.drawer.source-full .drawer-head h2{margin-top:14px}
+.drawer.source-full .drawer-body{width:100%;max-width:1080px;margin:0 auto;padding:0 22px 32px}
 </style></head>
 <body id="litflux-canvas-app">
 <div class="app">
-  <header class="app-header">
+  <header class="app-header" id="app-header">
     <div class="identity"><div class="brand">LitFlux</div><div class="project-heading"><div><span id="title" class="project-name"></span><span id="delivery-badge" class="badge">草稿</span></div><div class="project-kicker">从业务流程读懂代码</div></div></div>
     <div class="workflow-picker"><label for="workflow-select">工作流</label><select id="workflow-select" aria-describedby="workflow-trigger"></select><p id="workflow-trigger" class="workflow-trigger" data-no-translate></p></div>
     <button id="theme" class="toolbar-button">深色主题</button>
+    <button id="collapse-header" class="icon-button" aria-label="收起顶栏" title="收起顶栏" aria-expanded="true" aria-controls="app-header">⌃</button>
   </header>
-  <div class="dual-layout">
-    <aside id="business-panel" class="business-panel"><div class="panel-head"><h2>业务分解图</h2><div class="branch-tools"><button id="collapse-all">收拢</button><button id="expand-all">展开</button></div></div><p class="business-caption">组成与层级 · 点击业务进入</p><div id="business" class="business-canvas" aria-label="业务分解图"></div><details class="project-info"><summary>项目信息</summary><h2 id="project-title"></h2><p id="summary"></p><p id="scope"></p></details></aside>
+  <div class="dual-layout inspector-open">
+    <aside id="business-panel" class="business-panel"><div class="panel-head"><h2>业务分解图</h2><div class="branch-tools"><button id="collapse-all">收拢</button><button id="expand-all">展开</button></div></div><p class="business-caption">组成与层级 · 点击业务进入</p><div id="business" class="business-canvas" aria-label="业务分解图"></div><details class="project-info"><summary>项目信息</summary><h2 id="project-title"></h2><p id="summary"></p><p id="scope"></p></details><button id="collapse-business" class="edge-toggle edge-toggle-right" aria-label="收起业务分解图" aria-controls="business-panel">‹</button></aside>
     <main class="workspace">
       <nav id="crumbs" class="crumbs" aria-label="当前业务路径"></nav>
-      <div class="page-heading"><h1 id="flow-title"></h1><div class="read-actions"><button id="toggle-business" class="panel-toggle" aria-expanded="true" aria-controls="business-panel">业务分解图</button><button id="read-start" class="primary">开始阅读</button><button id="read-next" class="primary" hidden disabled>下一步</button><button id="read-reset" hidden>退出阅读</button></div></div>
-      <div class="context-bar"><p id="read-status" class="read-status"></p><details class="menu choices-menu" id="choices-panel"><summary>分支情景</summary><div class="menu-body"><div id="choices" class="choices"></div><p>只选择阅读情景，不执行源码条件。</p></div></details></div>
-      <section class="graph-panel">
-        <div class="graph-top"><div class="graph-caption"><strong>内部流程图</strong><span id="relation-count"></span></div><div class="graph-actions">
+      <div class="workspace-bar">
+        <button id="back-level" class="toolbar-button back-level" hidden aria-label="返回上一层">← 返回上层</button>
+        <h1 id="flow-title"></h1><span id="relation-count" class="flow-count"></span>
+        <div class="bar-actions"><button id="read-start" class="primary">开始阅读</button><button id="read-next" class="primary" hidden disabled>下一步</button><button id="read-reset" hidden>退出阅读</button>
           <div class="zoom-tools" role="group" aria-label="缩放"><button id="zoom-out" aria-label="缩小">−</button><output id="zoom-value" aria-label="当前比例">100%</output><button id="zoom-in" aria-label="放大">+</button></div>
-          <button id="fit" class="toolbar-button">适应全图</button><button id="reset-view" class="toolbar-button">原始大小</button><button id="motion" class="toolbar-button" aria-pressed="true">流动：开</button><button id="toggle-details" class="panel-toggle" aria-expanded="false" aria-controls="inspector">节点详情</button>
-        </div></div>
+          <button id="fit" class="toolbar-button">适应全图</button><button id="reset-view" class="toolbar-button">原始大小</button><button id="toggle-details" class="panel-toggle" aria-expanded="true" aria-controls="inspector">节点详情</button>
+        </div>
+      </div>
+      <p id="read-status" class="read-status" hidden></p>
+      <section class="graph-panel">
         <div id="canvas" class="scene" aria-label="当前业务的完整内部流程图"></div>
         <div class="graph-note"><span class="key" data-legend="data">数据实线：即时承接</span><span class="key later" data-legend="data">数据虚线：保留后用</span><span class="key control" data-legend="control">◇ 控制与条件</span><span data-legend="failure">╌ 失败路径</span><span data-legend="loop">↺ 循环回指</span><span data-legend="effect">→ 资源作用</span><span data-legend="capability">⋯ 组件能力</span><span>悬浮预览 · 点击查看详情 · 拖拽平移</span></div>
       </section>
     </main>
-    <aside id="inspector" class="inspector" aria-label="节点详情" hidden>
-      <div class="panel-head"><h2>节点详情</h2><button id="close-details" class="close-button" aria-label="关闭详情">关闭</button></div>
+    <aside id="inspector" class="inspector" aria-label="节点详情">
+      <div class="panel-head"><h2>节点详情</h2></div>
       <div id="details-body" class="details-body">
         <div class="selection-heading"><div id="selected-symbol" class="selected-symbol" aria-hidden="true"></div><div><span id="selected-role" class="role"></span><h2 id="selected-title"></h2></div></div>
         <p id="selected-text"></p><p id="no-description" class="empty-note" hidden>此节点尚未提供补充说明。</p>
         <div class="details-actions"><button id="expand" class="primary" hidden>进入内部</button><button id="show-source" class="toolbar-button" hidden>查看源码</button></div>
+        <section id="branch-section" class="detail-section" hidden><h3>分支</h3><div id="branch-choices" class="branch-choices"></div><p class="branch-hint">点击图上的判断节点可切换到下一个分支。</p></section>
         <section id="source-links-section" class="detail-section" hidden><h3>源码位置</h3><div id="source-links" class="source-links"></div></section>
         <section id="connections-section" class="detail-section" hidden><h3>关联对象</h3><div id="connections" class="connected-list"></div></section>
         <details class="relation-index detail-section" id="relation-index"><summary id="relation-index-title">相关关系</summary><ul id="relation-list"></ul></details>
       </div>
-      <section id="drawer" class="drawer" aria-label="源码摘录" hidden><div class="drawer-head"><button id="close-source">← 返回节点说明</button><h2 id="source-title"></h2></div><div id="sources" class="drawer-body"></div></section>
+      <section id="drawer" class="drawer" aria-label="源码摘录" hidden><div class="drawer-head"><button id="close-source">← 返回节点说明</button><button id="toggle-source-full" class="toolbar-button" aria-pressed="false">全屏</button><h2 id="source-title"></h2></div><div id="sources" class="drawer-body"></div></section>
+      <button id="close-details" class="edge-toggle edge-toggle-left" aria-label="收起节点详情" aria-controls="inspector">›</button>
     </aside>
   </div>
+  <div class="edge-hint edge-top" id="edge-top" hidden><button id="expand-header" aria-label="展开顶栏">⌄ 顶栏</button></div>
+  <div class="edge-hint edge-left" id="edge-left" hidden><button id="expand-business" aria-label="展开业务分解图">业务分解图 ›</button></div>
+  <div class="edge-hint edge-right" id="edge-right" hidden><button id="expand-details" aria-label="展开节点详情">‹ 节点详情</button></div>
 </div>
 <div id="node-preview" class="node-preview" role="tooltip" hidden></div>
 <script>// LitFlux drawing primitives: place, measure, draw. This file never decides layout,
@@ -167,6 +235,24 @@ const LitFluxDrawing = (() => {
       const points=Array.from({length:32},(_,i)=>{const angle=i*Math.PI/16-Math.PI/2,r=i%4<2?10:8;return `${12+r*Math.cos(angle)},${12+r*Math.sin(angle)}`;});
       icon.append(el('polygon',{points:points.join(' ')}),el('circle',{cx:12,cy:12,r:3}));
     }else icon.append(el('path',{d:paths[kind]}));
+    return icon;
+  }
+
+  const roleGlyphs = {
+    business: 'M5 6.5 11 12l-6 5.5 M13 6.5 19 12l-6 5.5',
+    decision: 'M8.4 9.6a3.6 3.6 0 1 1 6.1 2.7c-1.3 1-2 1.6-2 3.1',
+    component: 'M7.5 7.5h9v9h-9Z M10 3v4.5 M14 3v4.5 M10 16.5V21 M14 16.5V21 M3 10h4.5 M3 14h4.5 M16.5 10H21 M16.5 14H21',
+    boundary: 'M4 4.5h16v15H4Z M8 12h7 M12.5 9l3 3-3 3',
+  };
+  function roleIcon(type) {
+    const shape = Object.hasOwn(roleGlyphs, type) ? type : 'business';
+    const icon = el('svg', {
+      viewBox: '0 0 24 24', width: 24, height: 24, fill: 'none', stroke: 'currentColor',
+      'stroke-width': 1.5, 'stroke-linecap': 'round', 'stroke-linejoin': 'round',
+      'aria-hidden': 'true', class: 'role-icon', 'data-role-icon': shape,
+    });
+    icon.append(el('path', { class: 'role-glyph', d: roleGlyphs[shape] }));
+    if (shape === 'decision') icon.append(el('circle', { class: 'role-glyph-dot', cx: 12.4, cy: 18.9, r: 1.3, fill: 'currentColor' }));
     return icon;
   }
 
@@ -364,8 +450,7 @@ const LitFluxDrawing = (() => {
             group.dataset.resourceKind=resourceKind(object.resourceKind);
             const icon=resourceIcon(object.resourceKind);icon.setAttribute('x',-w+19);icon.setAttribute('y',-12);group.append(icon);
           }else{
-            const paths={business:'M5 6H19 M5 12H15 M5 18H11 M17 14L21 18 M21 14L17 18',decision:'M4 7L6 9L9 5 M12 7H20 M4 16L6 18L9 14 M12 16H20',component:'M7 3H17L23 12L17 21H7L1 12Z',boundary:'M4 12H20 M14 6L20 12L14 18'};
-            group.append(el('path',{class:'role-glyph',transform:`translate(${-w+19} -12)`,d:paths[object.type]||paths.business}));
+            const icon=roleIcon(object.type);icon.setAttribute('x',-w+19);icon.setAttribute('y',-12);group.append(icon);
           }
         }
         if(object.detail){
@@ -543,7 +628,7 @@ const LitFluxDrawing = (() => {
     };
     return scene;
   }
-  return { create, measure, wrap, el, resourceKinds, resourceKind, resourceIcon };
+  return { create, measure, wrap, el, resourceKinds, resourceKind, resourceIcon, roleIcon };
 })();
 </script>
 <script id="module" type="text/plain">// Flask: one HTTP request, from WSGI entry to a response object.
@@ -626,7 +711,7 @@ module.exports = {
   ],
 };
 </script>
-<script id="payload" type="application/json">{"revision": "c98ae1d54993aa02", "sources": {"app:1679-1686": {"path": "src/flask/app.py", "start": 1679, "end": 1686, "sha256": "058d6c58cc42215ae1e264510f632693efd8d7256322978bc03a649423d08378", "lines": ["    def __call__(", "        self, environ: WSGIEnvironment, start_response: StartResponse", "    ) -> cabc.Iterable[bytes]:", "        \"\"\"The WSGI server calls the Flask application object as the", "        WSGI application. This calls :meth:`wsgi_app`, which can be", "        wrapped to apply middleware.", "        \"\"\"", "        return self.wsgi_app(environ, start_response)"]}, "app:1627-1629": {"path": "src/flask/app.py", "start": 1627, "end": 1629, "sha256": "058d6c58cc42215ae1e264510f632693efd8d7256322978bc03a649423d08378", "lines": ["    def wsgi_app(", "        self, environ: WSGIEnvironment, start_response: StartResponse", "    ) -> cabc.Iterable[bytes]:"]}, "app:1627-1677": {"path": "src/flask/app.py", "start": 1627, "end": 1677, "sha256": "058d6c58cc42215ae1e264510f632693efd8d7256322978bc03a649423d08378", "lines": ["    def wsgi_app(", "        self, environ: WSGIEnvironment, start_response: StartResponse", "    ) -> cabc.Iterable[bytes]:", "        \"\"\"The actual WSGI application. This is not implemented in", "        :meth:`__call__` so that middlewares can be applied without", "        losing a reference to the app object. Instead of doing this::", "", "            app = MyMiddleware(app)", "", "        It's a better idea to do this instead::", "", "            app.wsgi_app = MyMiddleware(app.wsgi_app)", "", "        Then you still have the original application object around and", "        can continue to call methods on it.", "", "        .. versionchanged:: 0.7", "            Teardown events for the request and app contexts are called", "            even if an unhandled error occurs. Other events may not be", "            called depending on when an error occurs during dispatch.", "", "        :param environ: A WSGI environment.", "        :param start_response: A callable accepting a status code,", "            a list of headers, and an optional exception context to", "            start the response.", "        \"\"\"", "        ctx = self.request_context(environ)", "        error: BaseException | None = None", "        try:", "            try:", "                ctx.push()", "                response = self.full_dispatch_request(ctx)", "            except Exception as e:", "                error = e", "                response = self.handle_exception(ctx, e)", "            except:", "                error = sys.exc_info()[1]", "                raise", "            return response(environ, start_response)", "        finally:", "            if \"werkzeug.debug.preserve_context\" in environ:", "                environ[\"werkzeug.debug.preserve_context\"](ctx)", "", "            if (", "                error is not None", "                and self.should_ignore_error is not None", "                and self.should_ignore_error(error)", "            ):", "                error = None", "", "            ctx.pop(error)"]}, "app:1653": {"path": "src/flask/app.py", "start": 1653, "end": 1653, "sha256": "058d6c58cc42215ae1e264510f632693efd8d7256322978bc03a649423d08378", "lines": ["        ctx = self.request_context(environ)"]}, "app:1657": {"path": "src/flask/app.py", "start": 1657, "end": 1657, "sha256": "058d6c58cc42215ae1e264510f632693efd8d7256322978bc03a649423d08378", "lines": ["                ctx.push()"]}, "ctx:416-444": {"path": "src/flask/ctx.py", "start": 416, "end": 444, "sha256": "f1f29a575b63488846db4946efc7ddc9e453312a126fa04e5720bc5ae8278cbf", "lines": ["    def push(self) -> None:", "        \"\"\"Push this context so that it is the active context. If this is a", "        request context, calls :meth:`match_request` to perform routing with", "        the context active.", "", "        Typically, this is not used directly. Instead, use a ``with`` block", "        to manage the context.", "", "        In some situations, such as streaming or testing, the context may be", "        pushed multiple times. It will only trigger matching and signals if it", "        is not currently pushed.", "        \"\"\"", "        self._push_count += 1", "", "        if self._cv_token is not None:", "            return", "", "        self._cv_token = _cv_app.set(self)", "        appcontext_pushed.send(self.app, _async_wrapper=self.app.ensure_sync)", "", "        if self._request is not None:", "            # Open the session at the moment that the request context is available.", "            # This allows a custom open_session method to use the request context.", "            self._get_session()", "", "            # Match the request URL after loading the session, so that the", "            # session is available in custom URL converters.", "            if self.url_adapter is not None:", "                self.match_request()"]}, "ctx:405-414": {"path": "src/flask/ctx.py", "start": 405, "end": 414, "sha256": "f1f29a575b63488846db4946efc7ddc9e453312a126fa04e5720bc5ae8278cbf", "lines": ["    def match_request(self) -> None:", "        \"\"\"Apply routing to the current request, storing either the matched", "        endpoint and args, or a routing exception.", "        \"\"\"", "        try:", "            result = self.url_adapter.match(return_rule=True)  # type: ignore[union-attr]", "        except HTTPException as e:", "            self._request.routing_exception = e  # type: ignore[union-attr]", "        else:", "            self._request.url_rule, self._request.view_args = result  # type: ignore[union-attr]"]}, "app:1009-1010": {"path": "src/flask/app.py", "start": 1009, "end": 1010, "sha256": "058d6c58cc42215ae1e264510f632693efd8d7256322978bc03a649423d08378", "lines": ["        if req.routing_exception is not None:", "            self.raise_routing_exception(req)"]}, "ctx:409-414": {"path": "src/flask/ctx.py", "start": 409, "end": 414, "sha256": "f1f29a575b63488846db4946efc7ddc9e453312a126fa04e5720bc5ae8278cbf", "lines": ["        try:", "            result = self.url_adapter.match(return_rule=True)  # type: ignore[union-attr]", "        except HTTPException as e:", "            self._request.routing_exception = e  # type: ignore[union-attr]", "        else:", "            self._request.url_rule, self._request.view_args = result  # type: ignore[union-attr]"]}, "app:880-914": {"path": "src/flask/app.py", "start": 880, "end": 914, "sha256": "058d6c58cc42215ae1e264510f632693efd8d7256322978bc03a649423d08378", "lines": ["    def handle_user_exception(", "        self, ctx: AppContext, e: Exception", "    ) -> HTTPException | ft.ResponseReturnValue:", "        \"\"\"This method is called whenever an exception occurs that", "        should be handled. A special case is :class:`~werkzeug", "        .exceptions.HTTPException` which is forwarded to the", "        :meth:`handle_http_exception` method. This function will either", "        return a response value or reraise the exception with the same", "        traceback.", "", "        .. versionchanged:: 3.2", "            Takes ``ctx: AppContext`` as the first parameter. The old signature", "            is deprecated and will not be supported in Flask 4.0.", "", "        .. versionchanged:: 1.0", "            Key errors raised from request data like ``form`` show the", "            bad key in debug mode rather than a generic bad request", "            message.", "", "        .. versionadded:: 0.7", "        \"\"\"", "        if isinstance(e, BadRequestKeyError) and (", "            self.debug or self.config[\"TRAP_BAD_REQUEST_ERRORS\"]", "        ):", "            e.show_exception = True", "", "        if isinstance(e, HTTPException) and not self.trap_http_exception(e):", "            return self.handle_http_exception(ctx, e)", "", "        handler = self._find_error_handler(e, ctx.request.blueprints)", "", "        if handler is None:", "            raise", "", "        return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]"]}, "app:916-991": {"path": "src/flask/app.py", "start": 916, "end": 991, "sha256": "058d6c58cc42215ae1e264510f632693efd8d7256322978bc03a649423d08378", "lines": ["    def handle_exception(self, ctx: AppContext, e: Exception) -> Response:", "        \"\"\"Handle an exception that did not have an error handler", "        associated with it, or that was raised from an error handler.", "        This always causes a 500 ``InternalServerError``.", "", "        Always sends the :data:`got_request_exception` signal.", "", "        If :data:`PROPAGATE_EXCEPTIONS` is ``True``, such as in debug", "        mode, the error will be re-raised so that the debugger can", "        display it. Otherwise, the original exception is logged, and", "        an :exc:`~werkzeug.exceptions.InternalServerError` is returned.", "", "        If an error handler is registered for ``InternalServerError`` or", "        ``500``, it will be used. For consistency, the handler will", "        always receive the ``InternalServerError``. The original", "        unhandled exception is available as ``e.original_exception``.", "", "        .. versionchanged:: 3.2", "            Takes ``ctx: AppContext`` as the first parameter. The old signature", "            is deprecated and will not be supported in Flask 4.0.", "", "        .. versionchanged:: 1.1.0", "            Always passes the ``InternalServerError`` instance to the", "            handler, setting ``original_exception`` to the unhandled", "            error.", "", "        .. versionchanged:: 1.1.0", "            ``after_request`` functions and other finalization is done", "            even for the default 500 response when there is no handler.", "", "        .. versionadded:: 0.3", "        \"\"\"", "        exc_info = sys.exc_info()", "        got_request_exception.send(self, _async_wrapper=self.ensure_sync, exception=e)", "        propagate = self.config[\"PROPAGATE_EXCEPTIONS\"]", "", "        if propagate is None:", "            propagate = self.testing or self.debug", "", "        if propagate:", "            # Re-raise if called with an active exception, otherwise", "            # raise the passed in exception.", "            if exc_info[1] is e:", "                raise", "", "            raise e", "", "        self.log_exception(ctx, exc_info)", "        server_error: InternalServerError | ft.ResponseReturnValue", "        server_error = InternalServerError(original_exception=e)", "        handler = self._find_error_handler(server_error, ctx.request.blueprints)", "", "        if handler is not None:", "            server_error = self.ensure_sync(handler)(server_error)", "", "        return self.finalize_request(ctx, server_error, from_error_handler=True)", "", "    def log_exception(", "        self,", "        ctx: AppContext,", "        exc_info: tuple[type, BaseException, TracebackType] | tuple[None, None, None],", "    ) -> None:", "        \"\"\"Logs an exception.  This is called by :meth:`handle_exception`", "        if debugging is disabled and right before the handler is called.", "        The default implementation logs the exception as error on the", "        :attr:`logger`.", "", "        .. versionchanged:: 3.2", "            Takes ``ctx: AppContext`` as the first parameter. The old signature", "            is deprecated and will not be supported in Flask 4.0.", "", "        .. versionadded:: 0.8", "        \"\"\"", "        self.logger.error(", "            f\"Exception on {ctx.request.path} [{ctx.request.method}]\", exc_info=exc_info", "        )"]}, "app:1409-1439": {"path": "src/flask/app.py", "start": 1409, "end": 1439, "sha256": "058d6c58cc42215ae1e264510f632693efd8d7256322978bc03a649423d08378", "lines": ["    def preprocess_request(self, ctx: AppContext) -> ft.ResponseReturnValue | None:", "        \"\"\"Called before the request is dispatched. Calls", "        :attr:`url_value_preprocessors` registered with the app and the", "        current blueprint (if any). Then calls :attr:`before_request_funcs`", "        registered with the app and the blueprint.", "", "        If any :meth:`before_request` handler returns a non-None value, the", "        value is handled as if it was the return value from the view, and", "        further request handling is stopped.", "", "        .. versionchanged:: 3.2", "            Takes ``ctx: AppContext`` as the first parameter. The old signature", "            is deprecated and will not be supported in Flask 4.0.", "        \"\"\"", "        req = ctx.request", "        names = (None, *reversed(req.blueprints))", "", "        for name in names:", "            if name in self.url_value_preprocessors:", "                for url_func in self.url_value_preprocessors[name]:", "                    url_func(req.endpoint, req.view_args)", "", "        for name in names:", "            if name in self.before_request_funcs:", "                for before_func in self.before_request_funcs[name]:", "                    rv = self.ensure_sync(before_func)()", "", "                    if rv is not None:", "                        return rv  # type: ignore[no-any-return]", "", "        return None"]}, "app:993-1021": {"path": "src/flask/app.py", "start": 993, "end": 1021, "sha256": "058d6c58cc42215ae1e264510f632693efd8d7256322978bc03a649423d08378", "lines": ["    def dispatch_request(self, ctx: AppContext) -> ft.ResponseReturnValue:", "        \"\"\"Does the request dispatching.  Matches the URL and returns the", "        return value of the view or error handler.  This does not have to", "        be a response object.  In order to convert the return value to a", "        proper response object, call :func:`make_response`.", "", "        .. versionchanged:: 3.2", "            Takes ``ctx: AppContext`` as the first parameter. The old signature", "            is deprecated and will not be supported in Flask 4.0.", "", "        .. versionchanged:: 0.7", "           This no longer does the exception handling, this code was", "           moved to the new :meth:`full_dispatch_request`.", "        \"\"\"", "        req = ctx.request", "", "        if req.routing_exception is not None:", "            self.raise_routing_exception(req)", "        rule: Rule = req.url_rule  # type: ignore[assignment]", "        # if we provide automatic options for this URL and the", "        # request came with the OPTIONS method, reply automatically", "        if (", "            getattr(rule, \"provide_automatic_options\", False)", "            and req.method == \"OPTIONS\"", "        ):", "            return self.make_default_options_response(ctx)", "        # otherwise dispatch to the handler for that endpoint", "        view_args: dict[str, t.Any] = req.view_args  # type: ignore[assignment]", "        return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]"]}, "app:1021": {"path": "src/flask/app.py", "start": 1021, "end": 1021, "sha256": "058d6c58cc42215ae1e264510f632693efd8d7256322978bc03a649423d08378", "lines": ["        return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]"]}, "app:1267-1407": {"path": "src/flask/app.py", "start": 1267, "end": 1407, "sha256": "058d6c58cc42215ae1e264510f632693efd8d7256322978bc03a649423d08378", "lines": ["    def make_response(self, rv: ft.ResponseReturnValue) -> Response:", "        \"\"\"Convert the return value from a view function to an instance of", "        :attr:`response_class`.", "", "        :param rv: the return value from the view function. The view function", "            must return a response. Returning ``None``, or the view ending", "            without returning, is not allowed. The following types are allowed", "            for ``view_rv``:", "", "            ``str``", "                A response object is created with the string encoded to UTF-8", "                as the body.", "", "            ``bytes``", "                A response object is created with the bytes as the body.", "", "            ``dict``", "                Converted to a JSON response.", "", "            ``list``", "                Converted to a JSON response.", "", "            ``generator`` or ``iterator``", "                A generator that returns ``str`` or ``bytes`` to be", "                streamed as the response.", "", "            ``tuple``", "                Either ``(body, status, headers)``, ``(body, status)``, or", "                ``(body, headers)``, where ``body`` is any of the other types", "                allowed here, ``status`` is a string or an integer, and", "                ``headers`` is a dictionary or a list of ``(key, value)``", "                tuples. If ``body`` is a :attr:`response_class` instance,", "                ``status`` overwrites the exiting value and ``headers`` are", "                extended.", "", "            :attr:`response_class`", "                The object is returned unchanged.", "", "            other :class:`~werkzeug.wrappers.Response` class", "                The object is coerced to :attr:`response_class`.", "", "            :func:`callable`", "                The function is called as a WSGI application. The result is", "                used to create a response object.", "", "        .. versionchanged:: 2.2", "            A generator will be converted to a streaming response.", "            A list will be converted to a JSON response.", "", "        .. versionchanged:: 1.1", "            A dict will be converted to a JSON response.", "", "        .. versionchanged:: 0.9", "           Previously a tuple was interpreted as the arguments for the", "           response object.", "        \"\"\"", "", "        status: int | None = None", "        headers: HeadersValue | None = None", "", "        # unpack tuple returns", "        if isinstance(rv, tuple):", "            len_rv = len(rv)", "", "            # a 3-tuple is unpacked directly", "            if len_rv == 3:", "                rv, status, headers = rv  # type: ignore[misc]", "            # decide if a 2-tuple has status or headers", "            elif len_rv == 2:", "                if isinstance(rv[1], (Headers, dict, tuple, list)):", "                    rv, headers = rv  # pyright: ignore", "                else:", "                    rv, status = rv  # type: ignore[assignment,misc]", "            # other sized tuples are not allowed", "            else:", "                raise TypeError(", "                    \"The view function did not return a valid response tuple.\"", "                    \" The tuple must have the form (body, status, headers),\"", "                    \" (body, status), or (body, headers).\"", "                )", "", "        # the body must not be None", "        if rv is None:", "            raise TypeError(", "                f\"The view function for {request.endpoint!r} did not\"", "                \" return a valid response. The function either returned\"", "                \" None or ended without a return statement.\"", "            )", "", "        # make sure the body is an instance of the response class", "        if not isinstance(rv, self.response_class):", "            if isinstance(rv, (str, bytes, bytearray)) or isinstance(rv, cabc.Iterator):", "                # let the response class set the status and headers instead of", "                # waiting to do it manually, so that the class can handle any", "                # special logic", "                rv = self.response_class(", "                    rv,", "                    status=status,", "                    headers=headers,  # type: ignore[arg-type]", "                )", "                status = headers = None", "            elif isinstance(rv, (dict, list)):", "                rv = self.json.response(rv)", "            elif isinstance(rv, BaseResponse) or callable(rv):", "                # evaluate a WSGI callable, or coerce a different response", "                # class to the correct type", "                try:", "                    rv = self.response_class.force_type(", "                        rv,  # type: ignore[arg-type]", "                        request.environ,", "                    )", "                except TypeError as e:", "                    raise TypeError(", "                        f\"{e}\\nThe view function did not return a valid\"", "                        \" response. The return type must be a string,\"", "                        \" dict, list, tuple with headers or status,\"", "                        \" Response instance, or WSGI callable, but it\"", "                        f\" was a {type(rv).__name__}.\"", "                    ).with_traceback(sys.exc_info()[2]) from None", "            else:", "                raise TypeError(", "                    \"The view function did not return a valid\"", "                    \" response. The return type must be a string,\"", "                    \" dict, list, tuple with headers or status,\"", "                    \" Response instance, or WSGI callable, but it was a\"", "                    f\" {type(rv).__name__}.\"", "                )", "", "        rv = t.cast(Response, rv)", "        # prefer the status if it was provided", "        if status is not None:", "            if isinstance(status, (str, bytes, bytearray)):", "                rv.status = status", "            else:", "                rv.status_code = status", "", "        # extend existing headers with provided headers", "        if headers:", "            rv.headers.update(headers)", "", "        return rv"]}, "app:1056-1090": {"path": "src/flask/app.py", "start": 1056, "end": 1090, "sha256": "058d6c58cc42215ae1e264510f632693efd8d7256322978bc03a649423d08378", "lines": ["    def finalize_request(", "        self,", "        ctx: AppContext,", "        rv: ft.ResponseReturnValue | HTTPException,", "        from_error_handler: bool = False,", "    ) -> Response:", "        \"\"\"Given the return value from a view function this finalizes", "        the request by converting it into a response and invoking the", "        postprocessing functions.  This is invoked for both normal", "        request dispatching as well as error handlers.", "", "        Because this means that it might be called as a result of a", "        failure a special safe mode is available which can be enabled", "        with the `from_error_handler` flag.  If enabled, failures in", "        response processing will be logged and otherwise ignored.", "", "        .. versionchanged:: 3.2", "            Takes ``ctx: AppContext`` as the first parameter. The old signature", "            is deprecated and will not be supported in Flask 4.0.", "", "        :meta private:", "        \"\"\"", "        response = self.make_response(rv)", "        try:", "            response = self.process_response(ctx, response)", "            request_finished.send(", "                self, _async_wrapper=self.ensure_sync, response=response", "            )", "        except Exception:", "            if not from_error_handler:", "                raise", "            self.logger.exception(", "                \"Request finalizing failed with an error while handling an error\"", "            )", "        return response"]}, "app:1441-1470": {"path": "src/flask/app.py", "start": 1441, "end": 1470, "sha256": "058d6c58cc42215ae1e264510f632693efd8d7256322978bc03a649423d08378", "lines": ["    def process_response(self, ctx: AppContext, response: Response) -> Response:", "        \"\"\"Can be overridden in order to modify the response object", "        before it's sent to the WSGI server.  By default this will", "        call all the :meth:`after_request` decorated functions.", "", "        :param ctx: The current app context.", "        :param response: The response.", "        :return: The passed in response, or a new ``Response`` object.", "", "        .. versionchanged:: 3.2", "            Takes ``ctx: AppContext`` as the first parameter. The old signature", "            is deprecated and will not be supported in Flask 4.0.", "", "        .. versionchanged:: 0.5", "            Functions are called in reverse order of registration.", "", "        \"\"\"", "        for func in ctx._after_request_functions:", "            response = self.ensure_sync(func)(response)", "", "        for name in chain(ctx.request.blueprints, (None,)):", "            if name in self.after_request_funcs:", "                for func in reversed(self.after_request_funcs[name]):", "                    response = self.ensure_sync(func)(response)", "", "        if not self.session_interface.is_null_session(ctx._get_session()):", "            self.session_interface.save_session(self, ctx._get_session(), response)", "", "        return response", ""]}, "app:1078": {"path": "src/flask/app.py", "start": 1078, "end": 1078, "sha256": "058d6c58cc42215ae1e264510f632693efd8d7256322978bc03a649423d08378", "lines": ["        response = self.make_response(rv)"]}, "app:1665": {"path": "src/flask/app.py", "start": 1665, "end": 1665, "sha256": "058d6c58cc42215ae1e264510f632693efd8d7256322978bc03a649423d08378", "lines": ["            return response(environ, start_response)"]}, "app:1666-1677": {"path": "src/flask/app.py", "start": 1666, "end": 1677, "sha256": "058d6c58cc42215ae1e264510f632693efd8d7256322978bc03a649423d08378", "lines": ["        finally:", "            if \"werkzeug.debug.preserve_context\" in environ:", "                environ[\"werkzeug.debug.preserve_context\"](ctx)", "", "            if (", "                error is not None", "                and self.should_ignore_error is not None", "                and self.should_ignore_error(error)", "            ):", "                error = None", "", "            ctx.pop(error)"]}, "ctx:446": {"path": "src/flask/ctx.py", "start": 446, "end": 446, "sha256": "f1f29a575b63488846db4946efc7ddc9e453312a126fa04e5720bc5ae8278cbf", "lines": ["    def pop(self, exc: BaseException | None = None) -> None:"]}}, "status": "checked", "timingNotes": []}</script>
+<script id="payload" type="application/json">{"revision": "0a85623028d25ae6", "sources": {"app:1679-1686": {"path": "src/flask/app.py", "start": 1679, "end": 1686, "sha256": "058d6c58cc42215ae1e264510f632693efd8d7256322978bc03a649423d08378", "lines": ["    def __call__(", "        self, environ: WSGIEnvironment, start_response: StartResponse", "    ) -> cabc.Iterable[bytes]:", "        \"\"\"The WSGI server calls the Flask application object as the", "        WSGI application. This calls :meth:`wsgi_app`, which can be", "        wrapped to apply middleware.", "        \"\"\"", "        return self.wsgi_app(environ, start_response)"]}, "app:1627-1629": {"path": "src/flask/app.py", "start": 1627, "end": 1629, "sha256": "058d6c58cc42215ae1e264510f632693efd8d7256322978bc03a649423d08378", "lines": ["    def wsgi_app(", "        self, environ: WSGIEnvironment, start_response: StartResponse", "    ) -> cabc.Iterable[bytes]:"]}, "app:1627-1677": {"path": "src/flask/app.py", "start": 1627, "end": 1677, "sha256": "058d6c58cc42215ae1e264510f632693efd8d7256322978bc03a649423d08378", "lines": ["    def wsgi_app(", "        self, environ: WSGIEnvironment, start_response: StartResponse", "    ) -> cabc.Iterable[bytes]:", "        \"\"\"The actual WSGI application. This is not implemented in", "        :meth:`__call__` so that middlewares can be applied without", "        losing a reference to the app object. Instead of doing this::", "", "            app = MyMiddleware(app)", "", "        It's a better idea to do this instead::", "", "            app.wsgi_app = MyMiddleware(app.wsgi_app)", "", "        Then you still have the original application object around and", "        can continue to call methods on it.", "", "        .. versionchanged:: 0.7", "            Teardown events for the request and app contexts are called", "            even if an unhandled error occurs. Other events may not be", "            called depending on when an error occurs during dispatch.", "", "        :param environ: A WSGI environment.", "        :param start_response: A callable accepting a status code,", "            a list of headers, and an optional exception context to", "            start the response.", "        \"\"\"", "        ctx = self.request_context(environ)", "        error: BaseException | None = None", "        try:", "            try:", "                ctx.push()", "                response = self.full_dispatch_request(ctx)", "            except Exception as e:", "                error = e", "                response = self.handle_exception(ctx, e)", "            except:", "                error = sys.exc_info()[1]", "                raise", "            return response(environ, start_response)", "        finally:", "            if \"werkzeug.debug.preserve_context\" in environ:", "                environ[\"werkzeug.debug.preserve_context\"](ctx)", "", "            if (", "                error is not None", "                and self.should_ignore_error is not None", "                and self.should_ignore_error(error)", "            ):", "                error = None", "", "            ctx.pop(error)"]}, "app:1653": {"path": "src/flask/app.py", "start": 1653, "end": 1653, "sha256": "058d6c58cc42215ae1e264510f632693efd8d7256322978bc03a649423d08378", "lines": ["        ctx = self.request_context(environ)"]}, "app:1657": {"path": "src/flask/app.py", "start": 1657, "end": 1657, "sha256": "058d6c58cc42215ae1e264510f632693efd8d7256322978bc03a649423d08378", "lines": ["                ctx.push()"]}, "ctx:416-444": {"path": "src/flask/ctx.py", "start": 416, "end": 444, "sha256": "f1f29a575b63488846db4946efc7ddc9e453312a126fa04e5720bc5ae8278cbf", "lines": ["    def push(self) -> None:", "        \"\"\"Push this context so that it is the active context. If this is a", "        request context, calls :meth:`match_request` to perform routing with", "        the context active.", "", "        Typically, this is not used directly. Instead, use a ``with`` block", "        to manage the context.", "", "        In some situations, such as streaming or testing, the context may be", "        pushed multiple times. It will only trigger matching and signals if it", "        is not currently pushed.", "        \"\"\"", "        self._push_count += 1", "", "        if self._cv_token is not None:", "            return", "", "        self._cv_token = _cv_app.set(self)", "        appcontext_pushed.send(self.app, _async_wrapper=self.app.ensure_sync)", "", "        if self._request is not None:", "            # Open the session at the moment that the request context is available.", "            # This allows a custom open_session method to use the request context.", "            self._get_session()", "", "            # Match the request URL after loading the session, so that the", "            # session is available in custom URL converters.", "            if self.url_adapter is not None:", "                self.match_request()"]}, "ctx:405-414": {"path": "src/flask/ctx.py", "start": 405, "end": 414, "sha256": "f1f29a575b63488846db4946efc7ddc9e453312a126fa04e5720bc5ae8278cbf", "lines": ["    def match_request(self) -> None:", "        \"\"\"Apply routing to the current request, storing either the matched", "        endpoint and args, or a routing exception.", "        \"\"\"", "        try:", "            result = self.url_adapter.match(return_rule=True)  # type: ignore[union-attr]", "        except HTTPException as e:", "            self._request.routing_exception = e  # type: ignore[union-attr]", "        else:", "            self._request.url_rule, self._request.view_args = result  # type: ignore[union-attr]"]}, "app:1009-1010": {"path": "src/flask/app.py", "start": 1009, "end": 1010, "sha256": "058d6c58cc42215ae1e264510f632693efd8d7256322978bc03a649423d08378", "lines": ["        if req.routing_exception is not None:", "            self.raise_routing_exception(req)"]}, "ctx:409-414": {"path": "src/flask/ctx.py", "start": 409, "end": 414, "sha256": "f1f29a575b63488846db4946efc7ddc9e453312a126fa04e5720bc5ae8278cbf", "lines": ["        try:", "            result = self.url_adapter.match(return_rule=True)  # type: ignore[union-attr]", "        except HTTPException as e:", "            self._request.routing_exception = e  # type: ignore[union-attr]", "        else:", "            self._request.url_rule, self._request.view_args = result  # type: ignore[union-attr]"]}, "app:880-914": {"path": "src/flask/app.py", "start": 880, "end": 914, "sha256": "058d6c58cc42215ae1e264510f632693efd8d7256322978bc03a649423d08378", "lines": ["    def handle_user_exception(", "        self, ctx: AppContext, e: Exception", "    ) -> HTTPException | ft.ResponseReturnValue:", "        \"\"\"This method is called whenever an exception occurs that", "        should be handled. A special case is :class:`~werkzeug", "        .exceptions.HTTPException` which is forwarded to the", "        :meth:`handle_http_exception` method. This function will either", "        return a response value or reraise the exception with the same", "        traceback.", "", "        .. versionchanged:: 3.2", "            Takes ``ctx: AppContext`` as the first parameter. The old signature", "            is deprecated and will not be supported in Flask 4.0.", "", "        .. versionchanged:: 1.0", "            Key errors raised from request data like ``form`` show the", "            bad key in debug mode rather than a generic bad request", "            message.", "", "        .. versionadded:: 0.7", "        \"\"\"", "        if isinstance(e, BadRequestKeyError) and (", "            self.debug or self.config[\"TRAP_BAD_REQUEST_ERRORS\"]", "        ):", "            e.show_exception = True", "", "        if isinstance(e, HTTPException) and not self.trap_http_exception(e):", "            return self.handle_http_exception(ctx, e)", "", "        handler = self._find_error_handler(e, ctx.request.blueprints)", "", "        if handler is None:", "            raise", "", "        return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]"]}, "app:916-991": {"path": "src/flask/app.py", "start": 916, "end": 991, "sha256": "058d6c58cc42215ae1e264510f632693efd8d7256322978bc03a649423d08378", "lines": ["    def handle_exception(self, ctx: AppContext, e: Exception) -> Response:", "        \"\"\"Handle an exception that did not have an error handler", "        associated with it, or that was raised from an error handler.", "        This always causes a 500 ``InternalServerError``.", "", "        Always sends the :data:`got_request_exception` signal.", "", "        If :data:`PROPAGATE_EXCEPTIONS` is ``True``, such as in debug", "        mode, the error will be re-raised so that the debugger can", "        display it. Otherwise, the original exception is logged, and", "        an :exc:`~werkzeug.exceptions.InternalServerError` is returned.", "", "        If an error handler is registered for ``InternalServerError`` or", "        ``500``, it will be used. For consistency, the handler will", "        always receive the ``InternalServerError``. The original", "        unhandled exception is available as ``e.original_exception``.", "", "        .. versionchanged:: 3.2", "            Takes ``ctx: AppContext`` as the first parameter. The old signature", "            is deprecated and will not be supported in Flask 4.0.", "", "        .. versionchanged:: 1.1.0", "            Always passes the ``InternalServerError`` instance to the", "            handler, setting ``original_exception`` to the unhandled", "            error.", "", "        .. versionchanged:: 1.1.0", "            ``after_request`` functions and other finalization is done", "            even for the default 500 response when there is no handler.", "", "        .. versionadded:: 0.3", "        \"\"\"", "        exc_info = sys.exc_info()", "        got_request_exception.send(self, _async_wrapper=self.ensure_sync, exception=e)", "        propagate = self.config[\"PROPAGATE_EXCEPTIONS\"]", "", "        if propagate is None:", "            propagate = self.testing or self.debug", "", "        if propagate:", "            # Re-raise if called with an active exception, otherwise", "            # raise the passed in exception.", "            if exc_info[1] is e:", "                raise", "", "            raise e", "", "        self.log_exception(ctx, exc_info)", "        server_error: InternalServerError | ft.ResponseReturnValue", "        server_error = InternalServerError(original_exception=e)", "        handler = self._find_error_handler(server_error, ctx.request.blueprints)", "", "        if handler is not None:", "            server_error = self.ensure_sync(handler)(server_error)", "", "        return self.finalize_request(ctx, server_error, from_error_handler=True)", "", "    def log_exception(", "        self,", "        ctx: AppContext,", "        exc_info: tuple[type, BaseException, TracebackType] | tuple[None, None, None],", "    ) -> None:", "        \"\"\"Logs an exception.  This is called by :meth:`handle_exception`", "        if debugging is disabled and right before the handler is called.", "        The default implementation logs the exception as error on the", "        :attr:`logger`.", "", "        .. versionchanged:: 3.2", "            Takes ``ctx: AppContext`` as the first parameter. The old signature", "            is deprecated and will not be supported in Flask 4.0.", "", "        .. versionadded:: 0.8", "        \"\"\"", "        self.logger.error(", "            f\"Exception on {ctx.request.path} [{ctx.request.method}]\", exc_info=exc_info", "        )"]}, "app:1409-1439": {"path": "src/flask/app.py", "start": 1409, "end": 1439, "sha256": "058d6c58cc42215ae1e264510f632693efd8d7256322978bc03a649423d08378", "lines": ["    def preprocess_request(self, ctx: AppContext) -> ft.ResponseReturnValue | None:", "        \"\"\"Called before the request is dispatched. Calls", "        :attr:`url_value_preprocessors` registered with the app and the", "        current blueprint (if any). Then calls :attr:`before_request_funcs`", "        registered with the app and the blueprint.", "", "        If any :meth:`before_request` handler returns a non-None value, the", "        value is handled as if it was the return value from the view, and", "        further request handling is stopped.", "", "        .. versionchanged:: 3.2", "            Takes ``ctx: AppContext`` as the first parameter. The old signature", "            is deprecated and will not be supported in Flask 4.0.", "        \"\"\"", "        req = ctx.request", "        names = (None, *reversed(req.blueprints))", "", "        for name in names:", "            if name in self.url_value_preprocessors:", "                for url_func in self.url_value_preprocessors[name]:", "                    url_func(req.endpoint, req.view_args)", "", "        for name in names:", "            if name in self.before_request_funcs:", "                for before_func in self.before_request_funcs[name]:", "                    rv = self.ensure_sync(before_func)()", "", "                    if rv is not None:", "                        return rv  # type: ignore[no-any-return]", "", "        return None"]}, "app:993-1021": {"path": "src/flask/app.py", "start": 993, "end": 1021, "sha256": "058d6c58cc42215ae1e264510f632693efd8d7256322978bc03a649423d08378", "lines": ["    def dispatch_request(self, ctx: AppContext) -> ft.ResponseReturnValue:", "        \"\"\"Does the request dispatching.  Matches the URL and returns the", "        return value of the view or error handler.  This does not have to", "        be a response object.  In order to convert the return value to a", "        proper response object, call :func:`make_response`.", "", "        .. versionchanged:: 3.2", "            Takes ``ctx: AppContext`` as the first parameter. The old signature", "            is deprecated and will not be supported in Flask 4.0.", "", "        .. versionchanged:: 0.7", "           This no longer does the exception handling, this code was", "           moved to the new :meth:`full_dispatch_request`.", "        \"\"\"", "        req = ctx.request", "", "        if req.routing_exception is not None:", "            self.raise_routing_exception(req)", "        rule: Rule = req.url_rule  # type: ignore[assignment]", "        # if we provide automatic options for this URL and the", "        # request came with the OPTIONS method, reply automatically", "        if (", "            getattr(rule, \"provide_automatic_options\", False)", "            and req.method == \"OPTIONS\"", "        ):", "            return self.make_default_options_response(ctx)", "        # otherwise dispatch to the handler for that endpoint", "        view_args: dict[str, t.Any] = req.view_args  # type: ignore[assignment]", "        return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]"]}, "app:1021": {"path": "src/flask/app.py", "start": 1021, "end": 1021, "sha256": "058d6c58cc42215ae1e264510f632693efd8d7256322978bc03a649423d08378", "lines": ["        return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]"]}, "app:1267-1407": {"path": "src/flask/app.py", "start": 1267, "end": 1407, "sha256": "058d6c58cc42215ae1e264510f632693efd8d7256322978bc03a649423d08378", "lines": ["    def make_response(self, rv: ft.ResponseReturnValue) -> Response:", "        \"\"\"Convert the return value from a view function to an instance of", "        :attr:`response_class`.", "", "        :param rv: the return value from the view function. The view function", "            must return a response. Returning ``None``, or the view ending", "            without returning, is not allowed. The following types are allowed", "            for ``view_rv``:", "", "            ``str``", "                A response object is created with the string encoded to UTF-8", "                as the body.", "", "            ``bytes``", "                A response object is created with the bytes as the body.", "", "            ``dict``", "                Converted to a JSON response.", "", "            ``list``", "                Converted to a JSON response.", "", "            ``generator`` or ``iterator``", "                A generator that returns ``str`` or ``bytes`` to be", "                streamed as the response.", "", "            ``tuple``", "                Either ``(body, status, headers)``, ``(body, status)``, or", "                ``(body, headers)``, where ``body`` is any of the other types", "                allowed here, ``status`` is a string or an integer, and", "                ``headers`` is a dictionary or a list of ``(key, value)``", "                tuples. If ``body`` is a :attr:`response_class` instance,", "                ``status`` overwrites the exiting value and ``headers`` are", "                extended.", "", "            :attr:`response_class`", "                The object is returned unchanged.", "", "            other :class:`~werkzeug.wrappers.Response` class", "                The object is coerced to :attr:`response_class`.", "", "            :func:`callable`", "                The function is called as a WSGI application. The result is", "                used to create a response object.", "", "        .. versionchanged:: 2.2", "            A generator will be converted to a streaming response.", "            A list will be converted to a JSON response.", "", "        .. versionchanged:: 1.1", "            A dict will be converted to a JSON response.", "", "        .. versionchanged:: 0.9", "           Previously a tuple was interpreted as the arguments for the", "           response object.", "        \"\"\"", "", "        status: int | None = None", "        headers: HeadersValue | None = None", "", "        # unpack tuple returns", "        if isinstance(rv, tuple):", "            len_rv = len(rv)", "", "            # a 3-tuple is unpacked directly", "            if len_rv == 3:", "                rv, status, headers = rv  # type: ignore[misc]", "            # decide if a 2-tuple has status or headers", "            elif len_rv == 2:", "                if isinstance(rv[1], (Headers, dict, tuple, list)):", "                    rv, headers = rv  # pyright: ignore", "                else:", "                    rv, status = rv  # type: ignore[assignment,misc]", "            # other sized tuples are not allowed", "            else:", "                raise TypeError(", "                    \"The view function did not return a valid response tuple.\"", "                    \" The tuple must have the form (body, status, headers),\"", "                    \" (body, status), or (body, headers).\"", "                )", "", "        # the body must not be None", "        if rv is None:", "            raise TypeError(", "                f\"The view function for {request.endpoint!r} did not\"", "                \" return a valid response. The function either returned\"", "                \" None or ended without a return statement.\"", "            )", "", "        # make sure the body is an instance of the response class", "        if not isinstance(rv, self.response_class):", "            if isinstance(rv, (str, bytes, bytearray)) or isinstance(rv, cabc.Iterator):", "                # let the response class set the status and headers instead of", "                # waiting to do it manually, so that the class can handle any", "                # special logic", "                rv = self.response_class(", "                    rv,", "                    status=status,", "                    headers=headers,  # type: ignore[arg-type]", "                )", "                status = headers = None", "            elif isinstance(rv, (dict, list)):", "                rv = self.json.response(rv)", "            elif isinstance(rv, BaseResponse) or callable(rv):", "                # evaluate a WSGI callable, or coerce a different response", "                # class to the correct type", "                try:", "                    rv = self.response_class.force_type(", "                        rv,  # type: ignore[arg-type]", "                        request.environ,", "                    )", "                except TypeError as e:", "                    raise TypeError(", "                        f\"{e}\\nThe view function did not return a valid\"", "                        \" response. The return type must be a string,\"", "                        \" dict, list, tuple with headers or status,\"", "                        \" Response instance, or WSGI callable, but it\"", "                        f\" was a {type(rv).__name__}.\"", "                    ).with_traceback(sys.exc_info()[2]) from None", "            else:", "                raise TypeError(", "                    \"The view function did not return a valid\"", "                    \" response. The return type must be a string,\"", "                    \" dict, list, tuple with headers or status,\"", "                    \" Response instance, or WSGI callable, but it was a\"", "                    f\" {type(rv).__name__}.\"", "                )", "", "        rv = t.cast(Response, rv)", "        # prefer the status if it was provided", "        if status is not None:", "            if isinstance(status, (str, bytes, bytearray)):", "                rv.status = status", "            else:", "                rv.status_code = status", "", "        # extend existing headers with provided headers", "        if headers:", "            rv.headers.update(headers)", "", "        return rv"]}, "app:1056-1090": {"path": "src/flask/app.py", "start": 1056, "end": 1090, "sha256": "058d6c58cc42215ae1e264510f632693efd8d7256322978bc03a649423d08378", "lines": ["    def finalize_request(", "        self,", "        ctx: AppContext,", "        rv: ft.ResponseReturnValue | HTTPException,", "        from_error_handler: bool = False,", "    ) -> Response:", "        \"\"\"Given the return value from a view function this finalizes", "        the request by converting it into a response and invoking the", "        postprocessing functions.  This is invoked for both normal", "        request dispatching as well as error handlers.", "", "        Because this means that it might be called as a result of a", "        failure a special safe mode is available which can be enabled", "        with the `from_error_handler` flag.  If enabled, failures in", "        response processing will be logged and otherwise ignored.", "", "        .. versionchanged:: 3.2", "            Takes ``ctx: AppContext`` as the first parameter. The old signature", "            is deprecated and will not be supported in Flask 4.0.", "", "        :meta private:", "        \"\"\"", "        response = self.make_response(rv)", "        try:", "            response = self.process_response(ctx, response)", "            request_finished.send(", "                self, _async_wrapper=self.ensure_sync, response=response", "            )", "        except Exception:", "            if not from_error_handler:", "                raise", "            self.logger.exception(", "                \"Request finalizing failed with an error while handling an error\"", "            )", "        return response"]}, "app:1441-1470": {"path": "src/flask/app.py", "start": 1441, "end": 1470, "sha256": "058d6c58cc42215ae1e264510f632693efd8d7256322978bc03a649423d08378", "lines": ["    def process_response(self, ctx: AppContext, response: Response) -> Response:", "        \"\"\"Can be overridden in order to modify the response object", "        before it's sent to the WSGI server.  By default this will", "        call all the :meth:`after_request` decorated functions.", "", "        :param ctx: The current app context.", "        :param response: The response.", "        :return: The passed in response, or a new ``Response`` object.", "", "        .. versionchanged:: 3.2", "            Takes ``ctx: AppContext`` as the first parameter. The old signature", "            is deprecated and will not be supported in Flask 4.0.", "", "        .. versionchanged:: 0.5", "            Functions are called in reverse order of registration.", "", "        \"\"\"", "        for func in ctx._after_request_functions:", "            response = self.ensure_sync(func)(response)", "", "        for name in chain(ctx.request.blueprints, (None,)):", "            if name in self.after_request_funcs:", "                for func in reversed(self.after_request_funcs[name]):", "                    response = self.ensure_sync(func)(response)", "", "        if not self.session_interface.is_null_session(ctx._get_session()):", "            self.session_interface.save_session(self, ctx._get_session(), response)", "", "        return response", ""]}, "app:1078": {"path": "src/flask/app.py", "start": 1078, "end": 1078, "sha256": "058d6c58cc42215ae1e264510f632693efd8d7256322978bc03a649423d08378", "lines": ["        response = self.make_response(rv)"]}, "app:1665": {"path": "src/flask/app.py", "start": 1665, "end": 1665, "sha256": "058d6c58cc42215ae1e264510f632693efd8d7256322978bc03a649423d08378", "lines": ["            return response(environ, start_response)"]}, "app:1666-1677": {"path": "src/flask/app.py", "start": 1666, "end": 1677, "sha256": "058d6c58cc42215ae1e264510f632693efd8d7256322978bc03a649423d08378", "lines": ["        finally:", "            if \"werkzeug.debug.preserve_context\" in environ:", "                environ[\"werkzeug.debug.preserve_context\"](ctx)", "", "            if (", "                error is not None", "                and self.should_ignore_error is not None", "                and self.should_ignore_error(error)", "            ):", "                error = None", "", "            ctx.pop(error)"]}, "ctx:446": {"path": "src/flask/ctx.py", "start": 446, "end": 446, "sha256": "f1f29a575b63488846db4946efc7ddc9e453312a126fa04e5720bc5ae8278cbf", "lines": ["    def pop(self, exc: BaseException | None = None) -> None:"]}}, "status": "checked", "timingNotes": []}</script>
 <script>
 const payload=JSON.parse(document.querySelector('#payload').textContent);
 const moduleRecord={exports:{}};
@@ -684,9 +769,42 @@ function restoreCamera(){
 function setInspector(open){
   if($('#inspector').hidden===!open)return;
   if(open)inspectorReturnFocus=document.activeElement;
-  preserveCamera(()=>{$('#inspector').hidden=!open;$('.dual-layout').classList.toggle('inspector-open',open);$('#toggle-details').setAttribute('aria-expanded',String(open));});
-  if(!open){sourceRefs=[];$('#drawer').hidden=true;$('#details-body').hidden=false;
+  preserveCamera(()=>{$('#inspector').hidden=!open;$('.dual-layout').classList.toggle('inspector-open',open);$('#toggle-details').setAttribute('aria-expanded',String(open));syncChrome();});
+  if(!open){setSourceFull(false);sourceRefs=[];$('#drawer').hidden=true;$('#details-body').hidden=false;
     const target=inspectorReturnFocus?.isConnected&&!$('#inspector').contains(inspectorReturnFocus)?inspectorReturnFocus:$('#toggle-details');target.focus();}
+}
+function setHeader(open){
+  const app=$('.app');
+  if(!app||app.classList.contains('header-collapsed')===!open)return;
+  preserveCamera(()=>{app.classList.toggle('header-collapsed',!open);$('#collapse-header').setAttribute('aria-expanded',String(open));syncChrome();});
+  if(!open)$('#expand-header').focus({preventScroll:true});
+}
+function setBusiness(open){
+  if($('#business-panel').hidden===!open)return;
+  preserveCamera(()=>{$('#business-panel').hidden=!open;$('.dual-layout').classList.toggle('sidebar-collapsed',!open);$('#collapse-business').setAttribute('aria-expanded',String(open));syncChrome();});
+  if(!open)$('#expand-business').focus({preventScroll:true});
+}
+function syncChrome(){
+  $('#edge-top').hidden=!$('.app').classList.contains('header-collapsed');
+  $('#edge-left').hidden=!$('.dual-layout').classList.contains('sidebar-collapsed');
+  $('#edge-right').hidden=!$('#inspector').hidden;
+}
+function chooseBranch(object,choiceId){
+  const values=choices();
+  if(!Object.hasOwn(values,object.id)||values[object.id]===choiceId)return;
+  values[object.id]=choiceId;reading=null;renderChoices();plot();paintReading();
+}
+function cycleBranch(object){
+  const values=choices();
+  if(!Object.hasOwn(values,object.id))return false;
+  const list=object.choices,i=Math.max(0,list.findIndex(c=>c.id===values[object.id]));
+  values[object.id]=list[(i+1)%list.length].id;reading=null;renderChoices();plot();paintReading();
+  return true;
+}
+function handleObject(object,enter=false){
+  if(enter&&object.detail){navigate(current+'/'+object.id);return;}
+  cycleBranch(object);
+  showDetails({kind:'object',object});
 }
 function previewText(text){
   const paragraph=String(text||'').trim().split(/\n\s*\n|\n/)[0];
@@ -720,7 +838,7 @@ const flow=()=>businesses.get(current).flow;
 function navigate(key){
   const target=businesses.get(key);
   if(!target)return;
-  hidePreview();pendingAnchor=null;sourceRefs=[];$('#drawer').hidden=true;$('#details-body').hidden=false;
+  hidePreview();pendingAnchor=null;setSourceFull(false);sourceRefs=[];$('#drawer').hidden=true;$('#details-body').hidden=false;
   for(let b=target;b.parent;b=businesses.get(b.parent))collapsed.delete(b.parent);
   if(!target.flow){if(current!==target.parent)navigate(target.parent);select(target.owner);return;}
   if(current===key){businessPlot();return;}
@@ -818,15 +936,17 @@ function paintReading(){
   $('#read-next').hidden=!reading||completed;
   $('#read-next').disabled=!reading||completed;
   $('#read-reset').hidden=!reading;
-  $('#read-status').textContent=!reading?'选择对象查看说明，或按依赖逐步阅读。':plan.blocked.length?'阅读受阻：'+plan.blocked.join('、'):completed?'本层阅读完成；不是程序执行成功。':`${reading.cursor}/${plan.order.length} · 按作者声明的关系阅读`;
+  $('#read-status').hidden=!reading;
+  $('#read-status').textContent=!reading?'':plan.blocked.length?'阅读受阻：'+plan.blocked.join('、'):completed?'本层阅读完成；不是程序执行成功。':`${reading.cursor}/${plan.order.length} · 按作者声明的关系阅读`;
   if(reading&&plan.conflicts.length)$('#read-status').textContent+=' · 输入可能绕过未选条件：'+plan.conflicts.join('、');
   syncFlow();
 }
 function renderChoices(){
   const values=choices();
-  $('#choices').replaceChildren();
+  const host=$('#choices');
+  if(!host)return;
+  host.replaceChildren();
   const owners=flow().objects.filter(o=>o.choices);
-  $('#choices-panel').hidden=!owners.length;
   for(const object of owners){
     const label=html('label',object.title), select=html('select');
     select.dataset.choice=object.id;
@@ -834,12 +954,13 @@ function renderChoices(){
     select.value=values[object.id];
     select.onchange=()=>{values[object.id]=select.value;reading=null;renderChoices();plot();paintReading();};
     label.append(select);
-    $('#choices').append(label);
+    host.append(label);
   }
 }
 function showDetails(target,reveal=true){
   hidePreview();selected=target;sourceRefs=[];$('#drawer').hidden=true;$('#details-body').hidden=false;
   let refs=[],title='';$('#selected-symbol').replaceChildren();
+  $('#branch-section').hidden=true;
   if(target.kind==='relation'){
     const relation=target.relation;
     title=relation.label||objectTitle(relation.from)+' → '+objectTitle(relation.to);
@@ -855,10 +976,18 @@ function showDetails(target,reveal=true){
     $('#selected-text').textContent=object.text||'';
     refs=refsOf(object.sources);
     if(object.type==='resource')$('#selected-symbol').append(LitFluxDrawing.resourceIcon(object.resourceKind));
-    else{
-      const icon=svg('svg',{viewBox:'0 0 24 24',fill:'none',stroke:'currentColor','stroke-width':1.5,'aria-hidden':'true'});
-      const paths={business:'M4 5H20V19H4Z',data:'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18',component:'M6 3H18L23 12L18 21H6L1 12Z',decision:'M12 2L22 12L12 22L2 12Z',boundary:'M7 5H17a7 7 0 0 1 0 14H7a7 7 0 0 1 0-14'};
-      icon.append(svg('path',{d:paths[object.type]||paths.business}));$('#selected-symbol').append(icon);
+    else $('#selected-symbol').append(LitFluxDrawing.roleIcon(object.type));
+    if(object.choices){
+      const values=choices();
+      $('#branch-section').hidden=false;
+      $('#branch-choices').replaceChildren();
+      for(const choice of object.choices){
+        const button=html('button',choice.label);
+        button.className='branch-chip';
+        button.setAttribute('aria-pressed',String(values[object.id]===choice.id));
+        button.onclick=()=>{chooseBranch(object,choice.id);showDetails(target);};
+        $('#branch-choices').append(button);
+      }
     }
     $('#expand').hidden=!object.detail;
     $('#expand').onclick=()=>navigate(current+'/'+object.id);
@@ -956,7 +1085,7 @@ function plot(){
   const host=$('#canvas');
   try{
     const view=flow();
-    const scene=LitFluxDrawing.create(view,host,{onObject:select,onRelation:selectRelation,onPreview:startPreview,onPreviewEnd:endPreview});
+    const scene=LitFluxDrawing.create(view,host,{onObject:handleObject,onRelation:selectRelation,onPreview:startPreview,onPreviewEnd:endPreview});
     view.draw(scene,{width:host.clientWidth,height:host.clientHeight});
     currentDiagram=scene.finish();
     currentDiagram.error=null;
@@ -1007,20 +1136,19 @@ function openSource(refs,title){
     });
     section.append(pre);$('#sources').append(section);
   }
-  $('#drawer').hidden=false;$('#details-body').hidden=true;$('#close-source').focus();
+  $('#drawer').hidden=false;$('#details-body').hidden=true;setSourceFull(false);$('#close-source').focus();
 }
-function closeSource(){sourceRefs=[];$('#drawer').hidden=true;$('#details-body').hidden=false;if(returnFocus?.isConnected)returnFocus.focus();}
+function setSourceFull(on){
+  $('#drawer').classList.toggle('source-full',on);
+  $('#toggle-source-full').textContent=on?'退出全屏':'全屏';
+  $('#toggle-source-full').setAttribute('aria-pressed',String(on));
+}
+function closeSource(){setSourceFull(false);sourceRefs=[];$('#drawer').hidden=true;$('#details-body').hidden=false;if(returnFocus?.isConnected)returnFocus.focus();}
 function applyTheme(theme,persist=false){
   document.documentElement.dataset.theme=theme==='dark'?'dark':'light';
   $('#theme').textContent=theme==='dark'?'浅色主题':'深色主题';
   $('#theme').setAttribute('aria-pressed',String(theme==='dark'));
   if(persist)try{localStorage.setItem('litflux.theme',theme);}catch{}
-}
-function updateMotion(){
-  $('#motion').disabled=reducedMotion.matches;
-  $('#motion').textContent=reducedMotion.matches?'已减少动态':'流动：'+(motionEnabled?'开':'关');
-  $('#motion').setAttribute('aria-pressed',String(motionEnabled&&!reducedMotion.matches));
-  syncFlow();
 }
 function render(){
   const view=businesses.get(current);
@@ -1032,6 +1160,9 @@ function render(){
   document.querySelectorAll('[data-legend]').forEach(el=>{el.hidden=!diagram.relations.some(r=>r.type===el.dataset.legend);});
   $('#relation-count').textContent=diagram.objects.length+' 对象 · '+diagram.relations.length+' 关系';
   const chain=[];for(let b=view;b;b=businesses.get(b.parent))chain.unshift(b);
+  const parent=view.parent?businesses.get(view.parent):null;
+  $('#back-level').hidden=!parent;
+  if(parent)$('#back-level').onclick=()=>navigate(parent.key);
   $('#crumbs').hidden=chain.length===1;$('#crumbs').replaceChildren();
   chain.forEach((item,i)=>{
     if(i)$('#crumbs').append(html('span','/'));
@@ -1043,9 +1174,13 @@ function render(){
   else if(diagram.objects.length)showDetails({kind:'object',object:diagram.objects[0]},false);
   paintReading();
 }
-$('#toggle-business').onclick=()=>preserveCamera(()=>{const open=$('#business-panel').hidden;$('#business-panel').hidden=!open;$('.dual-layout').classList.toggle('sidebar-collapsed',!open);$('#toggle-business').setAttribute('aria-expanded',String(open));});
+$('#collapse-business').onclick=()=>setBusiness(false);
 $('#toggle-details').onclick=()=>setInspector($('#inspector').hidden);
 $('#close-details').onclick=()=>setInspector(false);
+$('#collapse-header').onclick=()=>setHeader(false);
+$('#expand-header').onclick=()=>setHeader(true);
+$('#expand-business').onclick=()=>setBusiness(true);
+$('#expand-details').onclick=()=>setInspector(true);
 $('#node-preview').onpointerenter=()=>clearTimeout(previewCloseTimer);
 $('#node-preview').onpointerleave=endPreview;
 $('#canvas').addEventListener('scroll',()=>{
@@ -1066,8 +1201,6 @@ $('#read-next').onclick=()=>{
 };
 $('#read-reset').onclick=()=>{reading=null;paintReading();};
 $('#theme').onclick=()=>applyTheme(document.documentElement.dataset.theme==='dark'?'light':'dark',true);
-$('#motion').onclick=()=>{motionEnabled=!motionEnabled;updateMotion();};
-reducedMotion.addEventListener('change',updateMotion);
 $('#fit').onclick=()=>{
   if(!currentDiagram?.svg)return;
   zoom=Math.min(1,($('#canvas').clientWidth-32)/currentDiagram.width,($('#canvas').clientHeight-32)/currentDiagram.height);
@@ -1088,13 +1221,15 @@ for(const name of ['pointerup','pointercancel','lostpointercapture'])$('#canvas'
 document.addEventListener('keydown',event=>{
   if(event.key==='Escape'){
     if(!$('#node-preview').hidden)hidePreview();
+    else if(!$('#drawer').hidden&&$('#drawer').classList.contains('source-full'))setSourceFull(false);
     else if(!$('#drawer').hidden)closeSource();
-    else if($('#choices-panel').open)$('#choices-panel').open=false;
+    else if($('.app').classList.contains('header-collapsed'))setHeader(true);
     else if(!$('#inspector').hidden)setInspector(false);
   }
 });
 $('#workflow-select').onchange=()=>navigate('workflow:'+$('#workflow-select').value);
 $('#close-source').onclick=closeSource;
+$('#toggle-source-full').onclick=()=>setSourceFull(!$('#drawer').classList.contains('source-full'));
 $('#delivery-badge').textContent={'draft':'草稿','checked':'已检查','reviewed':'已复核'}[payload.status]||'草稿';
 $('#title').textContent=$('#project-title').textContent=model.title;
 $('#summary').textContent=model.summary;$('#scope').textContent=model.scope;
@@ -1115,7 +1250,7 @@ new ResizeObserver(()=>{
   schedulePlot();
 }).observe($('#canvas'));
 let theme='dark';try{theme=localStorage.getItem('litflux.theme')||'dark';}catch{}applyTheme(theme);
-render();updateMotion();
+render();syncChrome();
 requestAnimationFrame(()=>{const first=flow().objects.find(o=>o.type==='business')||flow().objects[0];if(first)select(first);});
 </script>
 <script>// Declaration checks plus objective geometry checks. Nothing here judges meaning or taste.
@@ -1423,6 +1558,17 @@ requestAnimationFrame(()=>{const first=flow().objects.find(o=>o.type==='business
   "草稿": "Draft",
   "已检查": "Checked",
   "已复核": "Reviewed",
+  "收起顶栏": "Collapse header",
+  "收起业务分解图": "Collapse business map",
+  "收起节点详情": "Collapse node details",
+  "展开顶栏": "Show header",
+  "⌄ 顶栏": "⌄ Header",
+  "展开业务分解图": "Show business map",
+  "业务分解图 ›": "Business map ›",
+  "展开节点详情": "Show node details",
+  "‹ 节点详情": "‹ Node details",
+  "分支": "Branch",
+  "点击图上的判断节点可切换到下一个分支。": "Select a decision node to switch to the next branch.",
   "显示": "Display",
   "切换夜间": "Dark mode",
   "切换白天": "Light mode",
