@@ -81,8 +81,6 @@
     for (const box of nodes) {
       const inside=(x,y)=>{
         const w=box.width/2-2,h=box.height/2-2;
-        if(box.role==='data')return x*x+y*y<=w*w;
-        if(box.role==='decision')return Math.abs(x)/w+Math.abs(y)/h<=1;
         return Math.abs(x)<=w&&Math.abs(y)<=h;
       };
       if ((box.textBoxes||[]).some(r=>[[r.x,r.y],[r.x+r.width,r.y],[r.x,r.y+r.height],[r.x+r.width,r.y+r.height]].some(([x,y])=>!inside(x,y)))) {

@@ -82,9 +82,7 @@ const LitFluxDrawing = (() => {
     if (!dx && !dy) throw Error(`${pos.id}: coincident endpoints need an explicit side`);
     const hw = pos.width / 2, hh = pos.height / 2;
     let k;
-    if (pos.type === 'data') k = hw / Math.hypot(dx, dy);
-    else if (pos.type === 'decision') k = 1 / (Math.abs(dx) / hw + Math.abs(dy) / hh);
-    else k = Math.min(dx ? Math.abs(hw / dx) : Infinity, dy ? Math.abs(hh / dy) : Infinity);
+    k = Math.min(dx ? Math.abs(hw / dx) : Infinity, dy ? Math.abs(hh / dy) : Infinity);
     return [pos.x + dx * k, pos.y + dy * k];
   }
   function rounded(points) {
@@ -182,24 +180,13 @@ const LitFluxDrawing = (() => {
         if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); run(); }
       };
     };
-    function shape(object) {
-      if (object.type === 'data') return el('circle', { class: 'shape', r: 1 });
-      if (object.type === 'decision') return el('polygon', { class: 'shape' });
-      if (object.type === 'component') return el('polygon', { class: 'shape' });
-      return el('rect', { class: 'shape' });
-    }
+    function shape(object) { return el('rect', {class:'shape'}); }
     function sizeOf(object, options) {
-      const title = object.title || '';
-      if (object.type === 'data') {
-        const side = options.width ?? Math.max(96, Math.min(200, width(title, 15) + 36));
-        return { width: side, height: side, text: side * 0.74 };
-      }
-      const resource=object.type==='resource';
-      const box = options.width ?? Math.max(resource?148:124, Math.min(resource?280:248, width(title, 15) + (resource?72:42)));
-      const textWidth=Math.max(1,box-(resource?56:24));
-      const rows = wrap(title, textWidth, 15);
-      const height = options.height ?? Math.max(object.type === 'decision' ? 104 : 74, rows.height + 34);
-      return { width: box, height, text: textWidth };
+      const data=object.type==='data', extra=data?46:76;
+      const box=options.width??Math.max(data?124:180,Math.min(280,width(object.title||'',15)+extra));
+      const textWidth=Math.max(1,box-(data?40:66));
+      const rows=wrap(object.title||'',textWidth,15);
+      return {width:box,height:options.height??Math.max(data?48:78,rows.height+30),text:textWidth};
     }
 
     const scene = {
@@ -223,35 +210,30 @@ const LitFluxDrawing = (() => {
           'data-node': id, 'data-role': object.type, 'aria-label': object.title,
         });
         const node = shape(object);
-        if (object.type === 'data') {
-          node.setAttribute('r', size.width / 2);
-        } else if (object.type === 'decision') {
-          node.setAttribute('points', `0,${-size.height / 2} ${size.width / 2},0 0,${size.height / 2} ${-size.width / 2},0`);
-        } else if (object.type === 'component') {
-          const w = size.width / 2, h = size.height / 2;
-          node.setAttribute('points', `${-w + 14},${-h} ${w - 14},${-h} ${w},0 ${w - 14},${h} ${-w + 14},${h} ${-w},0`);
-        } else {
-          const w = size.width / 2, h = size.height / 2;
-          node.setAttribute('x', -w); node.setAttribute('y', -h);
-          node.setAttribute('width', size.width); node.setAttribute('height', size.height);
-          node.setAttribute('rx', object.type === 'boundary' ? h : object.type==='resource'?3:8);
-        }
+        const w=size.width/2,h=size.height/2,data=object.type==='data';
+        for(const [key,value] of Object.entries({x:-w,y:-h,width:size.width,height:size.height,rx:data?h:12}))node.setAttribute(key,value);
         group.append(node);
-        if (object.type === 'resource') {
-          group.dataset.resourceKind=resourceKind(object.resourceKind);
-          const icon=resourceIcon(object.resourceKind);
-          icon.setAttribute('x',-size.width/2+12);icon.setAttribute('y',-12);group.append(icon);
+        if(data)group.append(el('circle',{class:'data-dot',cx:-w+20,cy:0,r:3.5}));
+        else{
+          group.append(el('rect',{class:'icon-tile',x:-w+12,y:-21,width:38,height:42,rx:8}));
+          if(object.type==='resource'){
+            group.dataset.resourceKind=resourceKind(object.resourceKind);
+            const icon=resourceIcon(object.resourceKind);icon.setAttribute('x',-w+19);icon.setAttribute('y',-12);group.append(icon);
+          }else{
+            const paths={business:'M5 6H19 M5 12H15 M5 18H11 M17 14L21 18 M21 14L17 18',decision:'M4 7L6 9L9 5 M12 7H20 M4 16L6 18L9 14 M12 16H20',component:'M7 3H17L23 12L17 21H7L1 12Z',boundary:'M4 12H20 M14 6L20 12L14 18'};
+            group.append(el('path',{class:'role-glyph',transform:`translate(${-w+19} -12)`,d:paths[object.type]||paths.business}));
+          }
         }
         if(object.detail){
           group.append(el('path',{class:'detail-hint',d:`M${size.width/2-15} ${size.height/2-18} l5 4 -5 4 Z`,'aria-hidden':'true'}));
         }
         const rows = wrap(object.title || '', size.text, 15);
         const text = el('text', {
-          x: object.type==='resource'?16:0, y: -(rows.height - rows.lineHeight) / 2, 'text-anchor': 'middle',
+          x: object.type==='data'?8:22, y: -(rows.height - rows.lineHeight) / 2, 'text-anchor': 'middle',
           class: 'n-title', 'font-size': 15, 'font-family': FONT,
         });
         rows.lines.forEach((row, index) => {
-          const span = el('tspan', { x: object.type==='resource'?16:0, dy: index ? rows.lineHeight : 0 });
+          const span = el('tspan', { x: object.type==='data'?8:22, dy: index ? rows.lineHeight : 0 });
           span.textContent = row;
           text.append(span);
         });
@@ -303,6 +285,7 @@ const LitFluxDrawing = (() => {
           'marker-end': `url(#arrow-${relation.type})`,
         });
         edgeLayer.append(line);
+        for(const distance of [0,line.getTotalLength()]){const p=line.getPointAtLength(distance);edgeLayer.append(el('circle',{class:'edge-port',cx:p.x,cy:p.y,r:3}));}
         const hit = el('path', {class:'edge-hit', d:line.getAttribute('d'),
           'data-relation':id, 'aria-label':relation.label || `${from.id} → ${to.id} (${relation.type})`});
         activate(hit, () => handlers.onRelation?.(relation));
@@ -397,7 +380,7 @@ const LitFluxDrawing = (() => {
               id: b.id, kind:'node', role: b.type, x: b.x + dx, y: b.y + dy,
               width: b.width, height: b.height, textWidth: b.textWidth, textHeight: b.textHeight,
               textBoxes: [...b.group.querySelectorAll('tspan')].map(t=>{const r=t.getBBox();return {x:r.x,y:r.y,width:r.width,height:r.height};}),
-              iconBox: b.type==='resource'?{x:-b.width/2+12,y:-12,width:24,height:24}:null,
+              outline:'rect', iconBox: b.type!=='data'?{x:-b.width/2+12,y:-21,width:38,height:42}:null,
             })),
             notes: notes.map((n) => ({
               id: n.id, kind:'note', role: n.type, x: n.x + dx, y: n.y + dy,

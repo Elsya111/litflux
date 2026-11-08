@@ -14,7 +14,7 @@ def main() -> None:
                         help='Output directory (default: .litflux/output)')
     parser.add_argument('--source-root', type=Path, required=True, help='Project root for source verification')
     parser.add_argument('--language', choices=('en', 'zh'), default=None)
-    parser.add_argument('--review', '--qa', dest='review', type=Path,
+    parser.add_argument('--review', type=Path,
                         help='review.json written by an independent agent session')
     parser.add_argument('--draft', action='store_true', help='Build without waiting for review')
     parser.add_argument('--preflight', action='store_true', help='Check the module and sources without rendering')
@@ -28,7 +28,6 @@ def main() -> None:
         if args.preflight:
             compiled = compile_module_file(args.project.resolve(), args.source_root.resolve())
             print(json.dumps({'valid': True, 'counts': compiled['counts'],
-                              'requiredNotes': compiled['requiredNotes'],
                               'timingNotes': compiled['timingNotes'],
                               'warnings': compiled['warnings'],
                               'boundary': compiled['boundary']}, ensure_ascii=False))

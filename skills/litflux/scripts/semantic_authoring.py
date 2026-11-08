@@ -326,7 +326,7 @@ def compile_module(module_path: Path, root: Path) -> dict:
     if errors:
         raise ValueError('\n'.join(errors))
     return dict(model=model, excerpts=excerpts, counts=counts,
-                requiredNotes=[], timingNotes=notes, warnings=warnings,
+                timingNotes=notes, warnings=warnings,
                 boundary='Structure, sources and the author\'s own timing declarations were checked; '
                          'source entailment and visual readability need a separate judgement.')
 

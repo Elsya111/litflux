@@ -127,6 +127,32 @@ const batch = {
   },
 };
 
+// This teaching module gives the wider icon cards more room. Other authors choose their own layout.
+const spaced = new Set();
+function spaceTeachingFlow(flow) {
+  if (spaced.has(flow)) return;
+  spaced.add(flow);
+  const draw = flow.draw;
+  flow.draw = (scene, viewport) => {
+    const s = {...scene,
+      node(id,x,y,options) { scene.node(id,x*1.14,y*1.16,options); return s; },
+      edge(id,options) {
+        const placed = {...options, via:options.via?.map(([x,y])=>[x*1.14,y*1.16]), noteAt:options.noteAt?.map((n,i)=>n*(i?1.16:1.14))};
+        const r=flow.relations.find(r=>r.id===id), a=scene.nodeBox(r.from), b=scene.nodeBox(r.to);
+        if(!options.via && options.sides.every(side=>['left','right'].includes(side)) && Math.abs(a.y-b.y)<1) {
+          const ax=options.sides[0]==='left'?a.left:a.right, bx=options.sides[1]==='left'?b.left:b.right;
+          placed.noteAt=[(ax+bx)/2,a.y]; placed.noteWidth=options.noteWidth??Math.max(56,Math.abs(bx-ax)-24);
+        }
+        scene.edge(id,placed); return s;
+      }
+    };
+    draw(s,viewport);
+  };
+  for(const object of flow.objects) if(object.detail) spaceTeachingFlow(object.detail);
+}
+spaceTeachingFlow(submit);
+spaceTeachingFlow(batch);
+
 module.exports = {
   title: '文本保存 · 项目脉络',
   language: 'zh',

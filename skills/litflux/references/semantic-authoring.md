@@ -1,6 +1,6 @@
 # 作者方式：一个项目 JS 模块
 
-图语言见 [机制说明](mechanism.md)，可运行的小例是 [project-example.js](../examples/project-example.js)。对象、关系、层级和来源定义一次；`draw()` 只按 ID 引用，不重复抄一份模型。旧 JSON 候选不再支持。
+图语言见 [机制说明](mechanism.md)，可运行的小例是 [project-example.js](../examples/project-example.js)。对象、关系、层级和来源定义一次；`draw()` 只按 ID 引用，不重复抄一份模型。
 
 完整工作顺序与阶段完成条件以 [SKILL.md](../SKILL.md) 为准。本文件在组织好业务解释后用于编写模块、构建检查和需要时的独立复核。
 
@@ -16,7 +16,7 @@
 | type | business、data、resource、component，控制结构用 decision，入口/结束可用 boundary |
 | text | 标题之外的介绍，按理解需要取舍；预览复用短片段，详情保留全文 |
 | resourceKind | resource 可选：database、config、directory、file、memory、generic；省略或未知字符串使用通用资源图标，未知值仅提示 |
-| sources | 引用格式为 `别名:起始行-结束行`；校验器接受字符串或数组，页面兼容字符串和数组，多处引用可写数组，如 `['app:14-19']` |
+| sources | 引用格式为 `别名:起始行-结束行`；接受字符串或数组，多处引用可写数组，如 `['app:14-19']` |
 | detail | business 的子 flow；按解释尺度决定，不按函数数机械展开 |
 | choices | 条件选择：`[{id, label}]` |
 
@@ -62,13 +62,13 @@ draw(s, {width, height}) {
 }
 ```
 
-- `s.node(id, x, y, {width, height})`：中心点。尺寸省略时按文字实测给出；business 是圆角矩形，data 是圆（width 即直径），resource 使用统一外框和类别图标，component 是六边形；decision 用菱形，boundary 用胶囊形虚线框。资源表示稳定载体或共享状态；类别由作者根据源码说明，工具映射图标，不根据标题猜测。
+- `s.node(id, x, y, {width, height})`：中心点。尺寸省略时按文字实测给出；business、decision、component、resource 使用圆角卡片与角色图标，data 使用带圆点的胶囊；component 保留六边形图标，decision 使用判断图标，boundary 保留边界标识。资源表示稳定载体或共享状态；类别由作者根据源码说明，工具映射图标，不根据标题猜测。
 - `s.edge(id, {sides, via, noteAt, noteWidth, path})`：`sides` 是两端锚点边（left/right/top/bottom，必填）；`via` 是折点数组；`noteAt` 是可见边注中心（有 label 时填写）；`path` 可直接给 SVG 路径。
-- `s.nodeBox(id)`：放置节点后返回只读 `{x,y,width,height,left,right,top,bottom}`，使用 draw 的作者坐标；外接框不是圆/菱形任意方向的锚点。`s.node()` 仍返回 scene，支持链式调用。
+- `s.nodeBox(id)`：放置节点后返回只读 `{x,y,width,height,left,right,top,bottom}`，使用 draw 的作者坐标；连线按 sides 连接外框的左/右/上/下中点。`s.node()` 返回 scene，支持链式调用。
 - `s.measure(text, {fontSize, maxWidth})`：返回 `{lines,width,height,lineHeight,boxWidth,boxHeight}`；最后两个字段含边注背景留白，与渲染使用同一套换行。`maxWidth` 是文本宽度。
 - `s.size(width, height)`：可选，指定逻辑画布；默认按内容外接框。
 
-默认节点按实际文字测量；data 直径目前为文字宽 +36 限制在 96–200，普通业务宽为文字宽 +42 限制在 124–248，高度随换行调整。资源会为 24px 图标预留槽位，默认宽度随标题调整。作者优先查询 `nodeBox()`，无需复制公式。显式节点尺寸由作者控制。
+默认节点按实际文字测量；数据胶囊与带图标卡片使用各自的文字空间，高度随换行调整。width 和 height 分别表示外框宽度和高度。图标卡片为底座留出空间，显式过小的尺寸会报告溢出。作者优先查询 `nodeBox()`，无需复制公式。显式节点尺寸由作者控制。
 
 边注省略 `noteWidth` 时，明确的水平线段会按 `noteAt` 两侧空间收窄文本换行宽度；复杂走线保留 260px 上限。显式数值始终优先，过窄空间会交给几何反馈，不强制压成单字列。宽度收窄也会增加高度，需要一起考虑；无可见边注的边仍能选择并查看关系。
 
@@ -80,7 +80,7 @@ draw(s, {width, height}) {
 
 构建时检查：ID 唯一、引用完整、data 边已声明 timing、非 data 边不带 timing、`branch` 指向真实 choice、来源范围可读。条件相容的中间路径给出可选说明提示；不据此改变线型。
 
-预检的 `warnings` 保留作者提示，`timingNotes` 列出已声明依据的位置；旧 `requiredNotes` 字段为兼容保留为空，不再要求补注。
+预检的 `warnings` 保留作者提示，`timingNotes` 列出已声明依据的位置。
 
 浏览器自动检查：遍历内部 flow（复用的同一 flow 去重），核对对象与关系数量、对象角色、边注文字（忽略空白）和声明的线型；检查节点重叠、越界、边注压节点、边注互压、边注离边 >40px、连线穿节点、文字溢出；纵横比极端只作提示。实际 SVG 路径用于穿线与距离检查。
 

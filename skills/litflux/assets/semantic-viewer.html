@@ -1,4 +1,4 @@
-<!doctype html><html lang="zh-CN" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LitFlux</title><style>__VIEWER_CSS__</style></head>
+<!doctype html><html lang="zh-CN" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LitFlux</title><style>__VIEWER_CSS__</style></head>
 <body id="litflux-canvas-app">
 <div class="app">
   <header class="app-header">
@@ -6,11 +6,11 @@
     <div class="workflow-picker"><label for="workflow-select">工作流</label><select id="workflow-select" aria-describedby="workflow-trigger"></select><p id="workflow-trigger" class="workflow-trigger" data-no-translate></p></div>
     <button id="theme" class="toolbar-button">深色主题</button>
   </header>
-  <div class="dual-layout sidebar-collapsed">
-    <aside id="business-panel" class="business-panel" hidden><div class="panel-head"><h2>业务分解图</h2><div class="branch-tools"><button id="collapse-all">收拢</button><button id="expand-all">展开</button></div></div><p class="business-caption">组成与层级 · 点击业务进入</p><div id="business" class="business-canvas" aria-label="业务分解图"></div><details class="project-info"><summary>项目信息</summary><h2 id="project-title"></h2><p id="summary"></p><p id="scope"></p></details></aside>
+  <div class="dual-layout">
+    <aside id="business-panel" class="business-panel"><div class="panel-head"><h2>业务分解图</h2><div class="branch-tools"><button id="collapse-all">收拢</button><button id="expand-all">展开</button></div></div><p class="business-caption">组成与层级 · 点击业务进入</p><div id="business" class="business-canvas" aria-label="业务分解图"></div><details class="project-info"><summary>项目信息</summary><h2 id="project-title"></h2><p id="summary"></p><p id="scope"></p></details></aside>
     <main class="workspace">
       <nav id="crumbs" class="crumbs" aria-label="当前业务路径"></nav>
-      <div class="page-heading"><h1 id="flow-title"></h1><div class="read-actions"><button id="toggle-business" class="panel-toggle" aria-expanded="false" aria-controls="business-panel">业务分解图</button><button id="read-start" class="primary">开始阅读</button><button id="read-next" class="primary" hidden disabled>下一步</button><button id="read-reset" hidden>退出阅读</button></div></div>
+      <div class="page-heading"><h1 id="flow-title"></h1><div class="read-actions"><button id="toggle-business" class="panel-toggle" aria-expanded="true" aria-controls="business-panel">业务分解图</button><button id="read-start" class="primary">开始阅读</button><button id="read-next" class="primary" hidden disabled>下一步</button><button id="read-reset" hidden>退出阅读</button></div></div>
       <div class="context-bar"><p id="read-status" class="read-status"></p><details class="menu choices-menu" id="choices-panel"><summary>分支情景</summary><div class="menu-body"><div id="choices" class="choices"></div><p>只选择阅读情景，不执行源码条件。</p></div></details></div>
       <section class="graph-panel">
         <div class="graph-top"><div class="graph-caption"><strong>内部流程图</strong><span id="relation-count"></span></div><div class="graph-actions">
@@ -526,8 +526,9 @@ new ResizeObserver(()=>{
   if(!pendingAnchor)pendingAnchor=cameraAnchor();
   schedulePlot();
 }).observe($('#canvas'));
-let theme='light';try{theme=localStorage.getItem('litflux.theme')||'light';}catch{}applyTheme(theme);
+let theme='dark';try{theme=localStorage.getItem('litflux.theme')||'dark';}catch{}applyTheme(theme);
 render();updateMotion();
+requestAnimationFrame(()=>{const first=flow().objects.find(o=>o.type==='business')||flow().objects[0];if(first)select(first);});
 </script>
 <script>__AUDIT__</script>
 <script>const semanticLocalizer=(__LOCALIZER__)(document.body,{language:model.language||'zh'},__MESSAGES__);semanticLocalizer.apply();</script></body></html>

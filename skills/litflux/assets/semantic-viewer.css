@@ -73,3 +73,32 @@ select{border:1px solid var(--line);border-radius:7px;background:var(--surface);
 @media(max-width:1250px){.dual-layout.inspector-open{grid-template-columns:248px minmax(0,1fr)}.dual-layout.sidebar-collapsed.inspector-open{grid-template-columns:minmax(0,1fr)}.inspector{position:absolute;right:12px;top:102px;bottom:12px;width:340px;z-index:35;box-shadow:var(--shadow)}.project-name{max-width:210px}.project-kicker{display:none}.app-header{gap:12px;padding:12px 16px}.workflow-picker{width:330px}}
 @media(max-width:900px){.identity{gap:10px}.project-name{max-width:160px}.badge{display:none}.app-header{flex-wrap:wrap;min-height:120px}.workflow-picker{order:3;width:100%;max-width:none;margin-left:0}.app-header>#theme{margin-left:auto}.dual-layout:not(.sidebar-collapsed){grid-template-columns:minmax(0,1fr)}.business-panel{position:absolute;left:12px;top:140px;bottom:12px;width:248px;z-index:34;box-shadow:var(--shadow)}.inspector{top:140px}.page-heading{align-items:flex-start}.graph-actions{gap:5px}.context-bar{align-items:flex-start}}
 @media(prefers-reduced-motion:reduce){.flow-particles{display:none}}
+
+/* Industrial chrome; soft, quiet diagram surfaces. */
+html[data-theme=dark]{--page:#25282a;--surface:#282c2e;--soft:#32373a;--ink:#f0f0e8;--muted:#aeb4b5;--line:#444a4d;--accent:#e9b563;--focus:#433d31;--process:#34393d;--data:#303639;--resource:#323a3a;--provider:#373a40;--decision:#383b3f;--control:#d3b37a;--failure:#ca9289;--loop:#b3a3c3;--resource-line:#b9c8bc;--provider-line:#b9c0cf;--input:#e9bd77;--output:#c9d7c9;--tree-line:#555e60;--shadow:0 14px 40px #1118}
+.app-header{min-height:76px;padding:12px 24px;background:var(--surface)}
+.brand{font-family:Consolas,'Microsoft YaHei',monospace;font-size:26px;letter-spacing:-1.5px}.brand:before{content:'';display:inline-block;width:10px;height:10px;background:var(--accent);transform:rotate(45deg);border-radius:2px;margin-right:12px}
+.project-kicker{font:10px Consolas,monospace;letter-spacing:1.2px}.badge{border-radius:2px;color:var(--accent)}
+.dual-layout{gap:0;padding:0;grid-template-columns:224px minmax(0,1fr)}.dual-layout.inspector-open{grid-template-columns:224px minmax(0,1fr) 300px}.dual-layout.sidebar-collapsed.inspector-open{grid-template-columns:minmax(0,1fr) 300px}
+.business-panel,.inspector{border-radius:0;border:0}.business-panel{border-right:1px solid var(--line)}.inspector{border-left:1px solid var(--line)}
+.workspace{padding:20px 20px 0}.page-heading h1{font-size:20px;letter-spacing:.3px}.graph-panel{border:0;border-radius:0;background:transparent}.graph-top{padding:12px 0}.graph-note{padding:12px 0}
+.scene{background-color:var(--page);background-image:linear-gradient(#abb8aa05 1px,transparent 1px),linear-gradient(90deg,#abb8aa05 1px,transparent 1px),radial-gradient(#abb8aa15 .7px,transparent .7px);background-size:100px 100px,100px 100px,20px 20px}
+.toolbar-button,.panel-toggle,.zoom-tools,select{border-radius:4px}.primary{border-radius:5px}.workflow-picker select{background:transparent}
+.business-node .business-card{stroke:transparent;fill:transparent}.business-node.current .business-card,.business-node.selected .business-card{fill:var(--focus);stroke:transparent}.business-node.current .business-label{fill:var(--accent)}.business-label{font-weight:400!important}.business-connector{stroke:var(--tree-line);stroke-width:1}
+.panel-head h2{font-size:12px;letter-spacing:1px}.panel-head{padding:18px 16px}.business-caption{padding-top:15px}.business-canvas{padding-top:18px}
+.selected-symbol{border-radius:10px;background:#202426;color:var(--accent)}.selection-heading h2{font-size:21px}.role{color:var(--accent)}.details-body{padding:22px 20px}.source-links button,.source pre{border-radius:5px}.source-links button{border-left:2px solid var(--accent)}
+.node .shape{fill:var(--process)!important;stroke:#51585d!important;stroke-width:1.2!important;filter:drop-shadow(0 4px 6px #13161930)}
+.node.role-data .shape{fill:var(--data)!important}.node.role-resource .shape{fill:var(--resource)!important}.node.is-selected .shape,.node.is-current .shape{stroke:var(--accent)!important;stroke-width:1.6!important;filter:drop-shadow(0 0 5px #e9b56316)}
+.node{outline:none!important}.node:focus-visible{outline:none}.node:focus-visible .shape{stroke:var(--accent)!important;stroke-width:2!important}
+.node .icon-tile{fill:#24292d;stroke:#ffffff05;stroke-width:1}.node .role-glyph{stroke:var(--accent);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}.node .data-dot{fill:var(--accent)}
+#canvas .edge{stroke:#8e9798;stroke-width:1.4}#canvas .edge.role-control{stroke:var(--control)}#canvas .edge.role-effect{stroke:var(--resource-line)}#canvas .edge.role-capability{stroke:var(--provider-line)}#canvas .edge.role-loop{stroke:var(--loop)}#canvas .edge.related{stroke:var(--accent);stroke-width:1.8}.relation-note .note-hit{rx:10;fill:var(--surface)}.relation-note .note-title{font-size:14px;fill:var(--muted)}.edge-port{fill:#e5e6e0;stroke:var(--page);stroke-width:1.8;pointer-events:none}
+@media(max-width:1250px){.dual-layout.inspector-open{grid-template-columns:224px minmax(0,1fr)}.dual-layout.sidebar-collapsed.inspector-open{grid-template-columns:minmax(0,1fr)}.inspector{width:320px;top:88px;right:12px;bottom:12px;border:1px solid var(--line);border-radius:10px}.workspace{padding-left:14px;padding-right:14px}}
+@media(max-width:900px){.dual-layout.inspector-open{grid-template-columns:minmax(0,1fr)}.business-panel,.inspector{top:140px}.business-panel{border:1px solid var(--line);border-radius:8px}}
+
+:root{--node-border:#b7b7af;--icon-tile:#e5e4dc;--edge-neutral:#7c817e;--port:#505a55;--accent:#946523;--focus:#eee3cf}
+html[data-theme=dark]{--node-border:#51585d;--icon-tile:#24292d;--edge-neutral:#8e9798;--port:#e5e6e0;--accent:#e9b563;--focus:#433d31}
+#canvas .node .shape{stroke:var(--node-border)!important}
+#canvas .node.is-selected .shape,#canvas .node.is-current .shape,#canvas .node:focus-visible .shape{stroke:var(--accent)!important}
+.node .icon-tile,.selected-symbol{background:var(--icon-tile);fill:var(--icon-tile)}
+#canvas .edge{stroke:var(--edge-neutral)}#canvas .edge.role-control{stroke:var(--control)}#canvas .edge.role-failure{stroke:var(--failure)}#canvas .edge.role-loop{stroke:var(--loop)}#canvas .edge.role-effect{stroke:var(--resource-line)}#canvas .edge.role-capability{stroke:var(--provider-line)}#canvas .edge.related{stroke:var(--accent)}
+.edge-port{fill:var(--port)}
