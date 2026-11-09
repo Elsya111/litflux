@@ -1,6 +1,6 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "litflux",
-  "version": "0.46.0",
+  "version": "1.0.0",
   "description": "依据源码生成项目导览、业务分解图与内部流程图；单份语义候选、源码导航、独立 QA、浏览器检查与离线查看器。"
 }
